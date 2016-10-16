@@ -7,6 +7,8 @@
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
+#include "keyboard.h"
+#include "rtc.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -149,6 +151,9 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
+	rtc_init();
+	
+	keyboard_init();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your

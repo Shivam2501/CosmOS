@@ -28,8 +28,8 @@ i8259_init(void)
 	slave_mask = inb(PIC_SLAVE_DATA);
 
 	/* mask all the interrupts on the PIC */
-	outb(0xff, PIC_MASTER_DATA); /* mask all master interrupts */
-	outb(0xff, PIC_SLAVE_DATA); /* mask all slave interrupts */
+	outb(0xFF, PIC_MASTER_DATA); /* mask all master interrupts */
+	outb(0xFF, PIC_SLAVE_DATA); /* mask all slave interrupts */
 
 	/* initialize the master PIC */
 	outb_p(0x11, PIC_MASTER_COMMAND);	/* ICW1: select master PIC */
@@ -89,4 +89,3 @@ send_eoi(uint32_t irq_num)
 	else
 		outb(EOI_SIGNAL, PIC_MASTER_COMMAND);
 }
-
