@@ -3,12 +3,10 @@
 #include "lib.h"
 
 void rtc_init() {
-	/* Select Register A(0x0A) and disable NMI(0x80) */
-	outb(0x8A, RTC_REGISTER);
 
 	/* Write to RTC RAM, set the time base to 010 = 32.76 kHz*/
-	outb(0x20, RTC_DATA);
-
+	//outb(0x20, RTC_DATA);
+	int rate = 15;
 	/* Select Register B and disable NMI*/
 	outb(0x8B, RTC_REGISTER);
 
@@ -22,9 +20,12 @@ void rtc_init() {
 	/* Turn on the periodic interrupt at bit 6*/
 	outb(curr | 0x40, RTC_DATA);
 
+	
+	outb(0x8A, RTC_REGISTER);
 	/* Enable NMI */
-	curr = inb(RTC_REGISTER);
-	outb(curr & 0x7F, RTC_REGISTER);
+	curr = inb(RTC_DATA);
+	outb(0x8A, RTC_REGISTER);
+	outb((curr & 0xF0) | rate, RTC_DATA);
 
 	/* Enable the IRQ Port for RTC*/
 	enable_irq(RTC_IRQ);
@@ -34,7 +35,7 @@ void rtc_handler() {
 	/* Mask all interrupts 
 	cli(); */
 
-	test_interrupts();
+	//test_interrupts();
 
 	/* Select register C*/
 	outb(0x0C, RTC_REGISTER);
@@ -42,7 +43,7 @@ void rtc_handler() {
 	/* Clear the content */
 	inb(RTC_DATA);
 
+	send_eoi(RTC_IRQ);
 	/* Unmask all interrupts 
 	sti(); */
-	asm volatile("iret;");
 }
