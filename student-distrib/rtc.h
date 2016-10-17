@@ -11,6 +11,6 @@
 
 void rtc_init();
 
-void rtc_handler();
+extern void rtc_handler();
 
-#endif /* _KEYBOARD_H */
+#endif /* _RTC_H */
