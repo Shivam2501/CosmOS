@@ -154,13 +154,13 @@ entry (unsigned long magic, unsigned long addr)
 	init_idt();
 	printf("Exited idt");
 
-	/* Init the PIC */
+	/* Initialize PIC, RTC, keyboard, and paging*/
 	i8259_init();
 
 	rtc_init();
 
 	keyboard_init();
-
+	
 	init_paging();
 
 	/* Initialize devices, memory, filesystem, enable devzice interrupts on the
@@ -185,7 +185,6 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
-	printf("dont print");
 
 
 }
