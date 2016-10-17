@@ -145,7 +145,7 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 	
-	//int i = 4/0;
+	
 
 	/* Init the PIC */
 	i8259_init();
@@ -160,10 +160,17 @@ entry (unsigned long magic, unsigned long addr)
 	 * without showing you any output */
 	printf("Enabling Interrupts\n");
 	sti();
-
-	printf("going to idt");
+	printf("Going to enter idt");
+	//printf("going to idt");
 	init_idt();
-	printf("returned from idt");
+	printf("Exited idt");
+
+	//int i = 4/0;
+	//printf("returned from idt");
+
+	//printf("divide by zero");
+	
+	//printf("returned from divide by zero");
 
 
 
@@ -171,6 +178,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
+	printf("dont print");
 
 
 }
