@@ -8,7 +8,7 @@
 
 .globl  ldt_size, tss_size
 .globl  gdt_desc, ldt_desc, tss_desc
-.globl  tss, tss_desc_ptr, ldt, ldt_desc_ptr
+.globl  tss, tss_desc_ptr, ldt, ldt_desc_ptr, gdt_desc_ptr
 .globl  gdt_ptr
 .globl  idt_desc_ptr, idt
 
@@ -85,6 +85,12 @@ ldt_desc_ptr:
 gdt_bottom:
 
 	.align 16
+
+gdt_desc_ptr:
+	#calculate limit
+	.word gdt_bottom - gdt - 1
+	#calculate base pointer
+	.long gdt_bottom
 ldt:
 	.rept 4
 	.quad 0
