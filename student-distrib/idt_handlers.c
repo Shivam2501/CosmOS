@@ -59,7 +59,7 @@ void init_idt(){
 
 void DIVIDE_BY_ZERO(){
 	printf("Warning: Divided by zero");
-	//while(1);
+	while(1);
 }
 
 void DEBUG_EXCEPTION(){
