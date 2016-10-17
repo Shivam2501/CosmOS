@@ -35,6 +35,7 @@ void rtc_handler() {
 	/* Mask all interrupts 
 	cli(); */
 
+	// THIS IS FOR TESTING. ENABLE IT
 	//test_interrupts();
 
 	/* Select register C*/
