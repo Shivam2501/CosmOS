@@ -12,14 +12,18 @@
 #define PIC_SLAVE_COMMAND		PIC_SLAVE
 #define PIC_SLAVE_DATA			(PIC_SLAVE + 1)
 
-#define EOI_SIGNAL				0x20
-
 /* Interrupt masks to determine which interrupts
  * are enabled and disabled */
 uint8_t master_mask; /* IRQs 0-7 */
 uint8_t slave_mask; /* IRQs 8-15 */
 
-/* Initialize the 8259 PIC */
+/*
+ * i8259_init
+ *   DESCRIPTION: Initialize the 8259 PIC.
+ *   INPUTS: void
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
 void
 i8259_init(void)
 {
@@ -48,13 +52,21 @@ i8259_init(void)
 	outb(slave_mask, PIC_SLAVE_DATA);
 }
 
-/* Enable (unmask) the specified IRQ */
+/*
+ * enable_irq
+ *   DESCRIPTION: Enable (unmask) the specified IRQ
+ *   INPUTS: void
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
 void
 enable_irq(uint32_t irq_num)
 {
 	uint8_t mask = 0xFE;
-	if(irq_num>=8) {
-		mask = mask << (irq_num-8);
+	//check if the irq is on slave or master
+	if(irq_num>=NUMBER_SLAVE) {
+		//if slave, compute the irq numer
+		mask = mask << (irq_num-NUMBER_SLAVE);
 		slave_mask = slave_mask & mask;
 		outb(slave_mask, PIC_SLAVE_DATA);
 	}
@@ -65,13 +77,21 @@ enable_irq(uint32_t irq_num)
 	}
 }
 
-/* Disable (mask) the specified IRQ */
+/*
+ * disable_irq
+ *   DESCRIPTION: Disable (mask) the specified IRQ
+ *   INPUTS: void
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
 void
 disable_irq(uint32_t irq_num)
 {
 	uint8_t mask = 0x01;
-	if(irq_num>=8) {
-		mask = mask << (irq_num-8);
+	//check if the irq is on slave or master
+	if(irq_num>=NUMBER_SLAVE) {
+		//if slave, compute the irq numer
+		mask = mask << (irq_num-NUMBER_SLAVE);
 		slave_mask = slave_mask | mask;
 		outb(slave_mask, PIC_SLAVE_DATA);
 	}
@@ -82,12 +102,20 @@ disable_irq(uint32_t irq_num)
 	}
 }
 
-/* Send end-of-interrupt signal for the specified IRQ */
+/*
+ * send_eoi
+ *   DESCRIPTION: Send end-of-interrupt signal for the specified IRQ
+ *   INPUTS: void
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
 void
 send_eoi(uint32_t irq_num)
 {
-	if(irq_num>=8) {
-		outb(EOI | (irq_num-8), PIC_SLAVE_COMMAND);
+	//check if the irq is on slave or master
+	if(irq_num>=NUMBER_SLAVE) {
+		//if slave, compute the irq numer
+		outb(EOI | (irq_num-NUMBER_SLAVE), PIC_SLAVE_COMMAND);
 		outb(EOI | 2, PIC_MASTER_COMMAND);
 	}
 	else {

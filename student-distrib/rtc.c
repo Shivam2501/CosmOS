@@ -2,6 +2,13 @@
 #include "i8259.h"
 #include "lib.h"
 
+/*
+ * rtc_init
+ *   DESCRIPTION: Initialise the RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
 void rtc_init() {
 
 	/* Write to RTC RAM, set the time base to 010 = 32.76 kHz*/
@@ -31,6 +38,13 @@ void rtc_init() {
 	enable_irq(RTC_IRQ);
 }
 
+/*
+ * rtc_handler
+ *   DESCRIPTION: RTC Interrupt Handler
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
 void rtc_handler() {
 	/* Mask all interrupts 
 	cli(); */

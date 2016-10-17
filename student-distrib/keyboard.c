@@ -62,21 +62,34 @@ static uint8_t map[4][KEYCODES_COUNT] = {
 	}
 };
 
+/*
+ * process_code
+ *   DESCRIPTION: Process the scancode received from the Keyboard
+ *   INPUTS: scancode
+ *   OUTPUTS: Print the character on the screen
+ *   RETURN VALUE: none
+ */ 
 void process_code(uint8_t scancode) {
-	/* Check if key was released */
+
+	/* Check if key was released 
+	Check MSB(0x80) indicating that key
+	is being released.
+	*/
 	if(scancode & 0x80) {
-		if(scancode == CAPS_LOCK_RELEASED)
-			toggle_capslock();
-		else if(scancode == RIGHT_SHIFT_LOCK_RELEASED || scancode == LEFT_SHIFT_LOCK_RELEASED)
+		//if shift is released
+		if(scancode == RIGHT_SHIFT_LOCK_RELEASED || scancode == LEFT_SHIFT_LOCK_RELEASED)
 			toggle_shift();
+		//if ctrl is released
 		else if(scancode == CTRL_LOCK_RELEASED)
 			toggle_ctrl();
 	} else {
-
+		//if caps is toggled
 		if(scancode == CAPS_LOCK_PRESSED)
 			toggle_capslock();
+		//if shift is pressed
 		else if(scancode == RIGHT_SHIFT_LOCK_PRESSED || scancode == LEFT_SHIFT_LOCK_PRESSED)
 			toggle_shift();
+		//if ctrl is pressed
 		else if(scancode == CTRL_LOCK_PRESSED)
 			toggle_ctrl();
 		else {
@@ -103,21 +116,49 @@ void process_code(uint8_t scancode) {
 	}
 }
 
+/*
+ * toggle_capslock
+ *   DESCRIPTION: Flip the CAPS LOCK bit
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
 void toggle_capslock() {
 	//toggle the LSB
 	status = status^0x01;
 }
 
+/*
+ * toggle_shift
+ *   DESCRIPTION: Flip the SHIFT bit
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
 void toggle_shift() {
 	//toggle the second LSB
 	status = status^0x02;
 }
 
+/*
+ * toggle_ctrl
+ *   DESCRIPTION: Flip the CTRL bit
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
 void toggle_ctrl() {
 	//toggle the third LSB
 	status = status^0x04;
 }
 
+/*
+ * keyboard_handler
+ *   DESCRIPTION: Keyboard interrupt handler
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
 void keyboard_handler() {
 	uint8_t scancode;
 
@@ -137,6 +178,13 @@ void keyboard_handler() {
 	sti(); */
 }
 
+/*
+ * keyboard_init
+ *   DESCRIPTION: Keyboard initialisation
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
 void keyboard_init() {
 	/* Set the status to 0 initially */
 	status = 0x00;

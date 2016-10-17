@@ -9,8 +9,10 @@
 #define RTC_REGISTER			0x70
 #define RTC_DATA				0x71
 
+/* Initialise the RTC */
 void rtc_init();
 
+/* RTC Interrupt Handler */
 extern void rtc_handler();
 
 #endif /* _RTC_H */

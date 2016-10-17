@@ -11,8 +11,6 @@
 #define KEYBOARD_DATA_PORT				0x60
 #define KEYBOARD_STATUS_PORT			0x64
 
-/* #define STATUS_INPUT_BUFFER				0x02 */
-
 /* Scan code for Keys */
 #define CAPS_LOCK_PRESSED				0x3A
 #define CAPS_LOCK_RELEASED				0xBA
@@ -28,16 +26,22 @@
 
 #define KEYCODES_COUNT					0x3C
 
+/* Initialise the Keyboard */
 void keyboard_init();
 
+/* Toogle the Capslock */
 void toggle_capslock();
 
+/* Toogle the Shift */
 void toggle_shift();
 
+/* Toogle the Ctrl */
 void toggle_ctrl();
 
+/* Keyboard Interrupt Handler */
 extern void keyboard_handler();
 
+/* Scan the code and Echo the string */
 void process_code(uint8_t scancode);
 
 #endif /* _KEYBOARD_H */
