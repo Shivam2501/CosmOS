@@ -170,6 +170,9 @@ extern idt_desc_t idt[NUM_VEC];
 extern x86_desc_t idt_desc_ptr;
 
 /* Sets runtime parameters for an IDT entry */
+/* Sets Descriptor Privilege Level to 3 for system call and 0 for exceptions and interrupts. */
+/* Sets segment selector to Kernel CS */
+/* Sets the present bit */
 #define SET_IDT_ENTRY(str, handler) \
 do { \
 	str.offset_31_16 = ((uint32_t)(handler) & 0xFFFF0000) >> 16; \
