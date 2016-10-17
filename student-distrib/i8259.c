@@ -24,22 +24,24 @@ void
 i8259_init(void)
 {
 	/* cache the mask values */
-	master_mask = inb(PIC_MASTER_DATA);
-	slave_mask = inb(PIC_SLAVE_DATA);
+	master_mask = inb(PIC_MASTER_COMMAND);
+	slave_mask = inb(PIC_SLAVE_COMMAND);
 
 	/* mask all the interrupts on the PIC */
 	outb(0xFF, PIC_MASTER_DATA); /* mask all master interrupts */
 	outb(0xFF, PIC_SLAVE_DATA); /* mask all slave interrupts */
 
 	/* initialize the master PIC */
-	outb_p(0x11, PIC_MASTER_COMMAND);	/* ICW1: select master PIC */
-	outb_p(0x20 + 0, PIC_MASTER_DATA); /* ICW2: IRQ0-7 mapped to 0x20-0x27 */
-	outb_p(0x04, PIC_MASTER_DATA);	/* Master has a slave on IR2 */
+	outb(0x11, PIC_MASTER_COMMAND);	/* ICW1: select master PIC */
+	outb(0x20 + 0, PIC_MASTER_DATA); /* ICW2: IRQ0-7 mapped to 0x20-0x27 */
+	outb(0x04, PIC_MASTER_DATA);	/* Master has a slave on IR2 */
+	outb(0x01, PIC_MASTER_DATA); 
 
 	/* initialize the slave PIC */
-	outb_p(0x11, PIC_SLAVE_COMMAND);	/* ICW1: select slave PIC */
-	outb_p(0x20 + 8, PIC_SLAVE_DATA); /* ICW2: IRQ0-7 mapped to 0x28-0x2f */
-	outb_p(0x02, PIC_SLAVE_DATA);	/* Master has a slave on IR2 */
+	outb(0x11, PIC_SLAVE_COMMAND);	/* ICW1: select slave PIC */
+	outb(0x20 + 8, PIC_SLAVE_DATA); /* ICW2: IRQ0-7 mapped to 0x28-0x2f */
+	outb(0x02, PIC_SLAVE_DATA);	/* Master has a slave on IR2 */
+	outb(0x01, PIC_SLAVE_DATA); 
 
 	/* restore the mask values */
 	outb(master_mask, PIC_MASTER_DATA);
@@ -54,7 +56,7 @@ enable_irq(uint32_t irq_num)
 	if(irq_num>=8) {
 		mask = mask << (irq_num-8);
 		slave_mask = slave_mask & mask;
-		outb(slave_mask, PIC_MASTER_DATA);
+		outb(slave_mask, PIC_SLAVE_DATA);
 	}
 	else {
 		mask = mask << irq_num;
@@ -71,7 +73,7 @@ disable_irq(uint32_t irq_num)
 	if(irq_num>=8) {
 		mask = mask << (irq_num-8);
 		slave_mask = slave_mask | mask;
-		outb(slave_mask, PIC_MASTER_DATA);
+		outb(slave_mask, PIC_SLAVE_DATA);
 	}
 	else {
 		mask = mask << irq_num;
