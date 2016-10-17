@@ -148,11 +148,11 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 	
-	
-	printf("Going to enter idt");
+	clear();
+	//printf("Going to enter idt");
 	//printf("going to idt");
 	init_idt();
-	printf("Exited idt");
+	//printf("Exited idt");
 
 	/* Initialize PIC, RTC, keyboard, and paging*/
 	i8259_init();
