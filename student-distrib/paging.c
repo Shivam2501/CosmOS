@@ -1,4 +1,4 @@
-
+/*
 // typedef union page_directory_t {
 // 	uint32_t val[2];
 // 	struct {
@@ -33,6 +33,21 @@
 // 	} __attribute__((aligned(4096)));
 // } page_table_t;
 
+//enable paging
+asm volatile("                      	\n\
+			push    %%ebp           	\n\
+			mov     %%esp, %%ebp    	\n\
+			mov     8(%%esp), %%eax     \n\
+			mov     %%eax, %%cr3     	\n\
+			mov 	%%ebp, %%esp 		\n\
+			pop		%%ebp				\n\
+			ret 
+			"
+			:
+			:
+			);
+
+
 uint32_t page_directory[1024] __attribute__((aligned(4096)));
 uint32_t page_table[1024] __attribute__((aligned(4096)));
 
@@ -50,3 +65,4 @@ index_to_table = ((VIDEO & 0x3FF000) >> 12);  //gets next ten most significant b
 page_directory[index_to_directory] = page_table | 0x3; //set read/write to 1 and present to 1
 page_table[index_to_table] = VIDEO | 0x3; 
 
+*/
