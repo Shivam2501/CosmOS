@@ -60,7 +60,7 @@ static uint8_t map[4][KEYCODES_COUNT] = {
 	 	'z', 'x', 'c', 'v', 'b', 'n', 'm', 
 	 	'<', '>', '?', 0, '*', 0, ' ', 0
 	}
-}
+};
 
 void process_code(uint8_t scancode) {
 	/* Check if key was released */
@@ -85,8 +85,8 @@ void process_code(uint8_t scancode) {
 				return;
 
 			//check if both shift and caps lock are on
-			if((status & 0x02 == 1) & (status & 0x01 == 1)) {
-				putc(map[3][scancode])
+			if((status & 0x02) == 1 && (status & 0x01) == 1) {
+				putc(map[3][scancode]);
 			//check if shift is pressed
 			} else if(status & 0x02) {
 				putc(map[1][scancode]);
