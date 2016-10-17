@@ -24,6 +24,8 @@
 #define CTRL_LOCK_PRESSED				0x1D
 #define CTRL_LOCK_RELEASED				0x9D
 
+#define KEYCODES_COUNT					0x3C
+
 void keyboard_init();
 
 void keyboard_handler();

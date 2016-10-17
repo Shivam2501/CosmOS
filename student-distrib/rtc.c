@@ -31,8 +31,8 @@ void rtc_init() {
 }
 
 void rtc_handler() {
-	/* Mask all interrupts */
-	cli();
+	/* Mask all interrupts 
+	cli(); */
 
 	test_interrupts();
 
@@ -42,6 +42,7 @@ void rtc_handler() {
 	/* Clear the content */
 	inb(RTC_DATA);
 
-	/* Unmask all interrupts */
-	sti();
+	/* Unmask all interrupts 
+	sti(); */
+	asm volatile("iret;");
 }
