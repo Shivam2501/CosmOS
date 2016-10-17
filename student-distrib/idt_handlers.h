@@ -5,6 +5,7 @@
 
 void init_idt();
 
+/*Exceptions*/
 void DIVIDE_BY_ZERO();
 
 void DEBUG_EXCEPTION();
@@ -51,6 +52,7 @@ void RTC_HANDLER();
 void KEYBOARD_HANDLER();
 
 void INTERRUPT_DEFAULT();
+
 /*System Calls*/
 void SYSTEM_CALL();
 
