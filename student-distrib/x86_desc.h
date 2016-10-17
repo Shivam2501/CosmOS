@@ -7,7 +7,6 @@
 #define _X86_DESC_H
 
 #include "types.h"
-#include "idt_handlers.h"
 
 /* Segment selector values */
 #define KERNEL_CS 0x0010
@@ -175,64 +174,14 @@ extern x86_desc_t idt_desc_ptr;
 do { \
 	str.offset_31_16 = ((uint32_t)(handler) & 0xFFFF0000) >> 16; \
 	str.offset_15_00 = ((uint32_t)(handler) & 0xFFFF); \
-	//str.dpl = 3;
-	//setting descriptor privilege level 
-	//if(handler == &SYSTEM_CALL)\
-		//str.dpl = 3;\
-//	else\
-	//	str.size = 0;\
-
+	if(handler == SYSTEM_CALL){ \
+		str.dpl = 3; \
+	}else{ \
+		str.dpl = 0; \
+	} \
+	str.seg_selector = KERNEL_CS; \
+	str.present = 1; \
 } while(0)
-
-
-// uint8_t handler_array[] = 
-// {	&DIVIDE_BY_ZERO,
-// 	&DEBUG_EXCEPTION,
-// 	&NMI_INTERRUPT,
-// 	&BREAKPOINT_EXCEPTION,
-// 	&OVERFLOW_EXCEPTION,
-// 	&BOUND_RANGE_EXCEEDED_EXCEPTION,
-// 	&INVALID_OPCODE_EXCEPTION,
-// 	&DEVICE_NOT_AVAILABLE_EXCEPTION,
-// 	&DOUBLE_FAULT_EXCEPTION,
-// 	&COPROCESSOR_SEGMENT_OVERRUN,
-// 	&INVALID_TSS_EXCEPTION,
-// 	&SEGMENT_NOT_PRESENT_EXCEPTION,
-// 	&STACK_FAULT_EXCEPTION,
-// 	&GENERAL_PROTECTION_EXCEPTION,
-// 	&PAGE_FAULT_EXCEPTION,
-// 	&x86_FPU_FLOATING_POINT_ERROR,
-// 	&ALIGNMENT_CHECK_EXCEPTION, 
-// 	&MACHINE_CHECK_EXCEPTION, 
-// 	&SIMD_FLOATING_POINT_EXCEPTION, 
-// 	&INTEL_RESERVED, 
-// 	&RTC_HANDLER,
-// 	&KEYBOARD_HANDLER,
-// 	&INTERRUPT_DEFAULT, 
-// 	&SYSTEM_CALL
-// };
-
-// int i;
-
-// for(i = 0; i < NUMBER_HANDLER; i++)
-// {
-// 	if(i == 15)
-// 		continue;
-
-// 	if(i>19 && i<32)
-// 		SET_IDT_ENTRY(idt[i], INTEL_RESERVED);
-// 	else if(i<20)
-// 		SET_IDT_ENTRY(idt[i], handler_array[i]);
-// 	else if(i == 32)
-// 		SET_IDT_ENTRY(idt[i], RTC_HANDLER);
-// 	else if(i == 33)
-// 		SET_IDT_ENTRY(idt[i], KEYBOARD_HANDLER);
-// 	else if(i > 33 && i<47)
-// 		SET_IDT_ENTRY(idt[i], INTERRUPT_DEFAULT);
-// 	else
-// 		SET_IDT_ENTRY((idt + 0x80), SYSTEM_CALL);
-// }
-
 
 
 /* Load task register.  This macro takes a 16-bit index into the GDT,
@@ -271,111 +220,6 @@ do {                                    \
 			: "a" (desc)                \
 			: "memory" );               \
 } while(0)
-
-// void DIVIDE_BY_ZERO(){
-// 	printf("Warning: Divided by zero");
-// 	while(1);
-// }
-
-// void DEBUG_EXCEPTION(){
-// 	printf("Warning: Debug exception");
-// 	while(1);
-// }
-
-// void NMI_INTERRUPT(){
-// 	printf("Warning: NMI Interrupt");
-// 	while(1);
-// }
-
-// void BREAKPOINT_EXCEPTION(){
-// 	printf("Warning: Breakpoint Exception");
-// 	while(1);
-// }
-
-// void OVERFLOW_EXCEPTION(){
-// 	printf("Warning: Overflow Exception");
-// 	while(1);
-// }
-// void BOUND_RANGE_EXCEEDED_EXCEPTION(){
-// 	printf("Warning: Bound Range Exceeded Exception");
-// 	while(1);
-// }
-// void INVALID_OPCODE_EXCEPTION(){
-// 	printf("Warning: Invalid Opcode Exception");
-// 	while(1);
-// }
-// void DEVICE_NOT_AVAILABLE_EXCEPTION(){
-// 	printf("Warning: Device Not Available Exception");
-// 	while(1);
-// }
-// void DOUBLE_FAULT_EXCEPTION(){
-// 	printf("Warning: Double Fault Exception");
-// 	while(1);
-// }
-// void COPROCESSOR_SEGMENT_OVERRUN(){
-// 	printf("Warning: Coprocessor Segment Overrun");
-// 	while(1);
-// }
-// void INVALID_TSS_EXCEPTION(){
-// 	printf("Warning: Invalid TSS Exception");
-// 	while(1);
-// }
-// void SEGMENT_NOT_PRESENT_EXCEPTION(){
-// 	printf("Warning: Segment Not Present Exception");
-// 	while(1);
-// }
-// void STACK_FAULT_EXCEPTION(){
-// 	printf("Warning: Stack Fault Exception");
-// 	while(1);
-// }
-// void GENERAL_PROTECTION_EXCEPTION(){
-// 	printf("Warning: General Protection Exception");
-// 	while(1);
-// }
-// void PAGE_FAULT_EXCEPTION(){
-// 	printf("Warning: Page Fault Exception");
-// 	while(1);
-// }
-// void x86_FPU_FLOATING_POINT_ERROR(){
-// 	printf("Warning: FPU Floating Point Error");
-// 	while(1);
-// }
-
-// void ALIGNMENT_CHECK_EXCEPTION(){
-// 	printf("Warning: Alignment Check Exception");
-// 	while(1);
-// }
-// void MACHINE_CHECK_EXCEPTION(){
-// 	printf("Warning: Machine Check Exception");
-// 	while(1);
-// }
-// void SIMD_FLOATING_POINT_EXCEPTION(){
-// 	printf("Warning: SIMD Floating Point Exception");
-// 	while(1);
-// }
-// void INTEL_RESERVED(){
-// 	printf("Warning: Intel Reserved");
-// 	while(1);
-// }
-
-// /*Interrupt Handlers*/
-// void RTC_HANDLER(){
-// 	printf("RTC Handled");
-// }
-
-// void KEYBOARD_HANDLER(){
-// 	printf("Keyboard Handled");
-// }
-
-// void INTERRUPT_DEFAULT(){
-// 	printf("Standard Default for other interrupts");
-// }
-
-// /*System Calls*/
-// void SYSTEM_CALL(){
-// 	printf("Call for any system call");
-// }
-
 
 #endif /* ASM */
 
