@@ -8,4 +8,6 @@
 #define VIDEO_MEMORY_ADDRESS	0xB8000
 #define KERNEL_MEMORY_ADDRESS	0x400000
 
+extern void init_paging();
+
 #endif /* _PAGING_H */
