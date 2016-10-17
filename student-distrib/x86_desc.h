@@ -21,6 +21,8 @@
 
 /* Number of vectors in the interrupt descriptor table (IDT) */
 #define NUM_VEC 256
+ #define NUMBER_HANDLER    48
+#define IDT_TOTAL_NUMBER  256
 
 #ifndef ASM
 
@@ -168,11 +170,28 @@ extern idt_desc_t idt[NUM_VEC];
 extern x86_desc_t idt_desc_ptr;
 
 /* Sets runtime parameters for an IDT entry */
+/* Sets Descriptor Privilege Level to 3 for system call and 0 for exceptions and interrupts. */
+/* Sets segment selector to Kernel CS */
+/* Sets the present bit */
 #define SET_IDT_ENTRY(str, handler) \
 do { \
 	str.offset_31_16 = ((uint32_t)(handler) & 0xFFFF0000) >> 16; \
-		str.offset_15_00 = ((uint32_t)(handler) & 0xFFFF); \
+	str.offset_15_00 = ((uint32_t)(handler) & 0xFFFF); \
+	if(handler == &SYSTEM_CALL){ \
+		str.dpl = 3; \
+	}else{ \
+		str.dpl = 0; \
+	} \
+	str.seg_selector = KERNEL_CS; \
+	str.reserved4 = 0; \
+	str.reserved3 = 0; \
+	str.reserved2 = 1; \
+	str.reserved1 = 1; \
+	str.size = 1; \
+	str.reserved0 = 0; \
+	str.present = 1; \
 } while(0)
+
 
 /* Load task register.  This macro takes a 16-bit index into the GDT,
  * which points to the TSS entry.  x86 then reads the GDT's TSS
