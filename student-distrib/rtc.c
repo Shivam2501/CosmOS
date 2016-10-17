@@ -50,7 +50,7 @@ void rtc_handler() {
 	cli(); */
 
 	// THIS IS FOR TESTING. ENABLE IT
-	//test_interrupts();
+	test_interrupts();
 
 	/* Select register C*/
 	outb(0x0C, RTC_REGISTER);
