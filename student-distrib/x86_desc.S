@@ -87,7 +87,9 @@ gdt_bottom:
 	.align 16
 
 gdt_desc_ptr:
+	#calculate limit
 	.word gdt_bottom - gdt - 1
+	#calculate base pointer
 	.long gdt_bottom
 ldt:
 	.rept 4
