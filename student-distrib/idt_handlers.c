@@ -8,6 +8,15 @@
 #include "i8259.h"
 #include "asm_linkage.h"
 
+
+/* 
+ * init_idt
+ *   DESCRIPTION: Creates entries in the IDT for interrupts, exceptions, and system calls 
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 void init_idt(){ 
 	SET_IDT_ENTRY(idt[0],&DIVIDE_BY_ZERO);
 	SET_IDT_ENTRY(idt[1],&DEBUG_EXCEPTION);
@@ -58,8 +67,15 @@ void init_idt(){
 	SET_IDT_ENTRY(idt[SYSTEM_CALL_ADDR],&SYSTEM_CALL);
 }
 
-/*Exception Handlers*/
 
+/* 
+ *   Exception handlers
+ *   DESCRIPTION: handlers for all exceptions, including specific ones and intel reserved exceptions
+ *   INPUTS: none
+ *   OUTPUTS: prints warning
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: Remains in a while loop as it is an exception
+ */
 void DIVIDE_BY_ZERO(){
 	printf("Warning: Divided by zero");
 	while(1);
@@ -147,20 +163,42 @@ void INTEL_RESERVED(){
 }
 
 /*Interrupt Handlers*/
-// void RTC_HANDLER(){
-// 	printf("RTC Handled");
-// }
 
+/* 
+ *   Interrupt default
+ *   DESCRIPTION: handlers for most interrupts, all the general ones call this default handler
+ *   INPUTS: none
+ *   OUTPUTS: prints notification
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 void INTERRUPT_DEFAULT(){
 	printf("Standard Default for other interrupts");
 }
 
+/* 
+ *   handler for PIT (Timer Chip)
+ *   DESCRIPTION: Is the handler called for PIT. It sends an end-of-interrupt signal.
+ *   INPUTS: none
+ *   OUTPUTS: prints warning
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 void TIMER_CHIP(){
 	// printf("Timer Chip Handled\n");
 	outb(0x20, 0x20);
 	sti();
 }
-/*System Calls*/
+
+
+/* 
+ *   Handler for System Calls
+ *   DESCRIPTION: Is the handler called for all system calls. 
+ *   INPUTS: none
+ *   OUTPUTS: prints notification
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 void SYSTEM_CALL(){
 	printf("Call for any system call");
 }
