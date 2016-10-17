@@ -135,7 +135,6 @@ void keyboard_handler() {
 
 	/* Unmask all interrupts 
 	sti(); */
-	asm volatile("iret;");
 }
 
 void keyboard_init() {
