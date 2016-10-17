@@ -3,13 +3,10 @@
 #include "lib.h"
 
 void rtc_init() {
-	/* Mask all interrupts */
-	cli();
-
 	/* Select Register A(0x0A) and disable NMI(0x80) */
 	outb(0x8A, RTC_REGISTER);
 
-	/* Write to RTC RAM, set the time base to 010= 32.76 kHz*/
+	/* Write to RTC RAM, set the time base to 010 = 32.76 kHz*/
 	outb(0x20, RTC_DATA);
 
 	/* Select Register B and disable NMI*/
@@ -31,9 +28,6 @@ void rtc_init() {
 
 	/* Enable the IRQ Port for RTC*/
 	enable_irq(RTC_IRQ);
-
-	/* Unmask all interrupts */
-	sti();
 }
 
 void rtc_handler() {
