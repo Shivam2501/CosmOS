@@ -18,7 +18,7 @@
  *   SIDE EFFECTS: 
  */
 void init_idt(){ 
-	/*Calls a macro for all the exceptions, interrupts and system calls, passing the idt array and specific function handler*/
+	/*Calls a macro for all the exceptions, interrupts and system calls, passing the idt array elements and corresponding function handlers*/
 	SET_IDT_ENTRY(idt[0],&DIVIDE_BY_ZERO);
 	SET_IDT_ENTRY(idt[1],&DEBUG_EXCEPTION);
 	SET_IDT_ENTRY(idt[2],&NMI_INTERRUPT);
@@ -183,7 +183,7 @@ void INTERRUPT_DEFAULT(){
  *   INPUTS: none
  *   OUTPUTS: prints warning
  *   RETURN VALUE: none
- *   SIDE EFFECTS: 
+ *   SIDE EFFECTS: none
  */
 void TIMER_CHIP(){
 	// printf("Timer Chip Handled\n");
