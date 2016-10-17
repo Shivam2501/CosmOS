@@ -84,8 +84,11 @@ disable_irq(uint32_t irq_num)
 void
 send_eoi(uint32_t irq_num)
 {
-	if(irq_num>=8)
-		outb(EOI_SIGNAL, PIC_SLAVE_COMMAND);
-	else
-		outb(EOI_SIGNAL, PIC_MASTER_COMMAND);
+	if(irq_num>=8) {
+		outb(EOI | (irq_num-8), PIC_SLAVE_COMMAND);
+		outb(EOI | 2, PIC_MASTER_COMMAND);
+	}
+	else {
+		outb(EOI | irq_num, PIC_MASTER_COMMAND);
+	}
 }
