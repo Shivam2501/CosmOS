@@ -148,12 +148,14 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 	
-	
-	printf("Going to enter idt");
-	//printf("going to idt");
-	init_idt();
-	printf("Exited idt");
+	//clear the screen
+	clear();
 
+	init_idt();
+
+	/* Initialize devices, memory, filesystem, enable devzice interrupts on the
+	 * PIC, any other initialization stuff... */
+	
 	/* Initialize PIC, RTC, keyboard, and paging*/
 	i8259_init();
 
@@ -163,8 +165,11 @@ entry (unsigned long magic, unsigned long addr)
 	
 	init_paging();
 
-	/* Initialize devices, memory, filesystem, enable devzice interrupts on the
-	 * PIC, any other initialization stuff... */
+    /*
+    //check paging
+	int *p;
+	p = NULL;
+	*p = 5; */
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your

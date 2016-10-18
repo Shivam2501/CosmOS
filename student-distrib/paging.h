@@ -16,6 +16,12 @@
 // page table address for video memory
 #define INDEX_TO_TABLE 			0xB8
 
+#define SIZE_DIR_TABLE			1024
+
+#define KERNEL_INDEX			1
+#define VIDEO_INDEX				0
+
+#define ALIGN					4096
 /* Initialize the paging */
 extern void init_paging();
 
