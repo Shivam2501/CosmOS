@@ -25,4 +25,3 @@ enablePaging:
     movl %eax, %cr0
     leave
     ret
-    
