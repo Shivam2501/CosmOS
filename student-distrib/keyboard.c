@@ -15,7 +15,7 @@ map[1] : shift is pressed
 map[2] : caps lock is on
 map[3] : caps lock and shift are on
 */
-static uint8_t map[4][KEYCODES_COUNT] = {
+static uint8_t map[MAP_SIZE][KEYCODES_COUNT] = {
 	{ 
 		0, 0, 
 		'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 
@@ -75,7 +75,7 @@ void process_code(uint8_t scancode) {
 	Check MSB(0x80) indicating that key
 	is being released.
 	*/
-	if(scancode & 0x80) {
+	if(scancode & CAPSLOCK_BIT) {
 		//if shift is released
 		if(scancode == RIGHT_SHIFT_LOCK_RELEASED || scancode == LEFT_SHIFT_LOCK_RELEASED)
 			toggle_shift();
@@ -98,17 +98,17 @@ void process_code(uint8_t scancode) {
 				return;
 
 			//check if both shift and caps lock are on
-			if((status & 0x02) == 1 && (status & 0x01) == 1) {
-				putc(map[3][scancode]);
-			//check if shift is pressed
-			} else if(status & 0x02) {
-				putc(map[1][scancode]);
+			if((status & SHIFT_ON) == 1 && (status & CAPSLOCK_ON) == 1) {
+				putc(map[MAP_SIZE-1][scancode]);
+			//check if only shift is pressed
+			} else if(status & SHIFT_ON) {
+				putc(map[MAP_SIZE-3][scancode]);
 			//check if caps lock is on
-			} else if (status & 0x01) {
-				putc(map[2][scancode]);
+			} else if (status & CAPSLOCK_ON) {
+				putc(map[MAP_SIZE-2][scancode]);
 			//if both caps lock and shift is not on
 			} else {
-				putc(map[0][scancode]);
+				putc(map[MAP_SIZE-4][scancode]);
 			}
 
 		}
@@ -125,7 +125,7 @@ void process_code(uint8_t scancode) {
  */ 
 void toggle_capslock() {
 	//toggle the LSB
-	status = status^0x01;
+	status = status^CAPSLOCK_ON;
 }
 
 /*
@@ -137,7 +137,7 @@ void toggle_capslock() {
  */ 
 void toggle_shift() {
 	//toggle the second LSB
-	status = status^0x02;
+	status = status^SHIFT_ON;
 }
 
 /*
@@ -149,7 +149,7 @@ void toggle_shift() {
  */ 
 void toggle_ctrl() {
 	//toggle the third LSB
-	status = status^0x04;
+	status = status^CTRL_ON;
 }
 
 /*

@@ -15,23 +15,24 @@ void rtc_init() {
 	//outb(0x20, RTC_DATA);
 	int rate = 15;
 	/* Select Register B and disable NMI*/
-	outb(0x8B, RTC_REGISTER);
+	outb(REGISTER_B_NMI, RTC_REGISTER);
 
 	/* Read the current value in Register B. 
 	This will set the index to register D*/
 	uint8_t curr = inb(RTC_DATA);
 
 	/* Select Register B(0x0B) and Disbale NMI(0x80)*/
-	outb(0x8B, RTC_REGISTER);
+	outb(REGISTER_B_NMI, RTC_REGISTER);
 
-	/* Turn on the periodic interrupt at bit 6*/
+	/* Turn on the periodic interrupt at bit 6(Mask 0x40)*/
 	outb(curr | 0x40, RTC_DATA);
 
 	
-	outb(0x8A, RTC_REGISTER);
+	outb(REGISTER_A_NMI, RTC_REGISTER);
 	/* Enable NMI */
 	curr = inb(RTC_DATA);
-	outb(0x8A, RTC_REGISTER);
+	outb(REGISTER_A_NMI, RTC_REGISTER);
+	/* Mask 0xF0*/
 	outb((curr & 0xF0) | rate, RTC_DATA);
 
 	/* Enable the IRQ Port for RTC*/
@@ -49,10 +50,10 @@ void rtc_handler() {
 	/* Mask all interrupts 
 	cli(); */
 
-	test_interrupts();
+	//test_interrupts();
 
 	/* Select register C*/
-	outb(0x0C, RTC_REGISTER);
+	outb(REGISTER_C, RTC_REGISTER);
 
 	/* Clear the content */
 	inb(RTC_DATA);
