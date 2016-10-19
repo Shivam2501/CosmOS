@@ -9,6 +9,10 @@
 #define RTC_REGISTER			0x70
 #define RTC_DATA				0x71
 
+#define REGISTER_B_NMI			0x8B
+#define REGISTER_A_NMI			0x8B
+#define REGISTER_C				0x0C
+
 /* Initialise the RTC */
 void rtc_init();
 
