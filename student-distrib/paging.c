@@ -17,20 +17,20 @@ void init_paging() {
 	/* Set each page directory entry to not present */
 	int i;
 	for(i=0; i < SIZE_DIR_TABLE; i++){
-		// enable read/write (0X2)
-		page_directory[i] = 0x2;
-		page_table[i] = 0x2;
+		// enable read/write (0x2)
+		page_directory[i] = READ_WRITE;
+		page_table[i] = READ_WRITE;
 	}
 
 	//page directory for 4MB pages (0x83: Enable PS, Present and Read/Write)
-	page_directory[KERNEL_INDEX] = KERNEL_MEMORY_ADDRESS | 0x83;
+	page_directory[KERNEL_INDEX] = KERNEL_MEMORY_ADDRESS | PS;
 
 	//enable video memory (0x3: Present and Read/Write)
-	page_table[INDEX_TO_TABLE] = VIDEO_MEMORY_ADDRESS | 0x3;
+	page_table[INDEX_TO_TABLE] = VIDEO_MEMORY_ADDRESS | PRESENT;
 
 	//page directory index points to page table and is set to present
 	// (0x3: Present and Read/Write)
-	page_directory[VIDEO_INDEX] = (uint32_t)page_table | 0x3;
+	page_directory[VIDEO_INDEX] = (uint32_t)page_table | PRESENT;
 
 	/* load page directory */
 	loadPageDirectory((uint32_t *)page_directory);

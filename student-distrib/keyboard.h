@@ -26,6 +26,14 @@
 
 #define KEYCODES_COUNT					0x3C
 
+#define CAPSLOCK_BIT					0x80
+
+#define MAP_SIZE						0x4
+
+#define CAPSLOCK_ON						0x01
+#define SHIFT_ON						0x02
+#define CTRL_ON							0x04
+
 /* Initialise the Keyboard */
 void keyboard_init();
 

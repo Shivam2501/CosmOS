@@ -22,6 +22,11 @@
 #define VIDEO_INDEX				0
 
 #define ALIGN					4096
+
+#define READ_WRITE				0x2
+#define PRESENT					0x3
+#define PS 						0x83
+
 /* Initialize the paging */
 extern void init_paging();
 

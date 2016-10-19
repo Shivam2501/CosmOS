@@ -1,7 +1,3 @@
-#define NUMBER_HANDLER    48
-#define IDT_TOTAL_NUMBER  256
-#define	SYSTEM_CALL_ADDR  128
-
 #include "idt_handlers.h"
 #include "lib.h"
 #include "rtc.h"
@@ -187,7 +183,7 @@ void INTERRUPT_DEFAULT(){
  */
 void TIMER_CHIP(){
 	// printf("Timer Chip Handled\n");
-	outb(0x20, 0x20);
+	outb(EOI_SIGNAL, EOI_SIGNAL);
 	sti();
 }
 
