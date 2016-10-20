@@ -7,6 +7,10 @@
 
 #include "types.h"
 
+#define VGA_CURSOR_PORT_L		0x3D4
+#define VGA_CURSOR_PORT_H		0x3D5
+#define VGA_MASK				0xFF
+
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 int32_t puts(int8_t *s);
@@ -28,6 +32,12 @@ int8_t* strncpy(int8_t* dest, const int8_t*src, uint32_t n);
 int32_t bad_userspace_addr(const void* addr, int32_t len);
 int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
 void test_interrupts(void);
+
+void update_cursor(int screen_x, int screen_y);
+void scrolling(void);
+void newline();
+void update_coordinate();
+
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
  * unsigned int */

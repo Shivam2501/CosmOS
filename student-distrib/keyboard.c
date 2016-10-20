@@ -9,6 +9,11 @@
 */
 uint8_t status;
 
+//buffer to store the keryboard input
+uint8_t buffer[BUFFER_SIZE];
+int32_t buffer_index;
+volatile int terminal_read_ready;
+
 /*
 map[0] : caps lock and shift are not pressed
 map[1] : shift is pressed
@@ -97,18 +102,53 @@ void process_code(uint8_t scancode) {
 			if(scancode > KEYCODES_COUNT)
 				return;
 
+			//enter is pressed
+			if(scancode == SCANCODE_ENTER) {
+				newline();
+				terminal_read_ready = 1;
+				//clear_buffer();
+				return;
+			}
+
+			//if buff size is reached
+			if(buffer_index >= BUFFER_SIZE) 
+				return;
+
+			//backspace is pressed
+			if(scancode == SCANCODE_BACKSPACE) {
+				if(buffer_index > 0) {
+					buffer[buffer_index-1] = ' ';
+					buffer_index--;
+					update_coordinate();
+					putc(buffer[buffer_index]);
+					update_coordinate();
+				}
+				return;
+			}
+
+			// if CTRL+L then clear the screen
+			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_L) {
+				clear();
 			//check if both shift and caps lock are on
-			if((status & SHIFT_ON) == 1 && (status & CAPSLOCK_ON) == 1) {
-				putc(map[MAP_SIZE-1][scancode]);
+			} else if(((status & SHIFT_ON)>>1) == 1 && (status & CAPSLOCK_ON) == 1) {
+				buffer[buffer_index] = map[MAP_SIZE-1][scancode];
+				putc(buffer[buffer_index]);
+				buffer_index++;
 			//check if only shift is pressed
-			} else if(status & SHIFT_ON) {
-				putc(map[MAP_SIZE-3][scancode]);
+			} else if((status & SHIFT_ON)>>1) {
+				buffer[buffer_index] = map[MAP_SIZE-3][scancode];
+				putc(buffer[buffer_index]);
+				buffer_index++;
 			//check if caps lock is on
 			} else if (status & CAPSLOCK_ON) {
-				putc(map[MAP_SIZE-2][scancode]);
+				buffer[buffer_index] = map[MAP_SIZE-2][scancode];
+				putc(buffer[buffer_index]);
+				buffer_index++;
 			//if both caps lock and shift is not on
-			} else {
-				putc(map[MAP_SIZE-4][scancode]);
+			} else{
+				buffer[buffer_index] = map[MAP_SIZE-4][scancode];
+				putc(buffer[buffer_index]);
+				buffer_index++;
 			}
 
 		}
@@ -179,6 +219,21 @@ void keyboard_handler() {
 }
 
 /*
+ * clear_buffer
+ *   DESCRIPTION: clear the buffer
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
+void clear_buffer() {
+	int32_t i;
+	for(i=0; i < BUFFER_SIZE; i++) 
+		buffer[i] = ' ';
+	buffer_index = 0;
+	terminal_read_ready = 0;
+}
+
+/*
  * keyboard_init
  *   DESCRIPTION: Keyboard initialisation
  *   INPUTS: none
@@ -188,7 +243,56 @@ void keyboard_handler() {
 void keyboard_init() {
 	/* Set the status to 0 initially */
 	status = 0x00;
+	clear_buffer();
 
 	/* Enable the IRQ Port for Keyboard*/
 	enable_irq(KEYBOARD_IRQ);
 }
+
+/*
+ * Start of System Calls
+ */ 
+
+int32_t open(void) {
+	keyboard_init();
+	return 0; 
+}
+
+int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes) {
+	int32_t i, j;
+
+	while(!terminal_read_ready);
+
+	j = 1;
+	for(i = 0; i < nbytes; i++) {
+		buf[i] = buffer[i];
+		j++;
+		if(j-1==buffer_index)
+			break;
+	}
+
+	clear_buffer();
+
+	return j;
+
+}
+
+int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes) {
+	int32_t i;
+	for(i = 0; i < nbytes; i++) {
+		putc(buf[i]);
+	}
+	return i+1;
+}
+
+int32_t close(void) {
+	status = 0x00;
+	clear_buffer();
+
+	disable_irq(KEYBOARD_IRQ);
+	return 0;
+}
+
+/*
+ * End of System Calls
+ */ 

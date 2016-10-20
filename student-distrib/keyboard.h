@@ -34,6 +34,12 @@
 #define SHIFT_ON						0x02
 #define CTRL_ON							0x04
 
+#define SCANCODE_L						0x26
+#define SCANCODE_ENTER					0x1C
+#define SCANCODE_BACKSPACE				0x0E
+
+#define BUFFER_SIZE						0x80
+
 /* Initialise the Keyboard */
 void keyboard_init();
 
@@ -51,5 +57,13 @@ extern void keyboard_handler();
 
 /* Scan the code and Echo the string */
 void process_code(uint8_t scancode);
+
+/* Clear the buffer */
+void clear_buffer();
+
+int32_t open(void);
+int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes);
+int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes);
+int32_t close(void);
 
 #endif /* _KEYBOARD_H */
