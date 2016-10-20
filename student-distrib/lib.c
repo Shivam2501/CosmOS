@@ -113,6 +113,7 @@ scrolling(void)
         	*(uint8_t *)(video_mem + ((i+j) << 1) + 1) = ATTRIB;
    		}
 
+   		//update coordinates
    		screen_x = 0;
    		screen_y = NUM_ROWS-1;
    	}

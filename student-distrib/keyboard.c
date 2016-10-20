@@ -110,9 +110,12 @@ void process_code(uint8_t scancode) {
 				return;
 			}
 
-			//if buff size is reached
-			if(buffer_index >= BUFFER_SIZE) 
+			// if CTRL+L then clear the screen
+			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_L) {
+				clear_buffer();
+				clear();
 				return;
+			} 
 
 			//backspace is pressed
 			if(scancode == SCANCODE_BACKSPACE) {
@@ -126,11 +129,12 @@ void process_code(uint8_t scancode) {
 				return;
 			}
 
-			// if CTRL+L then clear the screen
-			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_L) {
-				clear();
+			//if buff size is reached
+			if(buffer_index >= BUFFER_SIZE) 
+				return;
+
 			//check if both shift and caps lock are on
-			} else if(((status & SHIFT_ON)>>1) == 1 && (status & CAPSLOCK_ON) == 1) {
+			if(((status & SHIFT_ON)>>1) == 1 && (status & CAPSLOCK_ON) == 1) {
 				buffer[buffer_index] = map[MAP_SIZE-1][scancode];
 				putc(buffer[buffer_index]);
 				buffer_index++;
@@ -253,38 +257,68 @@ void keyboard_init() {
  * Start of System Calls
  */ 
 
+/*
+ * open
+ *   DESCRIPTION: Initializes the terminal
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success
+ */ 
 int32_t open(void) {
 	keyboard_init();
 	return 0; 
 }
 
+/*
+ * terminal_read
+ *   DESCRIPTION: Read the input from the terminal
+ *   INPUTS: int32_t fd, uint8_t* buf, int32_t nbytes
+ *   OUTPUTS: none
+ *   RETURN VALUE: bytes read on success, -1 on failure
+ */ 
 int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes) {
 	int32_t i, j;
 
+	//wait until enter is pressed
 	while(!terminal_read_ready);
 
-	j = 1;
+	j = 0;
+	//copy the terminal line buffer
 	for(i = 0; i < nbytes; i++) {
 		buf[i] = buffer[i];
 		j++;
-		if(j-1==buffer_index)
+		if(j==buffer_index)
 			break;
 	}
 
 	clear_buffer();
 
-	return j;
-
+	return j+1;
 }
 
+/*
+ * terminal_write
+ *   DESCRIPTION: Write the input on the terminal
+ *   INPUTS: int32_t fd, uint8_t* buf, int32_t nbytes
+ *   OUTPUTS: none
+ *   RETURN VALUE: bytes written on success, -1 on failure
+ */ 
 int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes) {
 	int32_t i;
+	//print the buffer on the screen
 	for(i = 0; i < nbytes; i++) {
 		putc(buf[i]);
 	}
 	return i+1;
 }
 
+/*
+ * close
+ *   DESCRIPTION: Close the terminal
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success
+ */
 int32_t close(void) {
 	status = 0x00;
 	clear_buffer();
