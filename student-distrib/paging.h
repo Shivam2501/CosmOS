@@ -24,8 +24,8 @@
 #define ALIGN					4096
 
 #define READ_WRITE				0x2
-#define PRESENT					0x3
-#define PS 						0x83
+#define PRESENT					0x1
+#define PS 						0x80
 
 /* Initialize the paging */
 extern void init_paging();

@@ -169,7 +169,7 @@ entry (unsigned long magic, unsigned long addr)
     /*
     //check paging
 	int *p;
-	p = NULL;
+	p = 0xB8000;
 	*p = 5; */
 
 	/* Enable interrupts */
@@ -180,7 +180,7 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 	
 	test_keyboard();
-	
+
 	//int i = 4/0;
 	//printf("returned from idt");
 

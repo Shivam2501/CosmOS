@@ -278,27 +278,26 @@ int32_t terminal_open(void) {
  *   RETURN VALUE: bytes read on success, -1 on failure
  */ 
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
-	int32_t i, j;
+	int32_t i;
 
 	//wait until enter is pressed
 	while(!terminal_read_ready);
 
-	j = 0;
 	uint8_t *temp_buf = (uint8_t*)buf;
 	//copy the terminal line buffer
 	for(i = 0; i < nbytes; i++) {
 		temp_buf[i] = buffer[i];
-		j++;
-		if(j==buffer_index)
+		if(i==buffer_index)
 			break;
 	}
 
+	//line feed character at the end of the buffer
 	if(i < nbytes && temp_buf[i] != '\n')
 		temp_buf[++i] = '\n';
 
 	clear_buffer();
 
-	return j+1;
+	return i+1;
 }
 
 /*
@@ -311,15 +310,18 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
 	int32_t i;
 	uint8_t *temp_buf = (uint8_t*)buf;
-	//print the buffer on the screen
+	
+	//disable the keyboard interrupt
 	disable_irq(KEYBOARD_IRQ);
 
+	//print the buffer on the screen
 	for(i = 0; i < nbytes; i++) {
 		putc(temp_buf[i]);
 	}
 
+	//enable the keyboard interrupt
 	enable_irq(KEYBOARD_IRQ);
-	
+
 	return i+1;
 }
 
@@ -333,8 +335,6 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
 int32_t terminal_close(void) {
 	status = 0x00;
 	clear_buffer();
-
-	disable_irq(KEYBOARD_IRQ);
 	return 0;
 }
 

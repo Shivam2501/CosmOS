@@ -86,30 +86,41 @@ int32_t set_frequency(int32_t freq) {
 	uint8_t rate;
 
 	switch(freq) {
+		//rate calculated using freq = 32768 >> (rate-1)
+		//if freq is 2 then rate = 0xF
 		case 2: rate = 0xF;
 				break;
+		//if freq is 4 then rate = 0xE
 		case 4: rate = 0xE;
 				break;
+		//if freq is 8 then rate = 0xD
 		case 8: rate = 0xD;
 				break;
+		//if freq is 16 then rate = 0xC
 		case 16: rate = 0xC;
 				break;
+		//if freq is 32 then rate = 0xB
 		case 32: rate = 0xB;
 				break;
+		//if freq is 64 then rate = 0xA
 		case 64: rate = 0xA;
 				break;
+		//if freq is 128 then rate = 0x9
 		case 128: rate = 0x9;
 				break;
+		//if freq is 256 then rate = 0x8
 		case 256: rate = 0x8;
 				break;
+		//if freq is 512 then rate = 0x7
 		case 512: rate = 0x7;
 				break;
+		//if freq is 1024 then rate = 0x6
 		case 1024: rate = 0x6;
 				break;
 	}
 
 	disable_irq(RTC_IRQ);
-	
+
 	// set index to register A, disable NMI
 	outb(REGISTER_A_NMI, RTC_REGISTER);
 	// get initial value of register A
