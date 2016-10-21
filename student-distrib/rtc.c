@@ -77,8 +77,46 @@ void rtc_handler() {
  */ 
 int32_t set_frequency(int32_t freq) {
 
-	//check if frequency is a power of 2 and upto 1024 Hz
+	//check if frequency is a power of 2 and not greater than 1024 Hz
+	if((freq % 2 != 0) && freq > MAX_FREQUENCY)
+		return -1;
 
+
+	//find the rate based on input frequency
+	int rate, i;
+
+	switch(freq) {
+		case 2: rate = 0xF;
+				break;
+		case 4: rate = 0xE;
+				break;
+		case 8: rate = 0xD;
+				break;
+		case 16: rate = 0xC;
+				break;
+		case 32: rate = 0xB;
+				break;
+		case 64: rate = 0xA;
+				break;
+		case 128: rate = 0x9;
+				break;
+		case 256: rate = 0x8;
+				break;
+		case 512: rate = 0x7;
+				break;
+		case 1024: rate = 0x6;
+				break;
+	}
+
+	// set index to register A, disable NMI
+	outb(REGISTER_A_NMI, RTC_REGISTER);
+	// get initial value of register A
+	uint8_t curr = inb(RTC_DATA);	
+
+	// reset index to A
+	outb(REGISTER_A_NMI, RTC_REGISTER);		
+	// Mask 0xF0 
+	outb((curr & 0xF0) | rate, RTC_DATA);
 }
 
 /*
@@ -111,7 +149,7 @@ int32_t rtc_open(void) {
  *   OUTPUTS: none
  *   RETURN VALUE: 0
  */ 
-int32_t rtc_read(int32_t fd, uint8_t* buf, int32_t nbytes) {
+int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes) {
 
 	//wait until interrupt occurs
 	while(!interrupt_flag);
@@ -128,7 +166,7 @@ int32_t rtc_read(int32_t fd, uint8_t* buf, int32_t nbytes) {
  *   OUTPUTS: none
  *   RETURN VALUE: bytes written on success, -1 on failure
  */ 
-int32_t rtc_write(int32_t fd, const int32_t* buf, int32_t nbytes) {
+int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes) {
 
 	int success;
 
@@ -137,7 +175,7 @@ int32_t rtc_write(int32_t fd, const int32_t* buf, int32_t nbytes) {
 		success = -1;
 	} else {
 		//set the frequency to input frequency
-		success = set_frequency(*buf);
+		success = set_frequency(*((int32_t *)buf));
 	}
 
 	return success;

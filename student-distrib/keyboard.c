@@ -277,7 +277,7 @@ int32_t terminal_open(void) {
  *   OUTPUTS: none
  *   RETURN VALUE: bytes read on success, -1 on failure
  */ 
-int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes) {
+int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 	int32_t i, j;
 
 	//wait until enter is pressed
@@ -286,11 +286,14 @@ int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes) {
 	j = 0;
 	//copy the terminal line buffer
 	for(i = 0; i < nbytes; i++) {
-		buf[i] = buffer[i];
+		(uint8_t*)buf[i] = buffer[i];
 		j++;
 		if(j==buffer_index)
 			break;
 	}
+
+	if(i < nbytes && buf[i] != '\n')
+		buf[i] = '\n';
 
 	clear_buffer();
 
@@ -304,11 +307,11 @@ int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes) {
  *   OUTPUTS: none
  *   RETURN VALUE: bytes written on success, -1 on failure
  */ 
-int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes) {
+int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
 	int32_t i;
 	//print the buffer on the screen
 	for(i = 0; i < nbytes; i++) {
-		putc(buf[i]);
+		putc((uint8_t*)buf[i]);
 	}
 	return i+1;
 }
