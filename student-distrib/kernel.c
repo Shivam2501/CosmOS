@@ -11,7 +11,8 @@
 #include "rtc.h"
 #include "keyboard.h"
 #include "paging.h"
- 
+#include "test.h" 
+
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
@@ -178,7 +179,8 @@ entry (unsigned long magic, unsigned long addr)
 	//printf("Enabling Interrupts\n");
 	sti();
 	
-
+	test_keyboard();
+	
 	//int i = 4/0;
 	//printf("returned from idt");
 

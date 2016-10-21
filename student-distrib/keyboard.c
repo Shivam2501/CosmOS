@@ -312,9 +312,14 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
 	int32_t i;
 	uint8_t *temp_buf = (uint8_t*)buf;
 	//print the buffer on the screen
+	disable_irq(KEYBOARD_IRQ);
+
 	for(i = 0; i < nbytes; i++) {
 		putc(temp_buf[i]);
 	}
+
+	enable_irq(KEYBOARD_IRQ);
+	
 	return i+1;
 }
 

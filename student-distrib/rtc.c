@@ -108,6 +108,8 @@ int32_t set_frequency(int32_t freq) {
 				break;
 	}
 
+	disable_irq(RTC_IRQ);
+	
 	// set index to register A, disable NMI
 	outb(REGISTER_A_NMI, RTC_REGISTER);
 	// get initial value of register A
@@ -117,6 +119,8 @@ int32_t set_frequency(int32_t freq) {
 	outb(REGISTER_A_NMI, RTC_REGISTER);		
 	// Mask 0xF0 
 	outb((curr & 0xF0) | rate, RTC_DATA);
+
+	enable_irq(RTC_IRQ);
 
 	return MAX_BYTES;
 }
