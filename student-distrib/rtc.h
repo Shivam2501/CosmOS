@@ -13,6 +13,9 @@
 #define REGISTER_A_NMI			0x8B
 #define REGISTER_C				0x0C
 
+#define DEFAULT_FREQUENCY		0x2
+#define MAX_BYTES				0x4
+
 /* Initialise the RTC */
 void rtc_init();
 

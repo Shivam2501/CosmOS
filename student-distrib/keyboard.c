@@ -80,6 +80,7 @@ void process_code(uint8_t scancode) {
 	Check MSB(0x80) indicating that key
 	is being released.
 	*/
+
 	if(scancode & CAPSLOCK_BIT) {
 		//if shift is released
 		if(scancode == RIGHT_SHIFT_LOCK_RELEASED || scancode == LEFT_SHIFT_LOCK_RELEASED)
@@ -106,7 +107,7 @@ void process_code(uint8_t scancode) {
 			if(scancode == SCANCODE_ENTER) {
 				newline();
 				terminal_read_ready = 1;
-				//clear_buffer();
+				clear_buffer(); //remove during test
 				return;
 			}
 
@@ -258,13 +259,13 @@ void keyboard_init() {
  */ 
 
 /*
- * open
+ * terminal_open
  *   DESCRIPTION: Initializes the terminal
  *   INPUTS: none
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success
  */ 
-int32_t open(void) {
+int32_t terminal_open(void) {
 	keyboard_init();
 	return 0; 
 }
@@ -313,13 +314,13 @@ int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes) {
 }
 
 /*
- * close
+ * terminal_close
  *   DESCRIPTION: Close the terminal
  *   INPUTS: none
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success
  */
-int32_t close(void) {
+int32_t terminal_close(void) {
 	status = 0x00;
 	clear_buffer();
 

@@ -17,7 +17,7 @@ int test_keyboard()
         cnt--;
     buf[cnt] = '\0';
     terminal_write(1, (uint8_t*)"Hello, ", 7);
-    terminal_write(1, buf, cnt);
+    terminal_write(1, buf, cnt+1);
 
     return 0;
 }

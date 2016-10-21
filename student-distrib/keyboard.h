@@ -61,9 +61,9 @@ void process_code(uint8_t scancode);
 /* Clear the buffer */
 void clear_buffer();
 
-int32_t open(void);
+int32_t terminal_open(void);
 int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes);
 int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes);
-int32_t close(void);
+int32_t terminal_close(void);
 
 #endif /* _KEYBOARD_H */

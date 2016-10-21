@@ -2,6 +2,8 @@
 #include "i8259.h"
 #include "lib.h"
 
+volatile int interrupt_flag;
+
 /*
  * rtc_init
  *   DESCRIPTION: Initialise the RTC
@@ -35,6 +37,9 @@ void rtc_init() {
 	/* Mask 0xF0*/
 	outb((curr & 0xF0) | rate, RTC_DATA);
 
+	//interrupt flag set to 0 on initialization
+	interrupt_flag = 0;
+
 	/* Enable the IRQ Port for RTC*/
 	enable_irq(RTC_IRQ);
 }
@@ -51,7 +56,7 @@ void rtc_handler() {
 	cli(); */
 
 	//test_interrupts();
-
+	interrupt_flag = 1;
 	/* Select register C*/
 	outb(REGISTER_C, RTC_REGISTER);
 
@@ -62,3 +67,100 @@ void rtc_handler() {
 	/* Unmask all interrupts 
 	sti(); */
 }
+
+/*
+ * set_frequency
+ *   DESCRIPTION: Set the frequency to the input
+ *   INPUTS: frequency 
+ *   OUTPUTS: none
+ *   RETURN VALUE: size of frequency on success, -1 on failure
+ */ 
+int32_t set_frequency(int32_t freq) {
+
+	//check if frequency is a power of 2 and upto 1024 Hz
+
+}
+
+/*
+ * Start of System Calls
+ */ 
+
+/*
+ * rtc_open
+ *   DESCRIPTION: Initializes the rtc
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success
+ */ 
+int32_t rtc_open(void) {
+
+	//set the rtc to DEFAULT frequency
+	set_frequency(DEFAULT_FREQUENCY);
+
+	//interrupt flag set to 0 on rtc open
+	interrupt_flag = 0;
+
+	return 0;
+	
+}
+ 
+/*
+ * rtc_read
+ *   DESCRIPTION: wait for an interrupt
+ *   INPUTS: int32_t fd, uint8_t* buf, int32_t nbytes
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0
+ */ 
+int32_t rtc_read(int32_t fd, uint8_t* buf, int32_t nbytes) {
+
+	//wait until interrupt occurs
+	while(!interrupt_flag);
+
+	interrupt_flag = 0;
+
+	return 0;
+}
+
+/*
+ * rtc_write
+ *   DESCRIPTION: set the rate of periodic interrupts
+ *   INPUTS: int32_t fd, uint8_t* buf, int32_t nbytes
+ *   OUTPUTS: none
+ *   RETURN VALUE: bytes written on success, -1 on failure
+ */ 
+int32_t rtc_write(int32_t fd, const int32_t* buf, int32_t nbytes) {
+
+	int success;
+
+	//check if frequency is 4 bytes
+	if(nbytes != MAX_BYTES) {
+		success = -1;
+	} else {
+		//set the frequency to input frequency
+		success = set_frequency(*buf);
+	}
+
+	return success;
+
+}
+
+/*
+ * rtc_close
+ *   DESCRIPTION: Close the rtc
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success
+ */
+int32_t rtc_close(void) {
+
+	//set the rtc to DEFAULT frequency
+	set_frequency(DEFAULT_FREQUENCY);
+
+	return 0;
+
+}
+
+/*
+ * End of System Calls
+ */ 
+ 
