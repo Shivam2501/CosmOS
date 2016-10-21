@@ -13,20 +13,20 @@ volatile int interrupt_flag;
  */ 
 void rtc_init() {
 
-	/* Write to RTC RAM, set the time base to 010 = 32.76 kHz*/
+	/* Write to RTC RAM, set the time base to 010 = 32.76 kHz */
 	//outb(0x20, RTC_DATA);
 	int rate = 15;
-	/* Select Register B and disable NMI*/
+	/* Select Register B and disable NMI */
 	outb(REGISTER_B_NMI, RTC_REGISTER);
 
 	/* Read the current value in Register B. 
-	This will set the index to register D*/
+	This will set the index to register D */
 	uint8_t curr = inb(RTC_DATA);
 
-	/* Select Register B(0x0B) and Disbale NMI(0x80)*/
+	/* Select Register B(0x0B) and Disbale NMI(0x80) */
 	outb(REGISTER_B_NMI, RTC_REGISTER);
 
-	/* Turn on the periodic interrupt at bit 6(Mask 0x40)*/
+	/* Turn on the periodic interrupt at bit 6(Mask 0x40) */
 	outb(curr | 0x40, RTC_DATA);
 
 	
@@ -34,13 +34,13 @@ void rtc_init() {
 	/* Enable NMI */
 	curr = inb(RTC_DATA);
 	outb(REGISTER_A_NMI, RTC_REGISTER);
-	/* Mask 0xF0*/
+	/* Mask 0xF0 */
 	outb((curr & 0xF0) | rate, RTC_DATA);
 
 	//interrupt flag set to 0 on initialization
 	interrupt_flag = 0;
 
-	/* Enable the IRQ Port for RTC*/
+	/* Enable the IRQ Port for RTC */
 	enable_irq(RTC_IRQ);
 }
 
@@ -78,12 +78,12 @@ void rtc_handler() {
 int32_t set_frequency(int32_t freq) {
 
 	//check if frequency is a power of 2 and not greater than 1024 Hz
-	if((freq % 2 != 0) && freq > MAX_FREQUENCY)
+	if((freq % 2 != 0) && (freq > MAX_FREQUENCY))
 		return -1;
 
 
 	//find the rate based on input frequency
-	int rate, i;
+	uint8_t rate;
 
 	switch(freq) {
 		case 2: rate = 0xF;
@@ -117,6 +117,8 @@ int32_t set_frequency(int32_t freq) {
 	outb(REGISTER_A_NMI, RTC_REGISTER);		
 	// Mask 0xF0 
 	outb((curr & 0xF0) | rate, RTC_DATA);
+
+	return MAX_BYTES;
 }
 
 /*
@@ -201,4 +203,3 @@ int32_t rtc_close(void) {
 /*
  * End of System Calls
  */ 
- 

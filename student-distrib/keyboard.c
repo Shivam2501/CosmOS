@@ -107,7 +107,7 @@ void process_code(uint8_t scancode) {
 			if(scancode == SCANCODE_ENTER) {
 				newline();
 				terminal_read_ready = 1;
-				clear_buffer(); //remove during test
+				//clear_buffer(); //remove during test
 				return;
 			}
 
@@ -284,16 +284,17 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 	while(!terminal_read_ready);
 
 	j = 0;
+	uint8_t *temp_buf = (uint8_t*)buf;
 	//copy the terminal line buffer
 	for(i = 0; i < nbytes; i++) {
-		(uint8_t*)buf[i] = buffer[i];
+		temp_buf[i] = buffer[i];
 		j++;
 		if(j==buffer_index)
 			break;
 	}
 
-	if(i < nbytes && buf[i] != '\n')
-		buf[i] = '\n';
+	if(i < nbytes && temp_buf[i] != '\n')
+		temp_buf[++i] = '\n';
 
 	clear_buffer();
 
@@ -309,9 +310,10 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
  */ 
 int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
 	int32_t i;
+	uint8_t *temp_buf = (uint8_t*)buf;
 	//print the buffer on the screen
 	for(i = 0; i < nbytes; i++) {
-		putc((uint8_t*)buf[i]);
+		putc(temp_buf[i]);
 	}
 	return i+1;
 }

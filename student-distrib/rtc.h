@@ -5,6 +5,8 @@
 #ifndef _RTC_H
 #define _RTC_H
 
+#include "types.h"
+
 #define RTC_IRQ					0x08
 #define RTC_REGISTER			0x70
 #define RTC_DATA				0x71
@@ -29,7 +31,7 @@ int32_t rtc_open(void);
 
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes) ;
 
-int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes) ;
+int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes);
 
 int32_t rtc_close(void);
 
