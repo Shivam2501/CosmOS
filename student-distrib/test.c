@@ -10,7 +10,7 @@ int test_keyboard()
     int32_t cnt;
     uint8_t buf[BUFSIZE];
 
-    /*rtc_open();
+    rtc_open();
 
     uint32_t rtc[1];
     *rtc = 4; 
@@ -20,8 +20,8 @@ int test_keyboard()
         if(rtc_read(1, rtc, 4) == 0) {
             terminal_write(1, (uint8_t*)"L", 1);
         }    
-    }*/
-
+    }
+    /*
     terminal_write(1, (uint8_t*)"Hi, what's your name? ", 22);
     if (-1 == (cnt = terminal_read (0, buf, BUFSIZE-1))) {
         return 3;
@@ -31,7 +31,8 @@ int test_keyboard()
     buf[cnt] = '\0';
     terminal_write(1, (uint8_t*)"Hello, ", 7);
     terminal_write(1, buf, cnt+1);
-
+    */
+    
     return 0;
 }
 

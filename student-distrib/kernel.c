@@ -12,6 +12,7 @@
 #include "keyboard.h"
 #include "paging.h"
 #include "test.h" 
+#include "file.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -57,6 +58,7 @@ entry (unsigned long magic, unsigned long addr)
 		int mod_count = 0;
 		int i;
 		module_t* mod = (module_t*)mbi->mods_addr;
+		get_file_system_start((unsigned int)mod->mod_start);
 		while(mod_count < mbi->mods_count) {
 			printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
 			printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -69,6 +71,7 @@ entry (unsigned long magic, unsigned long addr)
 			mod++;
 		}
 	}
+
 	/* Bits 4 and 5 are mutually exclusive! */
 	if (CHECK_FLAG (mbi->flags, 4) && CHECK_FLAG (mbi->flags, 5))
 	{
