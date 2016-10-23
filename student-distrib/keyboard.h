@@ -6,6 +6,9 @@
 #define _KEYBOARD_H
 
 #include "types.h"
+#include "i8259.h"
+#include "lib.h"
+#include "test.h"
 
 #define KEYBOARD_IRQ					0x01
 #define KEYBOARD_DATA_PORT				0x60
@@ -35,6 +38,7 @@
 #define CTRL_ON							0x04
 
 #define SCANCODE_L						0x26
+#define SCANCODE_C 						0x2E
 #define SCANCODE_ENTER					0x1C
 #define SCANCODE_BACKSPACE				0x0E
 
@@ -52,6 +56,10 @@ void toggle_shift();
 /* Toogle the Ctrl */
 void toggle_ctrl();
 
+//buffer to store the keryboard input
+extern uint8_t buffer[BUFFER_SIZE];
+extern int32_t buffer_index;
+
 /* Keyboard Interrupt Handler */
 extern void keyboard_handler();
 
@@ -61,9 +69,6 @@ void process_code(uint8_t scancode);
 /* Clear the buffer */
 void clear_buffer();
 
-int32_t terminal_open(void);
-int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes);
-int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes);
-int32_t terminal_close(void);
+int get_terminal_status();
 
 #endif /* _KEYBOARD_H */
