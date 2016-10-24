@@ -13,6 +13,10 @@
 #define	file_type_length			1
 #define	dir_entry_length 			16
 #define BLOCK_SIZE					1024
+#define BLOCK_SIZE_FOUR				4096
+
+#define SIZE_DATA_BLOCK				4
+#define NAME_SIZE					32
 
 typedef struct dentry_header {
     uint8_t 	file_name[32];
@@ -37,5 +41,8 @@ int32_t fs_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t fs_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t fs_close(int32_t fd);
+
+// I DONT LIKE THIS FUNCTION BUT WE NEED IT
+int32_t fs_size(int32_t fd, void* buf, int32_t nbytes);
 
 #endif

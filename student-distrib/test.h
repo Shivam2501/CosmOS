@@ -9,6 +9,7 @@
 
 
 #define BUFSIZE 1024
+#define RTC_PACKET_SIZE	4
 
 extern volatile int stop;
 
