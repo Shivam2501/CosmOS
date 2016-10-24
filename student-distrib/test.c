@@ -2,12 +2,26 @@
 
 volatile int stop;
 
+int frequency = 0;
+
 void write(uint8_t* string) {
     terminal_write(1, string, strlen((int8_t*)string));
 }
 
 int test_rtc() {
-    uint32_t rtc = 2;
+
+    frequency++;
+    if(frequency > 10)
+        frequency = 1;
+
+    int i = frequency;
+    uint32_t rtc = 1;
+
+    while(i != 0) {
+        rtc = rtc * 2;
+        i--;
+    }
+
     int return_write = rtc_write(1, &rtc, 4);
     if (return_write == -1) {
         write((uint8_t*)"Invalid frequency");

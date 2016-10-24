@@ -78,9 +78,15 @@ void rtc_handler() {
 int32_t set_frequency(int32_t freq) {
 
 	//check if frequency is a power of 2 and not greater than 1024 Hz
-	if((freq % 2 != 0) && (freq > MAX_FREQUENCY))
+	if(freq > MAX_FREQUENCY)
 		return -1;
 
+	int32_t x = freq;
+	while(((x % 2) ==0) && x > 1)
+		x /= 2;
+
+	if(x != 1)
+		return -1;
 
 	//find the rate based on input frequency
 	uint8_t rate;
