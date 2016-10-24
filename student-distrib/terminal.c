@@ -33,10 +33,10 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 	//copy the terminal line buffer
 	for(i = 0; i < nbytes; i++) {
 		temp_buf[i] = buffer[i];
-		if(i==buffer_index)
+		if(i==buffer_index-1)
 			break;
 	}
-
+	
 	//line feed character at the end of the buffer
 	if(i < nbytes && temp_buf[i] != '\n')
 		temp_buf[++i] = '\n';

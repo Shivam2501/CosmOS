@@ -45,11 +45,9 @@ int test_ls() {
 }
 
 int test_cat(uint8_t* buf, int32_t cnt) {
+    buf = buf + strlen((int8_t*)"cat ");
 
-    uint8_t file_name[32];
-    memcpy(file_name, buf+strlen((int8_t*)"cat "), 32);
-
-    if (-1 == (cnt = fs_read(1, file_name, BUFSIZE-1))) {
+    if (-1 == (cnt = fs_read(1, buf, BUFSIZE-1))) {
         write((uint8_t*)"Invalid file name\n");
         return 0;
     }
@@ -59,7 +57,7 @@ int test_cat(uint8_t* buf, int32_t cnt) {
     buf[cnt] = '\n';
 
     terminal_write(1, buf, cnt+1);
-
+    
     return 0;
 }
 
@@ -79,7 +77,6 @@ int shell()
             write((uint8_t*)"read from keyboard failed\n");
             return 3;
         }
-
         if (cnt > 0 && '\n' == buf[cnt - 1])
             cnt--;
         buf[cnt] = '\0';
