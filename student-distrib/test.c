@@ -61,16 +61,21 @@ int test_ls() {
 int test_cat(uint8_t* buf, int32_t cnt) {
     buf = buf + strlen((int8_t*)"cat ");
 
-    if (-1 == (cnt = fs_read(1, buf, BUFSIZE-1))) {
+    int size = fs_size(1, buf, BUFSIZE-1);
+    uint8_t buffer[size];
+
+    strcpy((int8_t*)buffer, (int8_t*)buf);
+
+    if (-1 == (cnt = fs_read(1, buffer, size-1))) {
         write((uint8_t*)"Invalid file name\n");
         return 0;
     }
 
-    if (cnt > 0 && '\n' == buf[cnt - 1])
+    if (cnt > 0 && '\n' == buffer[cnt - 1])
         cnt--;
-    buf[cnt] = '\n';
+    buffer[cnt] = '\n';
 
-    terminal_write(1, buf, cnt+1);
+    terminal_write(1, buffer, cnt+1);
     
     return 0;
 }
