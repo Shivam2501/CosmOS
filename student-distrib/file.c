@@ -18,7 +18,7 @@ int get_file_system_start(unsigned int mod_start){
 
 	//need to add beginning address + everything in the boot block 
 	dir_entry_start = (uint32_t*) (start_addr + 
-				NUMBER_DIR_ENTRIES + NUMBER_INODES + NUMBER_DATA_BLOCKS + reserved0);
+				NUMBER_DIR_ENTRIES + NUMBER_INODES + NUMBER_DATA_BLOCKS + RESERVED0);
 
 	//puts number of directory entries, number of inodes, and number of data blocks in a struct to be more accessible
 	memcpy(&(boot_info.dir_entries), start_addr, SIZE_DATA_BLOCK);
@@ -43,11 +43,11 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry){
 	}
 
 	//memory starts at block 0, then we skip over until specific block needed
- 	uint32_t* curr_start = dir_entry_start + index*dir_entry_length;
+ 	uint32_t* curr_start = dir_entry_start + index*DIR_ENTRY_LENGTH;
 
  	memcpy(&(dentry->file_name), curr_start, NAME_SIZE);
- 	memcpy(&(dentry->file_type), curr_start + file_name_length, SIZE_DATA_BLOCK);
- 	memcpy(&(dentry->inode), curr_start + file_name_length + file_type_length, SIZE_DATA_BLOCK);
+ 	memcpy(&(dentry->file_type), curr_start + FILE_NAME_LENGTH, SIZE_DATA_BLOCK);
+ 	memcpy(&(dentry->inode), curr_start + FILE_NAME_LENGTH + FILE_TYPE_LENGTH, SIZE_DATA_BLOCK);
 
 	return 0; 
 }
@@ -70,15 +70,15 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
 
 	for(i = 0; i < boot_info.dir_entries; i++){
 		uint8_t filename[NAME_SIZE];
-		memcpy(filename, dir_entry_start + (i*dir_entry_length), NAME_SIZE);
+		memcpy(filename, dir_entry_start + (i*DIR_ENTRY_LENGTH), NAME_SIZE);
 
 		//compare to see if the filename provided is the same as the filename of this directory
 		if(strncmp((int8_t*)filename, (int8_t*)fname, NAME_SIZE) == 0 ){
 			//if so, copy all relevant information into dentry
-			curr_start = dir_entry_start + (i*dir_entry_length);
+			curr_start = dir_entry_start + (i*DIR_ENTRY_LENGTH);
 			memcpy(&(dentry->file_name), curr_start, NAME_SIZE);
- 			memcpy(&(dentry->file_type), curr_start + file_name_length, SIZE_DATA_BLOCK);
- 			memcpy(&(dentry->inode), curr_start + file_name_length + file_type_length, SIZE_DATA_BLOCK);
+ 			memcpy(&(dentry->file_type), curr_start + FILE_NAME_LENGTH, SIZE_DATA_BLOCK);
+ 			memcpy(&(dentry->inode), curr_start + FILE_NAME_LENGTH + FILE_TYPE_LENGTH, SIZE_DATA_BLOCK);
 			return 0;
 		}
 		//otherwise, continue searching until we hit the actual entry

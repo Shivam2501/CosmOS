@@ -8,10 +8,10 @@
 #define NUMBER_DIR_ENTRIES 			1
 #define NUMBER_INODES				1
 #define NUMBER_DATA_BLOCKS			1
-#define reserved0 					13
-#define file_name_length 			8
-#define	file_type_length			1
-#define	dir_entry_length 			16
+#define RESERVED0 					13
+#define FILE_NAME_LENGTH 			8
+#define	FILE_TYPE_LENGTH			1
+#define	DIR_ENTRY_LENGTH 			16
 #define BLOCK_SIZE					1024
 #define BLOCK_SIZE_FOUR				4096
 
@@ -30,19 +30,22 @@ typedef struct boot_header {
 	uint32_t    data_blocks;
 } boot_t;
 
+/* Helper function to set the start address of the file system*/
 int get_file_system_start(unsigned int mod_start);
 
+/* Helper functions to assist in system calls to read file system*/
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry);
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
+/* System calls */
 int32_t fs_open(const uint8_t* filename);
 int32_t fs_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t fs_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t fs_close(int32_t fd);
 
-// I DONT LIKE THIS FUNCTION BUT WE NEED IT
+/* Helper function to read the size of the file */
 int32_t fs_size(int32_t fd, void* buf, int32_t nbytes);
 
 #endif

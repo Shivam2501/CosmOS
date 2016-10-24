@@ -13,6 +13,7 @@
 
 extern volatile int stop;
 
+/* Test for rtc, cat and write */
 int shell();
 int test_rtc();
 int test_cat(uint8_t* buf, int32_t cnt);

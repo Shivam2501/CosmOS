@@ -33,6 +33,7 @@ int32_t bad_userspace_addr(const void* addr, int32_t len);
 int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
 void test_interrupts(void);
 
+/* Helper function to assist with video memory write */
 void update_cursor(int screen_x, int screen_y);
 void scrolling(void);
 void newline();

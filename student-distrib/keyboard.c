@@ -258,6 +258,13 @@ void keyboard_init() {
 	enable_irq(KEYBOARD_IRQ);
 }
 
+/*
+ * get_terminal_status
+ *   DESCRIPTION: Return the status of the terminal
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
 int get_terminal_status() {
 	return terminal_read_ready;
 }

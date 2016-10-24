@@ -77,10 +77,11 @@ void rtc_handler() {
  */ 
 int32_t set_frequency(int32_t freq) {
 
-	//check if frequency is a power of 2 and not greater than 1024 Hz
+	//check if not greater than 1024 Hz
 	if(freq > MAX_FREQUENCY)
 		return -1;
 
+	//check is frequency is a power of 2 
 	int32_t x = freq;
 	while(((x % 2) ==0) && x > 1)
 		x /= 2;
@@ -94,34 +95,34 @@ int32_t set_frequency(int32_t freq) {
 	switch(freq) {
 		//rate calculated using freq = 32768 >> (rate-1)
 		//if freq is 2 then rate = 0xF
-		case 2: rate = 0xF;
+		case FREQ_2: rate = RATE_2;
 				break;
 		//if freq is 4 then rate = 0xE
-		case 4: rate = 0xE;
+		case FREQ_4: rate = RATE_4;
 				break;
 		//if freq is 8 then rate = 0xD
-		case 8: rate = 0xD;
+		case FREQ_8: rate = RATE_8;
 				break;
 		//if freq is 16 then rate = 0xC
-		case 16: rate = 0xC;
+		case FREQ_16: rate = RATE_16;
 				break;
 		//if freq is 32 then rate = 0xB
-		case 32: rate = 0xB;
+		case FREQ_32: rate = RATE_32;
 				break;
 		//if freq is 64 then rate = 0xA
-		case 64: rate = 0xA;
+		case FREQ_64: rate = RATE_64;
 				break;
 		//if freq is 128 then rate = 0x9
-		case 128: rate = 0x9;
+		case FREQ_128: rate = RATE_128;
 				break;
 		//if freq is 256 then rate = 0x8
-		case 256: rate = 0x8;
+		case FREQ_256: rate = RATE_256;
 				break;
 		//if freq is 512 then rate = 0x7
-		case 512: rate = 0x7;
+		case FREQ_512: rate = RATE_512;
 				break;
 		//if freq is 1024 then rate = 0x6
-		case 1024: rate = 0x6;
+		case FREQ_1024: rate = RATE_1024;
 				break;
 	}
 
