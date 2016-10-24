@@ -9,7 +9,6 @@ void write(uint8_t* string) {
 }
 
 int test_rtc() {
-
     frequency++;
     if(frequency > 10)
         frequency = 1;
@@ -22,14 +21,14 @@ int test_rtc() {
         i--;
     }
 
-    int return_write = rtc_write(1, &rtc, 4);
+    int return_write = rtc_write(1, &rtc, RTC_PACKET_SIZE);
     if (return_write == -1) {
         write((uint8_t*)"Invalid frequency");
         return -1;
     }
     stop = 0;
     while(1) {
-        if(rtc_read(1, &rtc, 4) == 0) {
+        if(rtc_read(1, &rtc, RTC_PACKET_SIZE) == 0) {
            write((uint8_t*)"1");
         }   
 

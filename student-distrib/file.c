@@ -12,9 +12,9 @@ int get_file_system_start(unsigned int mod_start){
 	dir_entry_start = (uint32_t*) (start_addr + 
 				NUMBER_DIR_ENTRIES + NUMBER_INODES + NUMBER_DATA_BLOCKS + reserved0);
 
-	memcpy(&(boot_info.dir_entries), start_addr, 4);
-	memcpy(&(boot_info.inodes), start_addr + NUMBER_DIR_ENTRIES, 4);
-	memcpy(&(boot_info.data_blocks), start_addr + NUMBER_DIR_ENTRIES + NUMBER_INODES, 4);
+	memcpy(&(boot_info.dir_entries), start_addr, SIZE_DATA_BLOCK);
+	memcpy(&(boot_info.inodes), start_addr + NUMBER_DIR_ENTRIES, SIZE_DATA_BLOCK);
+	memcpy(&(boot_info.data_blocks), start_addr + NUMBER_DIR_ENTRIES + NUMBER_INODES, SIZE_DATA_BLOCK);
 
 	return 0;
 }
@@ -29,30 +29,30 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry){
 	//memory starts at boot block, then block 0, gets specific block we need
  	uint32_t* curr_start = dir_entry_start + index*dir_entry_length;
 
- 	memcpy(&(dentry->file_name), curr_start, 32);
- 	memcpy(&(dentry->file_type), curr_start + file_name_length, 4);
- 	memcpy(&(dentry->inode), curr_start + file_name_length + file_type_length, 4);
+ 	memcpy(&(dentry->file_name), curr_start, NAME_SIZE);
+ 	memcpy(&(dentry->file_type), curr_start + file_name_length, SIZE_DATA_BLOCK);
+ 	memcpy(&(dentry->inode), curr_start + file_name_length + file_type_length, SIZE_DATA_BLOCK);
 
 	return 0; 
 }
 
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
 
-	if(strlen((int8_t*)fname) > 32)
+	if(strlen((int8_t*)fname) > NAME_SIZE)
 		return -1; 
 
 	uint32_t i;
 	uint32_t* curr_start; 
 
 	for(i = 0; i < boot_info.dir_entries; i++){
-		uint8_t filename[32];
-		memcpy(filename, dir_entry_start + (i*dir_entry_length), 32);
+		uint8_t filename[NAME_SIZE];
+		memcpy(filename, dir_entry_start + (i*dir_entry_length), NAME_SIZE);
 
-		if(strncmp((int8_t*)filename, (int8_t*)fname, 32) == 0 ){
+		if(strncmp((int8_t*)filename, (int8_t*)fname, NAME_SIZE) == 0 ){
 			curr_start = dir_entry_start + (i*dir_entry_length);
-			memcpy(&(dentry->file_name), curr_start, 32);
- 			memcpy(&(dentry->file_type), curr_start + file_name_length, 4);
- 			memcpy(&(dentry->inode), curr_start + file_name_length + file_type_length, 4);
+			memcpy(&(dentry->file_name), curr_start, NAME_SIZE);
+ 			memcpy(&(dentry->file_type), curr_start + file_name_length, SIZE_DATA_BLOCK);
+ 			memcpy(&(dentry->inode), curr_start + file_name_length + file_type_length, SIZE_DATA_BLOCK);
 			return 0;
 		}
 	}
@@ -72,19 +72,19 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 
 	uint32_t number_blocks, file_length;
 
-	memcpy(&file_length, inode_start_addr, 4);
+	memcpy(&file_length, inode_start_addr, SIZE_DATA_BLOCK);
 
 	if(offset >= file_length)
 		return 0;
-	number_blocks = file_length / 4096;
+	number_blocks = file_length / BLOCK_SIZE_FOUR;
 
-	if(file_length % 4096 != 0)
+	if(file_length % BLOCK_SIZE_FOUR != 0)
 		number_blocks++;
 
 	uint32_t i = 0;
 
-	uint32_t offset_blocks = offset / 4096;
-	uint32_t remaining_offset = offset % 4096;
+	uint32_t offset_blocks = offset / BLOCK_SIZE_FOUR;
+	uint32_t remaining_offset = offset % BLOCK_SIZE_FOUR;
 
 	uint32_t* starting_block = inode_start_addr + offset_blocks + 1;
 	
@@ -92,14 +92,14 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	uint32_t bytes_copied = 0;
 
 	for(i = 0; i < number_blocks - offset_blocks; i++) {
-		memcpy(&block_number, starting_block, 4);
+		memcpy(&block_number, starting_block, SIZE_DATA_BLOCK);
 		block_addr = data_block_start_addr + (block_number * BLOCK_SIZE);
 		if(remaining_offset != 0) {
-			block_addr += remaining_offset/4;
-			if((4096 - remaining_offset) < length) {
-				memcpy(buf+bytes_copied, block_addr, 4096 - remaining_offset);
-				length -= (4096 - remaining_offset);
-				bytes_copied += (4096 - remaining_offset);
+			block_addr += remaining_offset/SIZE_DATA_BLOCK;
+			if((BLOCK_SIZE_FOUR - remaining_offset) < length) {
+				memcpy(buf+bytes_copied, block_addr, BLOCK_SIZE_FOUR - remaining_offset);
+				length -= (BLOCK_SIZE_FOUR - remaining_offset);
+				bytes_copied += (BLOCK_SIZE_FOUR - remaining_offset);
 			} else {
 				memcpy(buf+bytes_copied, block_addr, length);
 				bytes_copied += length;
@@ -108,10 +108,10 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 			}
 			remaining_offset = 0;
 		}else{
-			if(4096  < length) {
-				memcpy(buf+bytes_copied, block_addr, 4096);
-				bytes_copied += 4096;
-				length -= 4096; 
+			if(BLOCK_SIZE_FOUR  < length) {
+				memcpy(buf+bytes_copied, block_addr, BLOCK_SIZE_FOUR);
+				bytes_copied += BLOCK_SIZE_FOUR;
+				length -= BLOCK_SIZE_FOUR; 
 			} else {
 				memcpy(buf+bytes_copied, block_addr, length);
 				bytes_copied += length;
@@ -166,7 +166,7 @@ int32_t fs_size(int32_t fd, void* buf, int32_t nbytes) {
 	if(read_dentry_by_name((uint8_t*)buf, &dentry) == 0) {
 		uint32_t* inode_start_addr = start_addr + BLOCK_SIZE + (dentry.inode * BLOCK_SIZE);
 		uint32_t file_length;
-		memcpy(&file_length, inode_start_addr, 4);
+		memcpy(&file_length, inode_start_addr, SIZE_DATA_BLOCK);
 		return file_length;
 	} else {
 		return -1;
@@ -185,7 +185,7 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
 	dentry_t dentry;
 
 	if(read_dentry_by_index(dir_read_counter, &dentry) == 0) {
-		memcpy(buf, dentry.file_name, 32);
+		memcpy(buf, dentry.file_name, NAME_SIZE);
 		dir_read_counter++;
 		return strlen((int8_t*)dentry.file_name);
 	} else {
