@@ -1,6 +1,4 @@
 #include "keyboard.h"
-#include "i8259.h"
-#include "lib.h"
 
 /*
 0 bit - CAPS ON/OFF
@@ -8,6 +6,11 @@
 2 bit - CTRL ON/OFF
 */
 uint8_t status;
+
+//buffer to store the keryboard input
+uint8_t buffer[BUFFER_SIZE];
+int32_t buffer_index;
+volatile int terminal_read_ready;
 
 /*
 map[0] : caps lock and shift are not pressed
@@ -75,6 +78,7 @@ void process_code(uint8_t scancode) {
 	Check MSB(0x80) indicating that key
 	is being released.
 	*/
+
 	if(scancode & CAPSLOCK_BIT) {
 		//if shift is released
 		if(scancode == RIGHT_SHIFT_LOCK_RELEASED || scancode == LEFT_SHIFT_LOCK_RELEASED)
@@ -97,18 +101,63 @@ void process_code(uint8_t scancode) {
 			if(scancode > KEYCODES_COUNT)
 				return;
 
+			//enter is pressed
+			if(scancode == SCANCODE_ENTER) {
+				newline();
+				terminal_read_ready = 1;
+				//clear_buffer(); //remove during test
+				return;
+			}
+
+			// if CTRL+L then clear the screen
+			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_L) {
+				clear_buffer();
+				clear();
+				return;
+			} 
+
+			// if CTRL+C then notify shell
+			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_C) {
+				stop = 1;
+				return;
+			} 
+
+			//backspace is pressed
+			if(scancode == SCANCODE_BACKSPACE) {
+				if(buffer_index > 0) {
+					buffer[buffer_index-1] = ' ';
+					buffer_index--;
+					update_coordinate();
+					putc(buffer[buffer_index]);
+					update_coordinate();
+				}
+				return;
+			}
+
+			//if buff size is reached
+			if(buffer_index >= BUFFER_SIZE) 
+				return;
+
 			//check if both shift and caps lock are on
-			if((status & SHIFT_ON) == 1 && (status & CAPSLOCK_ON) == 1) {
-				putc(map[MAP_SIZE-1][scancode]);
+			if(((status & SHIFT_ON)>>1) == 1 && (status & CAPSLOCK_ON) == 1) {
+				buffer[buffer_index] = map[MAP_SIZE-1][scancode];
+				putc(buffer[buffer_index]);
+				buffer_index++;
 			//check if only shift is pressed
-			} else if(status & SHIFT_ON) {
-				putc(map[MAP_SIZE-3][scancode]);
+			} else if((status & SHIFT_ON)>>1) {
+				buffer[buffer_index] = map[MAP_SIZE-3][scancode];
+				putc(buffer[buffer_index]);
+				buffer_index++;
 			//check if caps lock is on
 			} else if (status & CAPSLOCK_ON) {
-				putc(map[MAP_SIZE-2][scancode]);
+				buffer[buffer_index] = map[MAP_SIZE-2][scancode];
+				putc(buffer[buffer_index]);
+				buffer_index++;
 			//if both caps lock and shift is not on
-			} else {
-				putc(map[MAP_SIZE-4][scancode]);
+			} else{
+				buffer[buffer_index] = map[MAP_SIZE-4][scancode];
+				putc(buffer[buffer_index]);
+				buffer_index++;
 			}
 
 		}
@@ -179,6 +228,21 @@ void keyboard_handler() {
 }
 
 /*
+ * clear_buffer
+ *   DESCRIPTION: clear the buffer
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
+void clear_buffer() {
+	int32_t i;
+	for(i=0; i < BUFFER_SIZE; i++) 
+		buffer[i] = ' ';
+	buffer_index = 0;
+	terminal_read_ready = 0;
+}
+
+/*
  * keyboard_init
  *   DESCRIPTION: Keyboard initialisation
  *   INPUTS: none
@@ -188,7 +252,19 @@ void keyboard_handler() {
 void keyboard_init() {
 	/* Set the status to 0 initially */
 	status = 0x00;
+	clear_buffer();
 
 	/* Enable the IRQ Port for Keyboard*/
 	enable_irq(KEYBOARD_IRQ);
+}
+
+/*
+ * get_terminal_status
+ *   DESCRIPTION: Return the status of the terminal
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
+int get_terminal_status() {
+	return terminal_read_ready;
 }

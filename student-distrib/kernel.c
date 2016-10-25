@@ -11,7 +11,9 @@
 #include "rtc.h"
 #include "keyboard.h"
 #include "paging.h"
- 
+#include "file.h"
+#include "test.h" 
+
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
@@ -56,6 +58,8 @@ entry (unsigned long magic, unsigned long addr)
 		int mod_count = 0;
 		int i;
 		module_t* mod = (module_t*)mbi->mods_addr;
+		//set the start address of the file system
+		get_file_system_start((unsigned int)mod->mod_start);
 		while(mod_count < mbi->mods_count) {
 			printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
 			printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -68,6 +72,7 @@ entry (unsigned long magic, unsigned long addr)
 			mod++;
 		}
 	}
+
 	/* Bits 4 and 5 are mutually exclusive! */
 	if (CHECK_FLAG (mbi->flags, 4) && CHECK_FLAG (mbi->flags, 5))
 	{
@@ -168,7 +173,7 @@ entry (unsigned long magic, unsigned long addr)
     /*
     //check paging
 	int *p;
-	p = NULL;
+	p = 0xB8000;
 	*p = 5; */
 
 	/* Enable interrupts */
@@ -178,6 +183,8 @@ entry (unsigned long magic, unsigned long addr)
 	//printf("Enabling Interrupts\n");
 	sti();
 	
+	//test rtc, terminal and file system syscalls
+	shell();
 
 	//int i = 4/0;
 	//printf("returned from idt");

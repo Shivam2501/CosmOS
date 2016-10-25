@@ -6,7 +6,7 @@
 #define VIDEO 0xB8000
 #define NUM_COLS 80
 #define NUM_ROWS 25
-#define ATTRIB 0x7
+#define ATTRIB 0x9F
 
 static int screen_x;
 static int screen_y;
@@ -27,8 +27,96 @@ clear(void)
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
-    screen_y = NUM_ROWS / 2;
+    screen_y = 0;
     screen_x = 0;
+
+    update_cursor(screen_x, screen_y);
+}
+
+/*
+* void update_cursor(int screen_x, int screen_y);
+*   Inputs: screen x and y coordinates
+*   Return Value: none
+*	Function: Set the cursor to the screen location
+*/
+void
+update_cursor(int screen_x, int screen_y)
+{
+	unsigned short position = (screen_y*NUM_COLS) + screen_x;
+
+	// cursor low port(0x0F) to vga index register
+	outb(0x0F, VGA_CURSOR_PORT_L);
+   	outb((unsigned char)(position & VGA_MASK), VGA_CURSOR_PORT_H);
+
+   	// cursor high port(0x0E) to vga index register
+   	outb(0x0E, VGA_CURSOR_PORT_L);
+   	outb((unsigned char)((position>>8) & VGA_MASK), VGA_CURSOR_PORT_H);
+}
+
+/*
+* void newline();
+*   Inputs: none
+*   Return Value: none
+*	Function: Print a new line 
+*/
+void
+newline() 
+{
+	uint8_t c = '\n';
+	putc(c);
+}
+
+/*
+* void update_coordinate();
+*   Inputs: none
+*   Return Value: none
+*	Function: Decrement the x coordinate for backspace
+*/
+void
+update_coordinate()
+{
+	screen_x--;
+	if(screen_x < 0) {
+		screen_y--;
+		screen_x = NUM_COLS-1;
+	}
+	update_cursor(screen_x, screen_y);
+}
+
+/*
+* void scrolling(void);
+*   Inputs: none
+*   Return Value: none
+*	Function: Checks overflow on x and y axis. Updates x overflow 
+*			  by changing to new line and y overflow by scrolling
+*/
+void
+scrolling(void)
+{
+
+    if(screen_x >= NUM_COLS){
+    	screen_y++;
+    	screen_x = 0;
+    }
+
+   	if(screen_y >= NUM_ROWS) {
+   		//copy second line character on first and similarly do it for all lines
+   		int32_t i,j;
+   		for (i=0; i < (NUM_ROWS-1)*NUM_COLS; i++) {
+   			*(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i+NUM_COLS) << 1));
+        	*(uint8_t *)(video_mem + (i << 1) + 1) = *(uint8_t *)(video_mem + ((i+NUM_COLS) << 1) + 1);
+   		}
+
+   		//last line cleared
+   		for (j=0; j < NUM_COLS; j++) {
+   			*(uint8_t *)(video_mem + ((i+j) << 1)) = ' ';
+        	*(uint8_t *)(video_mem + ((i+j) << 1) + 1) = ATTRIB;
+   		}
+
+   		//update coordinates
+   		screen_x = 0;
+   		screen_y = NUM_ROWS-1;
+   	}
 }
 
 /* Standard printf().
@@ -196,9 +284,11 @@ putc(uint8_t c)
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        //screen_x %= NUM_COLS;
+        //screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
+    scrolling();
+    update_cursor(screen_x, screen_y);
 }
 
 /*
