@@ -198,4 +198,6 @@ void TIMER_CHIP(){
  */
 void SYSTEM_CALL(){
 	printf("Call for any system call");
+
+	call_handler();
 }
