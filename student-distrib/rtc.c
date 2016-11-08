@@ -1,6 +1,7 @@
 #include "rtc.h"
 #include "i8259.h"
 #include "lib.h"
+#include "general_operations.h"
 
 volatile int interrupt_flag;
 
@@ -77,11 +78,10 @@ void rtc_handler() {
  */ 
 int32_t set_frequency(int32_t freq) {
 
-	//check if not greater than 1024 Hz
+	//check if frequency is a power of 2 and not greater than 1024 Hz
 	if(freq > MAX_FREQUENCY)
 		return -1;
 
-	//check is frequency is a power of 2 
 	int32_t x = freq;
 	while(((x % 2) ==0) && x > 1)
 		x /= 2;
@@ -95,34 +95,34 @@ int32_t set_frequency(int32_t freq) {
 	switch(freq) {
 		//rate calculated using freq = 32768 >> (rate-1)
 		//if freq is 2 then rate = 0xF
-		case FREQ_2: rate = RATE_2;
+		case 2: rate = 0xF;
 				break;
 		//if freq is 4 then rate = 0xE
-		case FREQ_4: rate = RATE_4;
+		case 4: rate = 0xE;
 				break;
 		//if freq is 8 then rate = 0xD
-		case FREQ_8: rate = RATE_8;
+		case 8: rate = 0xD;
 				break;
 		//if freq is 16 then rate = 0xC
-		case FREQ_16: rate = RATE_16;
+		case 16: rate = 0xC;
 				break;
 		//if freq is 32 then rate = 0xB
-		case FREQ_32: rate = RATE_32;
+		case 32: rate = 0xB;
 				break;
 		//if freq is 64 then rate = 0xA
-		case FREQ_64: rate = RATE_64;
+		case 64: rate = 0xA;
 				break;
 		//if freq is 128 then rate = 0x9
-		case FREQ_128: rate = RATE_128;
+		case 128: rate = 0x9;
 				break;
 		//if freq is 256 then rate = 0x8
-		case FREQ_256: rate = RATE_256;
+		case 256: rate = 0x8;
 				break;
 		//if freq is 512 then rate = 0x7
-		case FREQ_512: rate = RATE_512;
+		case 512: rate = 0x7;
 				break;
 		//if freq is 1024 then rate = 0x6
-		case FREQ_1024: rate = RATE_1024;
+		case 1024: rate = 0x6;
 				break;
 	}
 
@@ -154,7 +154,7 @@ int32_t set_frequency(int32_t freq) {
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success
  */ 
-int32_t rtc_open(void) {
+int32_t rtc_open(const uint8_t* filename) {
 
 	//set the rtc to DEFAULT frequency
 	set_frequency(DEFAULT_FREQUENCY);
@@ -209,19 +209,24 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes) {
 /*
  * rtc_close
  *   DESCRIPTION: Close the rtc
- *   INPUTS: none
+ *   INPUTS: takes a file descriptor
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success
  */
-int32_t rtc_close(void) {
+int32_t rtc_close(int32_t fd) {
 
 	//set the rtc to DEFAULT frequency
 	set_frequency(DEFAULT_FREQUENCY);
 
-	return 0;
 
+	if(fd <DEFAULT_FD || fd >= FD_SIZE)
+		return -1
+
+	FD[fd].flags = 0;
+
+	return 0;
 }
 
 /*
  * End of System Calls
- */ 
+ */
