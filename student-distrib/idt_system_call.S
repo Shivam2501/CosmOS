@@ -1,62 +1,84 @@
 #define ASM     1
 
-#include "idt_system_call.h"
-
 #calls handler for PIT
 .globl call_handler
 call_handler:
+pushl 	%ebp
+movl 	%esp, %ebp
+pushl 	%ebx
+pushl 	%edi
+pushl 	%esi
 
 jmp 	*jump_table(, %eax, 4)
 
 sys_1:
 pushal
-call 	mp3_kernel_halt
+call 	general_halt
 popal
+jmp 	done
 
 sys_2:
 pushal
-call 	mp3_kernel_execute
+call 	general_execute
 popal
+jmp 	done
 
 sys_3:
 pushal
-call 	fs_read
+call 	general_read
 popal
+jmp 	done
 
 sys_4:
 pushal
-call 	fs_write
+call 	general_write
 popal
+jmp 	done
 
 sys_5:
 pushal
 call 	general_open
 popal
+jmp 	done
 
 sys_6:
 pushal
-call 	fs_close
+call 	general_close
 popal
+jmp 	done
 
 sys_7:
 pushal
-call 	mp3_kernel_getargs
+call 	general_getargs
 popal
+jmp 	done
 
 sys_8:
 pushal
-call 	mp3_kernel_vidmap
+call 	general_vidmap
 popal
+jmp 	done
 
 sys_9:
 pushal
-call 	mp3_kernel_set_handler
+call 	general_set_handler
 popal
+jmp 	done
+
 
 sys_10:
 pushal
-call 	 mp3_kernel_sigreturn
+call 	 general_sigreturn
 popal
+jmp 	done
+
+
+done:
+popl %edi
+popl %esi
+popl %ebx
+leave
+ret
 
 
 jump_table:
