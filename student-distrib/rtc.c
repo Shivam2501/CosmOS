@@ -2,6 +2,7 @@
 #include "i8259.h"
 #include "lib.h"
 #include "general_operations.h"
+#include "file.h"
 
 volatile int interrupt_flag;
 
@@ -155,6 +156,14 @@ int32_t set_frequency(int32_t freq) {
  *   RETURN VALUE: 0 on success
  */ 
 int32_t rtc_open(const uint8_t* filename) {
+	int index = DEFAULT_FD; 
+	while(FD[index].flags ==1 && index <FD_SIZE){
+		index++;
+	}
+
+	FD[index].inode = NULL;
+	FD[index].file_position = 0;
+	FD[index].flags = 1;
 
 	//set the rtc to DEFAULT frequency
 	set_frequency(DEFAULT_FREQUENCY);
@@ -220,13 +229,15 @@ int32_t rtc_close(int32_t fd) {
 
 
 	if(fd <DEFAULT_FD || fd >= FD_SIZE)
-		return -1
+		return -1;
 
 	FD[fd].flags = 0;
 
 	return 0;
 }
 
+
 /*
  * End of System Calls
  */
+ 
