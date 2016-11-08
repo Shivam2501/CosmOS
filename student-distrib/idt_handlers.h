@@ -6,7 +6,9 @@
 #define NUMBER_HANDLER    	48
 #define IDT_TOTAL_NUMBER  	256
 #define	SYSTEM_CALL_ADDR  	128
-#define	EOI_SIGNAL 			  	0x20
+#define	EOI_SIGNAL 			0x20
+
+
 
 void init_idt();
 
