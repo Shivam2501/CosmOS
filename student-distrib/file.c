@@ -1,8 +1,11 @@
 #include "file.h"
 #include "lib.h"
+#include "general_operations.h"
+#include "file_operations_table.h"
 
 uint32_t *start_addr, *dir_entry_start; 
 uint32_t dir_read_counter = 0;
+
 
 boot_t boot_info;
 
@@ -18,7 +21,7 @@ int get_file_system_start(unsigned int mod_start){
 
 	//need to add beginning address + everything in the boot block 
 	dir_entry_start = (uint32_t*) (start_addr + 
-				NUMBER_DIR_ENTRIES + NUMBER_INODES + NUMBER_DATA_BLOCKS + RESERVED0);
+				NUMBER_DIR_ENTRIES + NUMBER_INODES + NUMBER_DATA_BLOCKS + reserved0);
 
 	//puts number of directory entries, number of inodes, and number of data blocks in a struct to be more accessible
 	memcpy(&(boot_info.dir_entries), start_addr, SIZE_DATA_BLOCK);
@@ -43,11 +46,11 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry){
 	}
 
 	//memory starts at block 0, then we skip over until specific block needed
- 	uint32_t* curr_start = dir_entry_start + index*DIR_ENTRY_LENGTH;
+ 	uint32_t* curr_start = dir_entry_start + index*dir_entry_length;
 
  	memcpy(&(dentry->file_name), curr_start, NAME_SIZE);
- 	memcpy(&(dentry->file_type), curr_start + FILE_NAME_LENGTH, SIZE_DATA_BLOCK);
- 	memcpy(&(dentry->inode), curr_start + FILE_NAME_LENGTH + FILE_TYPE_LENGTH, SIZE_DATA_BLOCK);
+ 	memcpy(&(dentry->file_type), curr_start + file_name_length, SIZE_DATA_BLOCK);
+ 	memcpy(&(dentry->inode), curr_start + file_name_length + file_type_length, SIZE_DATA_BLOCK);
 
 	return 0; 
 }
@@ -70,15 +73,15 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
 
 	for(i = 0; i < boot_info.dir_entries; i++){
 		uint8_t filename[NAME_SIZE];
-		memcpy(filename, dir_entry_start + (i*DIR_ENTRY_LENGTH), NAME_SIZE);
+		memcpy(filename, dir_entry_start + (i*dir_entry_length), NAME_SIZE);
 
 		//compare to see if the filename provided is the same as the filename of this directory
 		if(strncmp((int8_t*)filename, (int8_t*)fname, NAME_SIZE) == 0 ){
 			//if so, copy all relevant information into dentry
-			curr_start = dir_entry_start + (i*DIR_ENTRY_LENGTH);
+			curr_start = dir_entry_start + (i*dir_entry_length);
 			memcpy(&(dentry->file_name), curr_start, NAME_SIZE);
- 			memcpy(&(dentry->file_type), curr_start + FILE_NAME_LENGTH, SIZE_DATA_BLOCK);
- 			memcpy(&(dentry->inode), curr_start + FILE_NAME_LENGTH + FILE_TYPE_LENGTH, SIZE_DATA_BLOCK);
+ 			memcpy(&(dentry->file_type), curr_start + file_name_length, SIZE_DATA_BLOCK);
+ 			memcpy(&(dentry->inode), curr_start + file_name_length + file_type_length, SIZE_DATA_BLOCK);
 			return 0;
 		}
 		//otherwise, continue searching until we hit the actual entry
@@ -173,19 +176,26 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 		return bytes_copied;
 } 
 
-/*
- * Start of System Calls
- */ 
+/*start of system calls*/
 
-/*
- * fs_open
- *   DESCRIPTION: Open the file
- *   INPUTS: none
- *   OUTPUTS: none
- *   RETURN VALUE: 0 on success
- */ 
-int32_t fs_open(const uint8_t* filename) {
-	return 0; 
+
+int32_t fs_open(const uint8_t* filename){
+	int index = DEFAULT_FD; 
+	while(FD[index].flags ==1 && index <FD_SIZE){
+		index++;
+	}
+
+	dentry_t dentry_file_info;
+
+	if(read_dentry_by_name((uint8_t*)filename, &dentry_file_info) == 0){
+		uint32_t* inode_start_addr = start_addr + BLOCK_SIZE + (dentry_file_info.inode * BLOCK_SIZE);
+		curr_file.inode = inode_start_addr;
+	}
+
+	FD[index].file_position = 0;
+	FD[index].ops_table_ptr = &file_ops;
+	FD[index].flags = 1;
+	return 0;
 }
 
 /*
@@ -197,12 +207,16 @@ int32_t fs_open(const uint8_t* filename) {
  */ 
 int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
 	dentry_t dentry;
-	
+	int32_t num_bytes;
+
 	if(read_dentry_by_name((uint8_t*)buf, &dentry) == 0) {
-		return read_data(dentry.inode, 0, (uint8_t*) buf, nbytes);
+			num_bytes = read_data(dentry.inode, FD[fd].file_position, (uint8_t*) buf, nbytes);
+			FD[fd].file_position += num_bytes;
+			return num_bytes; 
 	} else {
 		return -1;
 	}
+
 }
 
 /*
@@ -226,6 +240,33 @@ int32_t fs_size(int32_t fd, void* buf, int32_t nbytes) {
 }
 
 /*
+ * fs_write  
+ *   DESCRIPTION: Write the file
+ *   INPUTS: int32_t fd, uint8_t* buf, int32_t nbytes
+ *   OUTPUTS: none
+ *   RETURN VALUE: bytes written on success, -1 on failure
+ */ 
+int32_t fs_write(int32_t fd, const void* buf, int32_t nbytes) {
+	return -1;
+}
+
+/*
+ * fs_close
+ *   DESCRIPTION: Close the file
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success
+ */
+int32_t fs_close(int32_t fd) {
+	if(fd <DEFAULT_FD || fd >= FD_SIZE)
+		return -1
+	
+	FD[fd].flags = 0;
+	return 0;
+}
+
+
+/*
  * dir_read
  *   DESCRIPTION: Read the directory which is open
  *   INPUTS: int32_t fd, uint8_t* buf, int32_t nbytes
@@ -233,7 +274,6 @@ int32_t fs_size(int32_t fd, void* buf, int32_t nbytes) {
  *   RETURN VALUE: bytes read on success, 0 when all files are read
  */ 
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
-
 	dentry_t dentry;
 
 	if(read_dentry_by_index(dir_read_counter, &dentry) == 0) {
@@ -246,28 +286,16 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
 	}
 }
 
-/*
- * fs_write
- *   DESCRIPTION: Write the file
- *   INPUTS: int32_t fd, uint8_t* buf, int32_t nbytes
- *   OUTPUTS: none
- *   RETURN VALUE: bytes written on success, -1 on failure
- */ 
-int32_t fs_write(int32_t fd, const void* buf, int32_t nbytes) {
-	return -1;
-}
+int32_t dir_close(int32_t fd) {
+	if(fd <DEFAULT_FD || fd >= FD_SIZE)
+		return -1
 
-
-/*
- * fs_close
- *   DESCRIPTION: Close the file
- *   INPUTS: none
- *   OUTPUTS: none
- *   RETURN VALUE: 0 on success
- */
-int32_t fs_close(int32_t fd) {
+	FD[fd].flags = 0;
 	return 0;
 }
+
+
+
 
 /*
  * End of System Calls
