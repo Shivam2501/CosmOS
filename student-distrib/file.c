@@ -1,7 +1,6 @@
 #include "file.h"
 #include "lib.h"
 #include "general_operations.h"
-#include "file_operations_table.h"
 
 uint32_t *start_addr, *dir_entry_start; 
 uint32_t dir_read_counter = 0;
@@ -189,11 +188,10 @@ int32_t fs_open(const uint8_t* filename){
 
 	if(read_dentry_by_name((uint8_t*)filename, &dentry_file_info) == 0){
 		uint32_t* inode_start_addr = start_addr + BLOCK_SIZE + (dentry_file_info.inode * BLOCK_SIZE);
-		curr_file.inode = inode_start_addr;
+		FD[index].inode = inode_start_addr;
 	}
 
 	FD[index].file_position = 0;
-	FD[index].ops_table_ptr = &file_ops;
 	FD[index].flags = 1;
 	return 0;
 }
@@ -259,13 +257,29 @@ int32_t fs_write(int32_t fd, const void* buf, int32_t nbytes) {
  */
 int32_t fs_close(int32_t fd) {
 	if(fd <DEFAULT_FD || fd >= FD_SIZE)
-		return -1
+		return -1;
 	
 	FD[fd].flags = 0;
 	return 0;
 }
 
 
+
+int32_t dir_open(const uint8_t* filename) {
+	int index = DEFAULT_FD; 
+	while(FD[index].flags ==1 && index <FD_SIZE){
+		index++;
+	}
+
+	FD[index].inode = NULL;
+	FD[index].file_position = 0;
+	FD[index].flags = 1;
+	
+
+
+
+	return 0;
+}
 /*
  * dir_read
  *   DESCRIPTION: Read the directory which is open
@@ -286,14 +300,18 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
 	}
 }
 
+ 
+int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes) {
+	return 0;
+}
+
 int32_t dir_close(int32_t fd) {
 	if(fd <DEFAULT_FD || fd >= FD_SIZE)
-		return -1
+		return -1;
 
 	FD[fd].flags = 0;
 	return 0;
 }
-
 
 
 
