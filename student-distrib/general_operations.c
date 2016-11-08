@@ -1,22 +1,24 @@
 #include "rtc.h"
 #include "terminal.h"
-
-file_array_t FD[8]; 
+#include "general_operations.h"
+#include "file.h"
 
 int32_t init_FD(){
 	//am setting stdin and stdout fd blocks
 	file_array_t stdin;
 	stdin.flags = 1;
-	//jump table directly jumpts to function
-	stdin.ops_table_ptr = &terminal_read;
+	//jump_table directly jumpts to function
+	stdin.ops_table_ptr = (uint32_t)(&terminal_read);
 	stdin.file_position = 0; 
 	stdin.inode = NULL;
 
 	file_array_t stdout;
 	stdout.flags = 1; 
-	stdout.ops_table_ptr = &terminal_write;
+	stdout.ops_table_ptr = (uint32_t)(&terminal_write);
 	stdout.file_position = 0; 
 	stdout.inode = NULL;
+
+	return 0;
 }
 
 /*
@@ -36,28 +38,55 @@ int32_t general_open(const uint8_t* filename) {
 	if(index == FD_SIZE)
 		return -1;
 
-	file_array_t curr_file; 
+	uint32_t (*op_open)();
+	//file_array_t curr_file; 
 													//set file in use
 
 	dentry_t dentry_file_info;
 	if(read_dentry_by_name((uint8_t*)filename, &dentry_file_info) == 0) {	//if file is valid 
 		switch(dentry_file_info.file_type){
 			case 0:
-				curr_file.file_position = 0; //???
-				curr_file.inode = NULL;
-				curr_file.flags = 1;	
-				curr_file.ops_table_ptr = &rtc_ops;
-				rtc_open(filename);
-				break;
+				{
+					rtc_ops_t op_table;
+					op_table.open_rtc = (uint32_t)(&rtc_open);
+					op_table.close_rtc = (uint32_t)(&rtc_close);
+					op_table.read_rtc = (uint32_t)(&rtc_read);
+					op_table.write_rtc = (uint32_t)(&rtc_write);
+		
+					FD[index].ops_table_ptr = (uint32_t)(&op_table);
+					
+					op_open = (uint32_t (*)())(op_table.open_rtc);
+					op_open(filename);
+					break;
+				}
 			case 1:
-				curr_file.file_position = 0; //???
-				curr_file.ops_table_ptr = &dir_ops;
-				curr_file.inode = NULL;
-				curr_file.flags = 1;	
-				break;
+				{
+					dir_ops_t op_table;											//creates jumptable for dir
+					op_table.open_dir = (uint32_t)(&dir_open);
+					op_table.close_dir = (uint32_t)(&dir_close);
+					op_table.read_dir = (uint32_t)(&dir_read);
+					op_table.write_dir = (uint32_t)(&dir_write);
+			
+					FD[index].ops_table_ptr = (uint32_t)(&op_table);						//sets ptr to jumptable in the struct for fd entry
+
+					op_open = (uint32_t (*)())(op_table.open_dir);
+					op_open(filename);
+					break;
+				}
 			case 2:
-				fs_open(filename);
-				break;
+				{
+					file_ops_t op_table;
+					op_table.open_file = (uint32_t)(&fs_open);
+					op_table.close_file = (uint32_t)(&fs_close);
+					op_table.read_file = (uint32_t)(&fs_read);
+					op_table.write_file = (uint32_t)(&fs_write);
+
+					FD[index].ops_table_ptr = (uint32_t)(&op_table);
+
+					op_open = (uint32_t (*)())(op_table.open_file);
+					op_open(filename);
+					break;
+				}
 		}
 	} else {
 		return -1;
@@ -69,7 +98,7 @@ int32_t general_open(const uint8_t* filename) {
 
 int32_t general_read(int32_t fd, void* buf, int32_t nbytes) {
 	uint32_t (*op_read)();
-	op_read = FD[fd].ops_table_ptr;
+	op_read = (uint32_t (*)())(FD[fd].ops_table_ptr);
 	return op_read(fd, buf, nbytes, 2);
 
 	//return 0;
@@ -77,12 +106,40 @@ int32_t general_read(int32_t fd, void* buf, int32_t nbytes) {
 
 int32_t general_write(int32_t fd, const void* buf, int32_t nbytes) {
 	uint32_t (*op_write)();
-	op_write = FD[fd].ops_table_ptr;
+	op_write = (uint32_t (*)())(FD[fd].ops_table_ptr);
 	return op_write(fd, buf, nbytes, 3);
 }
 
 int32_t general_close(int32_t fd) {
 	uint32_t (*op_close)();
-	op_close = FD[fd].ops_table_ptr;
+	op_close = (uint32_t (*)())(FD[fd].ops_table_ptr);
 	return op_close(fd, 0, 0, 1);
+}
+
+
+int32_t general_getargs (uint8_t* buf, int32_t nbytes)
+{
+	return 0;
+
+}
+int32_t general_vidmap (uint8_t** screen_start)
+{
+	return 0;
+
+}
+int32_t general_set_handler (int32_t signum, void* handler_address)
+{
+	return 0;
+}
+int32_t general_sigreturn (void)
+{
+	return 0;
+
+}
+
+int32_t general_halt (uint8_t status){
+	return 0;
+}
+int32_t general_execute (const uint8_t* command){
+	return 0;
 }
