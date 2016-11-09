@@ -13,62 +13,62 @@ jmp 	*jump_table(, %eax, 4)
 
 sys_1:
 pushal
-call 	general_halt
+call 	syscall_halt
 popal
 jmp 	done
 
 sys_2:
 pushal
-call 	general_execute
+call 	syscall_execute
 popal
 jmp 	done
 
 sys_3:
 pushal
-call 	general_read
+call 	syscall_read
 popal
 jmp 	done
 
 sys_4:
 pushal
-call 	general_write
+call 	syscall_write
 popal
 jmp 	done
 
 sys_5:
 pushal
-call 	general_open
+call 	syscall_open
 popal
 jmp 	done
 
 sys_6:
 pushal
-call 	general_close
+call 	syscall_close
 popal
 jmp 	done
 
 sys_7:
 pushal
-call 	general_getargs
+call 	syscall_getargs
 popal
 jmp 	done
 
 sys_8:
 pushal
-call 	general_vidmap
+call 	syscall_vidmap
 popal
 jmp 	done
 
 sys_9:
 pushal
-call 	general_set_handler
+call 	syscall_set_handler
 popal
 jmp 	done
 
 
 sys_10:
 pushal
-call 	 general_sigreturn
+call 	 syscall_sigreturn
 popal
 jmp 	done
 
