@@ -145,15 +145,23 @@ int32_t syscall_halt (uint8_t status){
 	return 0;
 }
 int32_t syscall_execute (const uint8_t* command){
+	int i =0; 
 	init_FD();																		//set stdin, stdout
-	int32_t fd_index = syscall_open(command);
+	uint8_t* argument; 
+
+	while(command[i]!= ' ')															//get first word
+	{
+		argument[i] = command[i];
+		i++;
+	}
+	int32_t fd_index = syscall_open(argument);
 	uint8_t buf[exe_buf_size];
 
 	syscall_read(fd_index, buf, exe_buf_size);
 	if(buf[0] != 0x7f || buf[1] != 0x45 || buf[2] != 0x4c || buf[3] != 0x46)		//if not executable
 		return -1; 
 
-	int i; 
+	
 	for(i = 0; i < max_num_processes; i++){											//find empty process 
 		if(pid_tracker[i] == 0)
 			break;
