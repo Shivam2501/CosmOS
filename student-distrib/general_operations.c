@@ -2,6 +2,10 @@
 #include "terminal.h"
 #include "general_operations.h"
 #include "file.h"
+#include "paging.h"
+
+
+int32_t pid_tracker[max_num_processes];						//index into pid_tracker is pid-1
 
 int32_t init_FD(){
 	//am setting stdin and stdout fd blocks
@@ -47,43 +51,43 @@ int32_t syscall_open(const uint8_t* filename) {
 		switch(dentry_file_info.file_type){
 			case 0:
 				{
-					rtc_ops_t op_table;
-					op_table.open_rtc = (uint32_t)(&rtc_open);
-					op_table.close_rtc = (uint32_t)(&rtc_close);
-					op_table.read_rtc = (uint32_t)(&rtc_read);
-					op_table.write_rtc = (uint32_t)(&rtc_write);
+					ops_table_t op_table;
+					op_table.open = (uint32_t)(&rtc_open);
+					op_table.close = (uint32_t)(&rtc_close);
+					op_table.read = (uint32_t)(&rtc_read);
+					op_table.write = (uint32_t)(&rtc_write);
 		
 					FD[index].ops_table_ptr = (uint32_t)(&op_table);
 					
-					op_open = (uint32_t (*)())(op_table.open_rtc);
+					op_open = (uint32_t (*)())(op_table.open);
 					op_open(filename);
 					break;
 				}
 			case 1:
 				{
-					dir_ops_t op_table;											//creates jumptable for dir
-					op_table.open_dir = (uint32_t)(&dir_open);
-					op_table.close_dir = (uint32_t)(&dir_close);
-					op_table.read_dir = (uint32_t)(&dir_read);
-					op_table.write_dir = (uint32_t)(&dir_write);
+					ops_table_t op_table;										//creates jumptable for dir
+					op_table.open = (uint32_t)(&dir_open);
+					op_table.close = (uint32_t)(&dir_close);
+					op_table.read = (uint32_t)(&dir_read);
+					op_table.write = (uint32_t)(&dir_write);
 			
-					FD[index].ops_table_ptr = (uint32_t)(&op_table);						//sets ptr to jumptable in the struct for fd entry
+					FD[index].ops_table_ptr = (uint32_t)(&op_table);			//sets ptr to jumptable in the struct for fd entry
 
-					op_open = (uint32_t (*)())(op_table.open_dir);
+					op_open = (uint32_t (*)())(op_table.open);
 					op_open(filename);
 					break;
 				}
 			case 2:
 				{
-					file_ops_t op_table;
-					op_table.open_file = (uint32_t)(&fs_open);
-					op_table.close_file = (uint32_t)(&fs_close);
-					op_table.read_file = (uint32_t)(&fs_read);
-					op_table.write_file = (uint32_t)(&fs_write);
+					ops_table_t op_table;
+					op_table.open = (uint32_t)(&fs_open);
+					op_table.close = (uint32_t)(&fs_close);
+					op_table.read = (uint32_t)(&fs_read);
+					op_table.write = (uint32_t)(&fs_write);
 
 					FD[index].ops_table_ptr = (uint32_t)(&op_table);
 
-					op_open = (uint32_t (*)())(op_table.open_file);
+					op_open = (uint32_t (*)())(op_table.open);
 					op_open(filename);
 					break;
 				}
@@ -98,22 +102,22 @@ int32_t syscall_open(const uint8_t* filename) {
 
 int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
 	uint32_t (*op_read)();
-	op_read = (uint32_t (*)())(FD[fd].ops_table_ptr);
-	return op_read(fd, buf, nbytes, 2);
+	op_read = (uint32_t (*)()) ((FD[fd].ops_table_ptr).read); //???
+	return op_read(fd, buf, nbytes);
 
 	//return 0;
 }
 
 int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
 	uint32_t (*op_write)();
-	op_write = (uint32_t (*)())(FD[fd].ops_table_ptr);
-	return op_write(fd, buf, nbytes, 3);
+	op_write = (uint32_t (*)()) *(FD[fd].ops_table_ptr).write;
+	return op_write(fd, buf, nbytes);
 }
 
 int32_t syscall_close(int32_t fd) {
 	uint32_t (*op_close)();
-	op_close = (uint32_t (*)())(FD[fd].ops_table_ptr);
-	return op_close(fd, 0, 0, 1);
+	op_close = (uint32_t (*)()) *(FD[fd].ops_table_ptr).close;
+	return op_close(fd, 0, 0);
 }
 
 
@@ -141,6 +145,50 @@ int32_t syscall_halt (uint8_t status){
 	return 0;
 }
 int32_t syscall_execute (const uint8_t* command){
+	init_FD();																		//set stdin, stdout
+	int32_t fd_index = syscall_open(command);
+	uint8_t buf[exe_buf_size];
+
+	syscall_read(fd_index, buf, exe_buf_size);
+	if(buf[0] != 0x7f || buf[1] != 0x45 || buf[2] != 0x4c || buf[3] != 0x46)		//if not executable
+		return -1; 
+
+	int i; 
+	for(i = 0; i < max_num_processes; i++){											//find empty process 
+		if(pid_tracker[i] == 0)
+			break;
+	}
+
+	/*Paging*/
+	page_directory[page_dir_entry] = (KERNEL_PROCESS_START + i*KERNEL_PROCESS_SIZE) | PS | READ_WRITE | PRESENT;
+	loadPageDirectory((uint32_t*) page_directory);
+
+
+	/*Load file in memory*/
+	uint32_t* buffer = 0x800000;
+	syscall_read(fd_index, buffer, buf_size);
+
+	pid_tracker[i] = 1; 															//current process is being used
+	PCB_t *pcb = (KERNEL_PROCESS_START - (i+1)*KERNEL_STACK_SIZE); 
+	pcb->pid = i+1;
+	
+																					//save registers, cr3, flags in pcb
+	asm volatile("                  \n												
+			movl    %%cr3, %0;      \n
+			movl 	%%esp, %1;		\n	
+			movl    %%ebp, %2;		\n
+			movl 	%%eflags, %3;   \n
+			"
+			: "=a"(pcb->tss.cr3), "=b"(pcb->tss.esp), "=c"(pcb->tss.ebp), "=d"(pcb->tss.eflags)
+			:
+			: "eax", "ebx", "ecx", "edx"	
+			);
+
+	pcb->tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE;	
+	pcb->pcb_fd = FD;					
+
+
+
 	return 0;
 }
 
