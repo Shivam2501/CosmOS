@@ -1,5 +1,13 @@
 #ifndef _GENERAL_OPERATIONS_H
 #define _GENERAL_OPERATIONS_H
+#define exe_buf_size 	4
+#define page_dir_entry  0x20
+#define	max_num_processes   6
+#define KERNEL_PROCESS_START	0x800000
+#define KERNEL_PROCESS_SIZE		0x400000
+#define KERNEL_STACK_SIZE		0x2000
+#define buf_size 			4
+#include "x86_desc.h"
 
 typedef struct file_array {
     uint32_t 	ops_table_ptr;
@@ -8,26 +16,18 @@ typedef struct file_array {
     uint32_t 	flags;                  
 } file_array_t;
 
-typedef struct rtc_ops{
-	uint32_t 	open_rtc;
-	uint32_t 	close_rtc;
-	uint32_t 	read_rtc;
-	uint32_t 	write_rtc;
-} rtc_ops_t;
+typedef struct ops_table{
+	uint32_t 	open;
+	uint32_t 	close;
+	uint32_t 	read;
+	uint32_t 	write;
+} ops_table_t;
 
-typedef struct file_ops{
-	uint32_t 	open_file;
-	uint32_t 	close_file;
-	uint32_t 	read_file;
-	uint32_t 	write_file;
-} file_ops_t;
-
-typedef struct dir_ops{
-	uint32_t 	open_dir;
-	uint32_t 	close_dir;
-	uint32_t 	read_dir;
-	uint32_t 	write_dir;
-} dir_ops_t;
+typedef struct PCB{
+	uint32_t 	pid;
+	tss_t 		tss;
+	file_array_t pcb_fd[8];
+} PCB_t;
 
 file_array_t FD[8]; 
 
