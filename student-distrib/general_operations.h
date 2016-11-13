@@ -21,6 +21,8 @@
 #define ESP_VALUE				0x83FFFFC
 #define MAX_BUFFER_SIZE		 	128
 #define MAX_OPEN_FILES			8
+#define FILE_SIZE  				100000
+#define PAGE_ALIGNMENT			4
 
 typedef struct ops_table{
 	int32_t (*open) (const uint8_t* filename);

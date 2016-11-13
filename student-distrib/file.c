@@ -175,7 +175,13 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 
 /*start of system calls*/
 
-
+/*
+ * fs_open
+ *   DESCRIPTION: opens a file
+ *   INPUTS: filename
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0
+ */ 
 int32_t fs_open(const uint8_t* filename){
 	/*int index = DEFAULT_FD; 
 	while(parent_pointer->FD[index].flags ==1 && index <FD_SIZE){
@@ -253,8 +259,13 @@ int32_t fs_close(int32_t fd) {
 	return 0;
 }
 
-
-
+/*
+ * dir_open
+ *   DESCRIPTION: open the directory
+ *   INPUTS: filename
+ *   OUTPUTS: none
+ *   RETURN VALUE: returns 0
+ */ 
 int32_t dir_open(const uint8_t* filename) {
 	/*int index = DEFAULT_FD; 
 	while(parent_pointer->FD[index].flags ==1 && index < FD_SIZE){
@@ -287,11 +298,24 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
 	}
 }
 
- 
+/*
+ * dir_write
+ *   DESCRIPTION: write directory
+ *   INPUTS: int32_t fd, uint8_t* buf, int32_t nbytes
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0
+ */ 
 int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes) {
 	return 0;
 }
 
+/*
+ * dir_close
+ *   DESCRIPTION: close directory
+ *   INPUTS: int32_t fd
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0
+ */ 
 int32_t dir_close(int32_t fd) {
 	/*if(fd <DEFAULT_FD || fd >= FD_SIZE)
 		return -1;

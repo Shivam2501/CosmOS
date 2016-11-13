@@ -40,27 +40,30 @@ int32_t init_FD(){
 }
 
 /*
- * general_open
+ * syscall_open
  *   DESCRIPTION: Open the file
- *   INPUTS: none
+ *   INPUTS: filename
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success, -1 on failure
  */ 
 int32_t syscall_open(const uint8_t* filename) {
 	int index = DEFAULT_FD;
-
-	while(parent_pointer->FD[index].flags == 1 && index < FD_SIZE){
+	//find free fd array
+	while(parent_pointer->FD[index].flags == 1 && index < FD_SIZE){								
 		index++;
 	}
 
 	if(index == FD_SIZE)
 		return -1;
 
+	//if file is valid
 	dentry_t dentry_file_info;
-	if(read_dentry_by_name((uint8_t*)filename, &dentry_file_info) == 0) {	//if file is valid 
+	if(read_dentry_by_name((uint8_t*)filename, &dentry_file_info) == 0) {				 
 		switch(dentry_file_info.file_type){
-			case 0:
+			//rtc handling
+			case 0:	
 				{
+					//make jump table to specific rtc functions
 					ops_table_t op_table;
 					op_table.open = &rtc_open;
 					op_table.close = &rtc_close;
@@ -75,15 +78,18 @@ int32_t syscall_open(const uint8_t* filename) {
 					op_table.open(filename);
 					break;
 				}
+				//directory open
 			case 1:
 				{
-					ops_table_t op_table;										//creates jumptable for dir
+					//creates jumptable for dir
+					ops_table_t op_table;												
 					op_table.open = &dir_open;
 					op_table.close = &dir_close;
 					op_table.read = &dir_read;
 					op_table.write = &dir_write;
 			
-					parent_pointer->FD[index].ops_table_ptr = op_table;			//sets ptr to jumptable in the struct for fd entry
+					//sets ptr to jumptable in the struct for fd entry
+					parent_pointer->FD[index].ops_table_ptr = op_table;					
 					parent_pointer->FD[index].inode = NULL;
 					parent_pointer->FD[index].file_position = 0;
 					parent_pointer->FD[index].flags = 1;
@@ -91,8 +97,10 @@ int32_t syscall_open(const uint8_t* filename) {
 					op_table.open(filename);
 					break;
 				}
+				//file open
 			case 2:
 				{
+					//make jumptable for file specific functions
 					ops_table_t op_table;
 					op_table.open = &fs_open;
 					op_table.close = &fs_close;
@@ -112,33 +120,60 @@ int32_t syscall_open(const uint8_t* filename) {
 		return -1;
 	}
 
+	//returns the file descriptor
 	return index; 
 }
 
-
+/*
+ * syscall_read
+ *   DESCRIPTION: read the file
+ *   INPUTS: file descriptor, buffer to read to, the number of bytes to read
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success, -1 on failure
+ */ 
 int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
 
-	if(fd < 0 || fd >= FD_SIZE)   ///magic num,ber ???
+	//check if file descriptor is not valid
+	if(fd < 0 || fd >= FD_SIZE)  
 		return -1;
 
+	//call read specific to type
 	return parent_pointer->FD[fd].ops_table_ptr.read(fd, buf, nbytes);
 }
 
+/*
+ * syscall_write
+ *   DESCRIPTION: Write the file
+ *   INPUTS: file descriptor, buffer to write to, number of bytes to write
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success, -1 on failure
+ */ 
 int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
+	//check if file descriptor is valid
 	if(fd < 0 || fd >= FD_SIZE)
 		return -1;
 
+	//call write specific to type
 	return parent_pointer->FD[fd].ops_table_ptr.write(fd, buf, nbytes);
 }
 
+/*
+ * syscall_close
+ *   DESCRIPTION: close the file
+ *   INPUTS: filename
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success, -1 on failure
+ */ 
 int32_t syscall_close(int32_t fd) {
+	//check if file descriptor is valid
 	if(fd < 0 || fd >= FD_SIZE)
 		return -1;
 
+	//set flag to not being used now
 	parent_pointer->FD[fd].flags = 0;
+	//call close specific to type
 	return parent_pointer->FD[fd].ops_table_ptr.close(fd);
 }
-
 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes)
 {
@@ -160,6 +195,13 @@ int32_t syscall_sigreturn (void)
 
 }
 
+/*
+ * syscall_fail
+ *   DESCRIPTION: checks if an invalid system call was called
+ *   INPUTS: 
+ *   OUTPUTS: prints invalid system call
+ *   RETURN VALUE: 0 
+ */ 
 int32_t syscall_fail (void)
 {
 	printf("Invalid system call\n");
@@ -167,9 +209,17 @@ int32_t syscall_fail (void)
 
 }
 
+/*
+ * syscall_halt
+ *   DESCRIPTION: halt the process
+ *   INPUTS: status
+ *   OUTPUTS:
+ *   RETURN VALUE: 0 on success
+ */ 
 int32_t syscall_halt (uint8_t status){
 
 	int i = 0;
+	//obtain current and parent's pids
 	uint32_t parent_pid = parent_pointer->parent_ptr;
 	uint32_t current_pid = parent_pointer->pid;
 
@@ -177,15 +227,17 @@ int32_t syscall_halt (uint8_t status){
 	PCB_t* parent_process = (PCB_t*)(KERNEL_PROCESS_START - (parent_pid+1)*KERNEL_STACK_SIZE);
 	PCB_t* current_process = (PCB_t*)(KERNEL_PROCESS_START - (current_pid+1)*KERNEL_STACK_SIZE);
 
+	//parent becomes current process's parent
 	parent_pointer = parent_process;
 	pid_tracker[current_process->pid] = 0; 
 
+	//close each fd that is open in current process
 	for(i = 0; i < MAX_OPEN_FILES; i++) {
 		if(current_process->FD[i].flags)
 			syscall_close(i);
 	}
 
-	//paging
+	//paging to parent process
 	add_paging(PAGE_DIR_ENTRY, (KERNEL_PROCESS_START + (parent_process->pid)*KERNEL_PROCESS_SIZE));
 
 	//tss.ss0 = KERNEL_DS;
@@ -198,9 +250,11 @@ int32_t syscall_halt (uint8_t status){
 		syscall_execute(shell);
 		return -1;
 	}
-	
+
+	//have to return status
 	uint32_t new_status = status;
 
+	//push correct values to jump
 	asm volatile("                  	\n\
 			movl 	%0, %%esp			\n\
 			movl	%1, %%ebp 			\n\
@@ -215,13 +269,19 @@ int32_t syscall_halt (uint8_t status){
 	return 0;
 }
 
+/*
+ * syscall_execute
+ *   DESCRIPTION: execute the process
+ *   INPUTS: command
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0
+ */ 
 int32_t syscall_execute (const uint8_t* command){
 	int i = 0; 																		//set stdin, stdout
 	uint8_t argument[MAX_BUFFER_SIZE]; 
 
-//	printf("aaa%saaa\n",command);
-	//command[i] != ' ' ||
-	while(command[i] != '\0')															//get first word
+	//parse args to get the first word
+	while(command[i] != '\0')															
 	{
 		if(command[i] != ' '){
 			argument[i] = command[i];
@@ -238,15 +298,19 @@ int32_t syscall_execute (const uint8_t* command){
 	uint8_t buf[EXE_BUF_SIZE];
 
 	dentry_t dentry_file_info;
+	//get inode value, if invalid file then return -1
 	if(read_dentry_by_name((uint8_t*)argument, &dentry_file_info) != 0)
 		return -1;
 
+	//obtain first four bytes to check if executable
 	read_data(dentry_file_info.inode, 0, buf, EXE_BUF_SIZE);
 
-	if(buf[0] != 0x7f || buf[1] != 0x45 || buf[2] != 0x4c || buf[3] != 0x46)		//if not executable
+	//check if not executable
+	if(buf[0] != 0x7f || buf[1] != 0x45 || buf[2] != 0x4c || buf[3] != 0x46)		
 		return -1; 
 
-	for(i = 0; i < MAX_NUM_PROCESS; i++){											//find empty process 
+	//find empty process 
+	for(i = 0; i < MAX_NUM_PROCESS; i++){											
 		if(pid_tracker[i] == 0)
 			break;
 	}
@@ -257,15 +321,20 @@ int32_t syscall_execute (const uint8_t* command){
 	}
 
 	/*Paging*/
+	//change entry in page directory
 	add_paging(PAGE_DIR_ENTRY, (KERNEL_PROCESS_START + i*KERNEL_PROCESS_SIZE));
 
 	/*Load file in memory*/
-	read_data(dentry_file_info.inode, 0, (uint8_t*)VIRTUAL_ADDRESS_PROGRAM, 100000); //magic number
+	read_data(dentry_file_info.inode, 0, (uint8_t*)VIRTUAL_ADDRESS_PROGRAM, FILE_SIZE);
 
-	pid_tracker[i] = 1; 															//current process is being used
+	//current process is being used -> mark as used
+	pid_tracker[i] = 1;
+	//create pcb at correct memory location 															
 	PCB_t* pcb = (PCB_t*)(KERNEL_PROCESS_START - (i+1)*KERNEL_STACK_SIZE); 
+	//save process number
 	pcb->pid = i;
 
+	//save cr3, esp, ebp registers in tss within pcb
 	asm volatile("                  \n\
 			movl    %%cr3, %0   	\n\
 			movl 	%%esp, %1	    \n\
@@ -278,9 +347,11 @@ int32_t syscall_execute (const uint8_t* command){
 			: "memory", "cc"
 			);
 
+	//set tss values
 	tss.ss0 = KERNEL_DS;
-	tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE - 4;	//magic number???
+	tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE - PAGE_ALIGNMENT;
 
+	//set the parent pointer
 	if(parent_pointer == NULL) {
 		pcb->parent_ptr = pcb->pid;
 	} else {
@@ -291,10 +362,12 @@ int32_t syscall_execute (const uint8_t* command){
 	parent_pointer = pcb;
 	init_FD();
 
+	//read 24-27 bytes of executable file which serves as entrypoint
 	read_data(dentry_file_info.inode, EIP_READ_OFFSET, buf, EXE_BUF_SIZE);
 	//move data segment, push ss, esp, eflags, cs, eip 
 	uint32_t entrypoint = *((uint32_t*)buf);
 
+	//push correct values onto  stack for iret context
 	asm volatile("                  	\n\
 			mov 	%0, %%ds			\n\
 			pushl   %0					\n\
