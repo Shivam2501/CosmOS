@@ -1,6 +1,4 @@
 #include "file.h"
-#include "lib.h"
-#include "general_operations.h"
 
 uint32_t *start_addr, *dir_entry_start; 
 uint32_t dir_read_counter = 0;
@@ -179,8 +177,8 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 
 
 int32_t fs_open(const uint8_t* filename){
-	int index = DEFAULT_FD; 
-	while(FD[index].flags ==1 && index <FD_SIZE){
+	/*int index = DEFAULT_FD; 
+	while(parent_pointer->FD[index].flags ==1 && index <FD_SIZE){
 		index++;
 	}
 
@@ -188,11 +186,11 @@ int32_t fs_open(const uint8_t* filename){
 
 	if(read_dentry_by_name((uint8_t*)filename, &dentry_file_info) == 0){
 		uint32_t* inode_start_addr = start_addr + BLOCK_SIZE + (dentry_file_info.inode * BLOCK_SIZE);
-		FD[index].inode = inode_start_addr;
+		parent_pointer->FD[index].inode = inode_start_addr;
 	}
 
-	FD[index].file_position = 0;
-	FD[index].flags = 1;
+	parent_pointer->FD[index].file_position = 0;
+	parent_pointer->FD[index].flags = 1;*/
 	return 0;
 }
 
@@ -208,8 +206,8 @@ int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
 	int32_t num_bytes;
 
 	if(read_dentry_by_name((uint8_t*)buf, &dentry) == 0) {
-			num_bytes = read_data(dentry.inode, FD[fd].file_position, (uint8_t*) buf, nbytes);
-			FD[fd].file_position += num_bytes;
+			num_bytes = read_data(dentry.inode, parent_pointer->FD[fd].file_position, (uint8_t*) buf, nbytes);
+			parent_pointer->FD[fd].file_position += num_bytes;
 			return num_bytes; 
 	} else {
 		return -1;
@@ -259,25 +257,22 @@ int32_t fs_close(int32_t fd) {
 	if(fd <DEFAULT_FD || fd >= FD_SIZE)
 		return -1;
 	
-	FD[fd].flags = 0;
+	parent_pointer->FD[fd].flags = 0;
 	return 0;
 }
 
 
 
 int32_t dir_open(const uint8_t* filename) {
-	int index = DEFAULT_FD; 
-	while(FD[index].flags ==1 && index <FD_SIZE){
+	/*int index = DEFAULT_FD; 
+	while(parent_pointer->FD[index].flags ==1 && index < FD_SIZE){
 		index++;
 	}
 
-	FD[index].inode = NULL;
-	FD[index].file_position = 0;
-	FD[index].flags = 1;
+	parent_pointer->FD[index].inode = NULL;
+	parent_pointer->FD[index].file_position = 0;
+	parent_pointer->FD[index].flags = 1;*/
 	
-
-
-
 	return 0;
 }
 /*
@@ -306,10 +301,10 @@ int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes) {
 }
 
 int32_t dir_close(int32_t fd) {
-	if(fd <DEFAULT_FD || fd >= FD_SIZE)
+	/*if(fd <DEFAULT_FD || fd >= FD_SIZE)
 		return -1;
 
-	FD[fd].flags = 0;
+	parent_pointer->FD[fd].flags = 0;*/
 	return 0;
 }
 
