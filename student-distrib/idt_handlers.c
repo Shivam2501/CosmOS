@@ -1,9 +1,4 @@
 #include "idt_handlers.h"
-#include "lib.h"
-#include "rtc.h"
-#include "i8259.h"
-#include "asm_linkage.h"
-
 
 /* 
  * init_idt

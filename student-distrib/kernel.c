@@ -13,6 +13,7 @@
 #include "paging.h"
 #include "file.h"
 #include "test.h" 
+#include "general_operations.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -24,7 +25,7 @@ void
 entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
-
+	get_file_system_start(addr);
 	/* Clear the screen. */
 	clear();
 
@@ -184,7 +185,9 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 	
 	//test rtc, terminal and file system syscalls
-	shell();
+	//shell();
+	uint8_t* shell = "shell";
+	syscall_execute(shell);
 
 	//int i = 4/0;
 	//printf("returned from idt");

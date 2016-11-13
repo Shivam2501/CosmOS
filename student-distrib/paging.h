@@ -27,6 +27,11 @@
 #define PRESENT					0x1
 #define PS 						0x80
 
+//page directory array
+uint32_t page_directory[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
+//page table array
+uint32_t page_table[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
+
 /* Initialize the paging */
 extern void init_paging();
 

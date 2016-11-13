@@ -11,6 +11,7 @@
 #define EXE_BUF_SIZE		 	4
 #define PAGE_DIR_ENTRY			0x20
 #define	max_num_processes   	6
+#define VIRTUAL_ADDRESS_PROGRAM	0x08048000
 #define KERNEL_PROCESS_START	0x800000
 #define KERNEL_PROCESS_SIZE		0x400000
 #define KERNEL_STACK_SIZE		0x2000
@@ -18,7 +19,8 @@
 #define EIP_READ_OFFSET			24
 #define EFLAGS_VALUE			0x00000200
 #define ESP_VALUE				0x83FFFFC
-
+#define MAX_BUFFER_SIZE		 	128
+#define DS 						0x002B
 
 typedef struct ops_table{
 	int32_t (*open) (const uint8_t* filename);
@@ -38,10 +40,10 @@ typedef struct PCB{
 	uint32_t 			pid;
 	tss_t 				tss;
 	file_array_t 		FD[8];
-	struct PCB_t*		parent_ptr;
+	uint32_t			parent_ptr;
 } PCB_t;
 
-PCB_t *parent_pointer = NULL; 
+extern PCB_t *parent_pointer; 
 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes);
 int32_t syscall_vidmap (uint8_t** screen_start);
@@ -53,7 +55,5 @@ int32_t syscall_read (int32_t fd, void* buf, int32_t nbytes);
 int32_t syscall_write (int32_t fd, const void* buf, int32_t nbytes);
 int32_t syscall_open (const uint8_t* filename);
 int32_t syscall_close (int32_t fd);
-
-
 
 #endif

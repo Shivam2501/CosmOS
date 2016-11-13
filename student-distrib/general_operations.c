@@ -1,5 +1,6 @@
 #include "general_operations.h"
 
+PCB_t *parent_pointer = NULL; 
 int32_t pid_tracker[max_num_processes];					//index into pid_tracker is pid-1
 
 int32_t init_FD(){
@@ -149,31 +150,34 @@ int32_t syscall_sigreturn (void)
 int32_t syscall_halt (uint8_t status){
 	return 0;
 }
+
 int32_t syscall_execute (const uint8_t* command){
 	int i =0; 																		//set stdin, stdout
-	uint8_t* argument; 
+	uint8_t argument[MAX_BUFFER_SIZE]; 
 
 	while(command[i]!= ' ')															//get first word
 	{
 		argument[i] = command[i];
 		i++;
 	}
+	argument[i] = '\0';
+
 	uint8_t buf[EXE_BUF_SIZE];
 
-
 	dentry_t dentry_file_info;
-	if(read_dentry_by_name((uint8_t*)argument, &dentry_file_info) != 0);
+	if(read_dentry_by_name((uint8_t*)argument, &dentry_file_info) != 0)
 		return -1;
 
 	read_data(dentry_file_info.inode, 0, buf, EXE_BUF_SIZE);
 
 	if(buf[0] != 0x7f || buf[1] != 0x45 || buf[2] != 0x4c || buf[3] != 0x46)		//if not executable
 		return -1; 
-	
+
 	for(i = 0; i < max_num_processes; i++){											//find empty process 
 		if(pid_tracker[i] == 0)
 			break;
 	}
+
 	if(i == max_num_processes){
 		printf("No processes free");
 		return -1;
@@ -181,61 +185,75 @@ int32_t syscall_execute (const uint8_t* command){
 
 	/*Paging*/
 	page_directory[PAGE_DIR_ENTRY] = (KERNEL_PROCESS_START + i*KERNEL_PROCESS_SIZE) | PS | READ_WRITE | PRESENT;
-	loadPageDirectory((uint32_t*) page_directory);
 
+	//tlb flush
+	asm volatile("				\n\
+		movl	%%cr3,%%eax		\n\
+		movl	%%eax,%%cr3		\n\
+		"
+		:
+		:
+		: "memory", "cc"
+		);
+
+	// loadPageDirectory((uint32_t*) page_directory);
 
 	/*Load file in memory*/
-	uint32_t buffer = KERNEL_PROCESS_START;
-	read_data(dentry_file_info.inode, 0, (uint8_t*)buffer, BUF_SIZE);
+	uint32_t buffer = VIRTUAL_ADDRESS_PROGRAM;
+	read_data(dentry_file_info.inode, 0, (uint8_t*)buffer, 100000);
 
 	pid_tracker[i] = 1; 															//current process is being used
 	PCB_t* pcb = (PCB_t*)(KERNEL_PROCESS_START - (i+1)*KERNEL_STACK_SIZE); 
 	pcb->pid = i;
-	
- 																				//save registers, cr3, flags in pcb
+
 	asm volatile("                  \n\
-			movl    %%cr3, %0      	\n\
-			movl 	%%esp, %1		\n\
+			movl    %%cr3, %0   	\n\
+			movl 	%%esp, %1	    \n\
 			movl    %%ebp, %2		\n\
-			movl 	%%eflags, %3   	\n\
+			pushfl					\n\
+			popl	%3				\n\
 			"
-			: "=a"(pcb->tss.cr3), "=b"(pcb->tss.esp), "=c"(pcb->tss.ebp), "=d"(pcb->tss.eflags)
+			: "=S"(pcb->tss.cr3), "=b"(pcb->tss.esp), "=c"(pcb->tss.ebp), "=d"(pcb->tss.eflags)
 			:
-			: "eax", "ebx", "ecx", "edx"	
+			: "memory", "cc"
 			);
 
-	pcb->tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE;	
-	pcb->parent_ptr = parent_pointer;												//save current pcb for next process
-	parent_pointer = pcb;
 
-	init_FD();	
+	pcb->tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE - 4;	
+
+	if(parent_pointer == NULL) {
+		pcb->parent_ptr = -1;
+	} else {
+		pcb->parent_ptr = parent_pointer->pid;	
+	}
+
+	//save current pcb for next process
+	parent_pointer = pcb;
+	init_FD();
 
 	read_data(dentry_file_info.inode, EIP_READ_OFFSET, buf, EXE_BUF_SIZE);
-
 	//move data segment, push ss, esp, eflags, cs, eip 
+	uint32_t entrypoint = *((uint32_t*)buf);
+
 	asm volatile("                  	\n\
 			movl 	%0, %%ds			\n\
-			pushl   %0				    \n\
+			pushl   %0					\n\
 			pushl   %1					\n\
-			pushl   %2					\n\
+			pushfl						\n\
+			popl   %%eax				\n\
+			orl  	%2, %%eax 			\n\
+			pushl   %%eax				\n\
+			pushl   $0x23				\n\
 			pushl   %3					\n\
-			pushl   %4					\n\
 			iret 						\n\
-			LEAVE_RET:					\n\
+			.LEAVE_RET:					\n\
 			leave 						\n\
 			ret 						\n\
 			"
 			: 
-			: "a"(USER_DS), "b"(ESP_VALUE), "c"(EFLAGS_VALUE), "d"(USER_CS), "e"(buf)
-			: "eax", "ebx", "ecx"	
+			: "r"(DS), "r"(ESP_VALUE), "r"(EFLAGS_VALUE),"r"(entrypoint)
+			: "memory", "cc"	
 			);
-
 
 	return 0;
 }
-
-
-
-
-
-
