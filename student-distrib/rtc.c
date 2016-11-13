@@ -156,15 +156,15 @@ int32_t set_frequency(int32_t freq) {
  *   RETURN VALUE: 0 on success
  */ 
 int32_t rtc_open(const uint8_t* filename) {
-	int index = DEFAULT_FD; 
-	while(FD[index].flags ==1 && index <FD_SIZE){
+	/*int index = DEFAULT_FD; 
+	while(parent_pointer->FD[index].flags ==1 && index <FD_SIZE){
 		index++;
 	}
 
-	FD[index].inode = NULL;
-	FD[index].file_position = 0;
-	FD[index].flags = 1;
-
+	parent_pointer->FD[index].inode = NULL;
+	parent_pointer->FD[index].file_position = 0;
+	parent_pointer->FD[index].flags = 1;
+	*/
 	//set the rtc to DEFAULT frequency
 	set_frequency(DEFAULT_FREQUENCY);
 
@@ -227,12 +227,12 @@ int32_t rtc_close(int32_t fd) {
 	//set the rtc to DEFAULT frequency
 	set_frequency(DEFAULT_FREQUENCY);
 
-
-	if(fd <DEFAULT_FD || fd >= FD_SIZE)
+	/*
+	if(fd < DEFAULT_FD || fd >= FD_SIZE)
 		return -1;
 
-	FD[fd].flags = 0;
-
+	parent_pointer->FD[fd].flags = 0;
+	*/
 	return 0;
 }
 
