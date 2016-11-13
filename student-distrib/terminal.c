@@ -11,7 +11,7 @@
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success
  */ 
-int32_t terminal_open(void) {
+int32_t terminal_open(const uint8_t* filename) {
 	keyboard_init();
 	return 0; 
 }
@@ -78,7 +78,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success
  */
-int32_t terminal_close(void) {
+int32_t terminal_close(int32_t fd) {
 	clear_buffer();
 	return 0;
 }

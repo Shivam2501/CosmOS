@@ -6,6 +6,7 @@
 #define _PAGING_H
 
 #include "types.h"
+#include "lib.h"
 
 // video memory address
 #define VIDEO_MEMORY_ADDRESS	0xB8000
@@ -31,6 +32,8 @@
 uint32_t page_directory[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
 //page table array
 uint32_t page_table[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
+
+void add_paging(uint32_t virtual, uint32_t physical);
 
 /* Initialize the paging */
 extern void init_paging();

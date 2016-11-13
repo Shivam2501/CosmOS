@@ -203,16 +203,12 @@ int32_t fs_open(const uint8_t* filename){
  */ 
 int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
 	dentry_t dentry;
-	int32_t num_bytes;
-
+	
 	if(read_dentry_by_name((uint8_t*)buf, &dentry) == 0) {
-			num_bytes = read_data(dentry.inode, parent_pointer->FD[fd].file_position, (uint8_t*) buf, nbytes);
-			parent_pointer->FD[fd].file_position += num_bytes;
-			return num_bytes; 
+		return read_data(dentry.inode, 0, (uint8_t*) buf, nbytes);
 	} else {
 		return -1;
 	}
-
 }
 
 /*
@@ -254,10 +250,6 @@ int32_t fs_write(int32_t fd, const void* buf, int32_t nbytes) {
  *   RETURN VALUE: 0 on success
  */
 int32_t fs_close(int32_t fd) {
-	if(fd <DEFAULT_FD || fd >= FD_SIZE)
-		return -1;
-	
-	parent_pointer->FD[fd].flags = 0;
 	return 0;
 }
 
