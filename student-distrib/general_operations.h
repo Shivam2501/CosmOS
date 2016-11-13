@@ -1,36 +1,47 @@
 #ifndef _GENERAL_OPERATIONS_H
 #define _GENERAL_OPERATIONS_H
-#define exe_buf_size 	4
-#define page_dir_entry  0x20
-#define	max_num_processes   6
+
+#include "x86_desc.h"
+#include "lib.h"
+#include "paging.h"
+#include "file.h"
+#include "rtc.h"
+#include "terminal.h"
+
+#define EXE_BUF_SIZE		 	4
+#define PAGE_DIR_ENTRY			0x20
+#define	max_num_processes   	6
 #define KERNEL_PROCESS_START	0x800000
 #define KERNEL_PROCESS_SIZE		0x400000
 #define KERNEL_STACK_SIZE		0x2000
-#define buf_size 			4
-#include "x86_desc.h"
+#define BUF_SIZE 				4
+#define EIP_READ_OFFSET			24
+#define EFLAGS_VALUE			0x00000200
+#define ESP_VALUE				0x83FFFFC
 
-typedef struct file_array {
-    uint32_t 	ops_table_ptr;
-    uint32_t*   inode; 
-    uint32_t	file_position;   
-    uint32_t 	flags;                  
-} file_array_t;
 
 typedef struct ops_table{
-	uint32_t 	open;
-	uint32_t 	close;
-	uint32_t 	read;
-	uint32_t 	write;
+	int32_t (*open) (const uint8_t* filename);
+	int32_t (*close) (int32_t fd);
+	int32_t (*read) (int32_t fd, void* buf, int32_t nbytes);
+	int32_t (*write) (int32_t fd, const void* buf, int32_t nbytes);
 } ops_table_t;
 
+typedef struct file_array{
+    ops_table_t 	ops_table_ptr;
+    uint32_t*   	inode; 
+    uint32_t		file_position;   
+    uint32_t 		flags;                  
+} file_array_t;
+
 typedef struct PCB{
-	uint32_t 	pid;
-	tss_t 		tss;
-	file_array_t pcb_fd[8];
+	uint32_t 			pid;
+	tss_t 				tss;
+	file_array_t 		FD[8];
+	struct PCB_t*		parent_ptr;
 } PCB_t;
 
-file_array_t FD[8]; 
-
+PCB_t *parent_pointer = NULL; 
 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes);
 int32_t syscall_vidmap (uint8_t** screen_start);
