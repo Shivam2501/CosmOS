@@ -207,10 +207,10 @@ int32_t syscall_halt (uint8_t status){
 }
 
 int32_t syscall_execute (const uint8_t* command){
-	int i =0; 																		//set stdin, stdout
+	int i = 0; 																		//set stdin, stdout
 	uint8_t argument[MAX_BUFFER_SIZE]; 
 
-	while(command[i]!= ' ')															//get first word
+	while(command[i] != '\0')															//get first word
 	{
 		argument[i] = command[i];
 		i++;
@@ -276,8 +276,6 @@ int32_t syscall_execute (const uint8_t* command){
 	read_data(dentry_file_info.inode, EIP_READ_OFFSET, buf, EXE_BUF_SIZE);
 	//move data segment, push ss, esp, eflags, cs, eip 
 	uint32_t entrypoint = *((uint32_t*)buf);
-
-	//printf("%#x\n", entrypoint);
 
 	asm volatile("                  	\n\
 			mov 	%0, %%ds			\n\
