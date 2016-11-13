@@ -4,6 +4,8 @@
 #include "types.h"
 #include "multiboot.h"
 #include "lib.h"
+#include "lib.h"
+#include "general_operations.h"
 
 #define NUMBER_DIR_ENTRIES 			1
 #define NUMBER_INODES				1
@@ -41,6 +43,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 int32_t fs_open(const uint8_t* filename);
 int32_t fs_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t fs_write(int32_t fd, const void* buf, int32_t nbytes);
+int32_t fs_size(int32_t fd, void* buf, int32_t nbytes);
 int32_t fs_close(int32_t fd);
 
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes);
