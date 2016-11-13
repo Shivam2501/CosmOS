@@ -3,11 +3,17 @@
 PCB_t *parent_pointer = NULL; 
 int32_t pid_tracker[MAX_NUM_PROCESS];					//index into pid_tracker is pid-1
 
+
+/*
+ * init_FD
+ *   DESCRIPTION: Sets the stdin and stdout FD array entries for each process
+ *   INPUTS: none
+ *   OUTPUTS:
+ *   RETURN VALUE: 0
+ */ 
 int32_t init_FD(){
-	//am setting stdin and stdout fd blocks
 	file_array_t stdin;
-	stdin.flags = 1;
-	//jump_table directly jumpts to function
+	stdin.flags = 1;																	//these are in use, sets values for stdin
 	ops_table_t op_table;
 	op_table.open = &terminal_open;
 	op_table.close = &terminal_close;
@@ -21,7 +27,7 @@ int32_t init_FD(){
 	op_table.read = NULL;
 	op_table.write = &terminal_write;
 
-	file_array_t stdout;
+	file_array_t stdout;																//sets values for stdout
 	stdout.flags = 1; 
 	stdout.ops_table_ptr = op_table;
 	stdout.file_position = 0; 
@@ -111,6 +117,7 @@ int32_t syscall_open(const uint8_t* filename) {
 
 
 int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
+
 	if(fd < 0 || fd >= FD_SIZE)   ///magic num,ber ???
 		return -1;
 
@@ -166,12 +173,6 @@ int32_t syscall_halt (uint8_t status){
 	uint32_t parent_pid = parent_pointer->parent_ptr;
 	uint32_t current_pid = parent_pointer->pid;
 
-	//if trying to halt shell
-	if(parent_pid == current_pid) {
-		printf("Cannot close shell\n");
-		return -1;
-	}
-
 	//get parent pcb
 	PCB_t* parent_process = (PCB_t*)(KERNEL_PROCESS_START - (parent_pid+1)*KERNEL_STACK_SIZE);
 	PCB_t* current_process = (PCB_t*)(KERNEL_PROCESS_START - (current_pid+1)*KERNEL_STACK_SIZE);
@@ -190,6 +191,14 @@ int32_t syscall_halt (uint8_t status){
 	//tss.ss0 = KERNEL_DS;
 	tss.esp0 = current_process->tss.esp;
 
+	//if trying to halt shell
+	if(parent_pid == current_pid) {
+		uint8_t* shell = "shell";
+		parent_pointer = NULL;
+		syscall_execute(shell);
+		return -1;
+	}
+	
 	uint32_t new_status = status;
 
 	asm volatile("                  	\n\
@@ -210,12 +219,21 @@ int32_t syscall_execute (const uint8_t* command){
 	int i = 0; 																		//set stdin, stdout
 	uint8_t argument[MAX_BUFFER_SIZE]; 
 
+//	printf("aaa%saaa\n",command);
+	//command[i] != ' ' ||
 	while(command[i] != '\0')															//get first word
 	{
-		argument[i] = command[i];
+		if(command[i] != ' '){
+			argument[i] = command[i];
+		}else{
+			break;
+		}
+
 		i++;
 	}
+	//printf("bbb%sbbb\n",argument);
 	argument[i] = '\0';
+	//printf("ccc%sccc\n",argument);
 
 	uint8_t buf[EXE_BUF_SIZE];
 
