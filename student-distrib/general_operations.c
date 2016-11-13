@@ -111,22 +111,21 @@ int32_t syscall_open(const uint8_t* filename) {
 
 
 int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
-	if(fd < DEFAULT_FD || fd >= FD_SIZE)
+	if(fd < 0 || fd >= FD_SIZE)   ///magic num,ber ???
 		return -1;
 
 	return parent_pointer->FD[fd].ops_table_ptr.read(fd, buf, nbytes);
 }
 
 int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
-	printf("reached write");
-	if(fd < DEFAULT_FD || fd >= FD_SIZE)
+	if(fd < 0 || fd >= FD_SIZE)
 		return -1;
-	
+
 	return parent_pointer->FD[fd].ops_table_ptr.write(fd, buf, nbytes);
 }
 
 int32_t syscall_close(int32_t fd) {
-	if(fd < DEFAULT_FD || fd >= FD_SIZE)
+	if(fd < 0 || fd >= FD_SIZE)
 		return -1;
 
 	parent_pointer->FD[fd].flags = 0;
@@ -150,6 +149,13 @@ int32_t syscall_set_handler (int32_t signum, void* handler_address)
 }
 int32_t syscall_sigreturn (void)
 {
+	return 0;
+
+}
+
+int32_t syscall_fail (void)
+{
+	printf("Invalid system call\n");
 	return 0;
 
 }
@@ -181,7 +187,7 @@ int32_t syscall_halt (uint8_t status){
 	//paging
 	add_paging(PAGE_DIR_ENTRY, (KERNEL_PROCESS_START + (parent_process->pid)*KERNEL_PROCESS_SIZE));
 
-	tss.ss0 = KERNEL_DS;
+	//tss.ss0 = KERNEL_DS;
 	tss.esp0 = current_process->tss.esp;
 
 	uint32_t new_status = status;
@@ -271,7 +277,7 @@ int32_t syscall_execute (const uint8_t* command){
 	//move data segment, push ss, esp, eflags, cs, eip 
 	uint32_t entrypoint = *((uint32_t*)buf);
 
-	printf("%#x\n", entrypoint);
+	//printf("%#x\n", entrypoint);
 
 	asm volatile("                  	\n\
 			mov 	%0, %%ds			\n\
