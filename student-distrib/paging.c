@@ -35,8 +35,8 @@ void init_paging() {
 
 void add_paging(uint32_t virtual, uint32_t physical) {
 
-	page_directory[virtual] = physical | PS | READ_WRITE | PRESENT;
-
+	page_directory[virtual] = physical | PS | USER | READ_WRITE | PRESENT  ;
+	
 	//tlb flush
 	asm volatile("				\n\
 		movl	%%cr3,%%eax		\n\
@@ -44,6 +44,6 @@ void add_paging(uint32_t virtual, uint32_t physical) {
 		"
 		:
 		:
-		: "%eax"
+		: "eax"
 		);
 }

@@ -118,6 +118,7 @@ int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
 }
 
 int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
+	printf("reached write");
 	if(fd < DEFAULT_FD || fd >= FD_SIZE)
 		return -1;
 	
@@ -193,7 +194,7 @@ int32_t syscall_halt (uint8_t status){
 			"
 			: 
 			: "r"(current_process->tss.esp), "r"(current_process->tss.ebp), "r"(new_status)
-			: "memory", "cc", "%eax"	
+			: "memory", "cc", "eax"	
 			);
 
 	return 0;
@@ -235,7 +236,7 @@ int32_t syscall_execute (const uint8_t* command){
 	add_paging(PAGE_DIR_ENTRY, (KERNEL_PROCESS_START + i*KERNEL_PROCESS_SIZE));
 
 	/*Load file in memory*/
-	read_data(dentry_file_info.inode, 0, (uint8_t*)VIRTUAL_ADDRESS_PROGRAM, 100000);
+	read_data(dentry_file_info.inode, 0, (uint8_t*)VIRTUAL_ADDRESS_PROGRAM, 100000); //magic number
 
 	pid_tracker[i] = 1; 															//current process is being used
 	PCB_t* pcb = (PCB_t*)(KERNEL_PROCESS_START - (i+1)*KERNEL_STACK_SIZE); 
@@ -254,7 +255,7 @@ int32_t syscall_execute (const uint8_t* command){
 			);
 
 	tss.ss0 = KERNEL_DS;
-	tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE - 4;	
+	tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE - 4;	//magic number???
 
 	if(parent_pointer == NULL) {
 		pcb->parent_ptr = pcb->pid;
@@ -270,7 +271,7 @@ int32_t syscall_execute (const uint8_t* command){
 	//move data segment, push ss, esp, eflags, cs, eip 
 	uint32_t entrypoint = *((uint32_t*)buf);
 
-	//printf("%#x\n", entrypoint);
+	printf("%#x\n", entrypoint);
 
 	asm volatile("                  	\n\
 			mov 	%0, %%ds			\n\
@@ -289,7 +290,7 @@ int32_t syscall_execute (const uint8_t* command){
 			"
 			: 
 			: "r"(USER_DS), "r"(ESP_VALUE), "r"(EFLAGS_VALUE),"r"(entrypoint)
-			: "memory", "cc", "%eax"	
+			: "memory", "cc", "eax"	
 			);
 
 	return 0;

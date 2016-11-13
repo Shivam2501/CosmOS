@@ -27,6 +27,7 @@
 #define READ_WRITE				0x2
 #define PRESENT					0x1
 #define PS 						0x80
+#define USER					0x4
 
 //page directory array
 uint32_t page_directory[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
