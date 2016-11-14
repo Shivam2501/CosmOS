@@ -3,20 +3,24 @@
 #calls handler for PIT
 .globl call_handler
 call_handler:
+#push callee-saved registers
 pushl 	%ebx
 pushl 	%edi
 pushl 	%esi
 
+#check if eax value (system call number) is within bounds 
 cmpl    $1,  %eax
 jb      sys_fail 
 cmpl    $10, %eax
 ja  	sys_fail
 
+#push arguments for system call
 pushl  	%edx
 pushl   %ecx 
 pushl   %ebx
 jmp 	*jump_table(, %eax, 4)
 
+#call corresponding system calls using jump table
 sys_1:
 call 	syscall_halt
 jmp 	done
@@ -58,11 +62,13 @@ sys_10:
 call 	 syscall_sigreturn
 jmp 	done
 
+#call fail system call when system call number is not valid
 sys_fail:
 call 	 syscall_fail
 jmp 	done
 
 done:
+#pop corresponding arguments and callee-saved registers
 popl   	%ebx
 popl   	%ecx 
 popl   	%edx

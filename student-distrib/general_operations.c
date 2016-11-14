@@ -241,13 +241,12 @@ int32_t syscall_halt (uint8_t status){
 	add_paging(PAGE_DIR_ENTRY, (KERNEL_PROCESS_START + (parent_process->pid)*KERNEL_PROCESS_SIZE));
 
 	//tss.ss0 = KERNEL_DS;
-	tss.esp0 = current_process->tss.esp;
+	tss.esp0 = KERNEL_PROCESS_START - parent_pid*KERNEL_STACK_SIZE - PAGE_ALIGNMENT;
 
 	//if trying to halt shell
 	if(parent_pid == current_pid) {
-		uint8_t* shell = "shell";
 		parent_pointer = NULL;
-		syscall_execute(shell);
+		syscall_execute((uint8_t*)"shell");
 		return -1;
 	}
 
