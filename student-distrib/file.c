@@ -291,10 +291,10 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
 	if(read_dentry_by_index(dir_read_counter, &dentry) == 0) {
 		memcpy(buf, dentry.file_name, NAME_SIZE);
 		dir_read_counter++;
-		return strlen((int8_t*)dentry.file_name);
+		return strlen((int8_t*)buf);
 	} else {
 		dir_read_counter = 0;
-		return 0;
+		return 0; 
 	}
 }
 

@@ -37,6 +37,10 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 			break;
 	}
 
+	//line feed character at the end of the buffer
+	if(i < nbytes && temp_buf[i] != '\n')
+		temp_buf[++i] = '\n';
+	
 	clear_buffer();
 	return i+1;
 }
@@ -81,4 +85,3 @@ int32_t terminal_close(int32_t fd) {
 /*
  * End of System Calls
  */ 
- 

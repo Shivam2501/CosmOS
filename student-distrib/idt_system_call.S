@@ -3,10 +3,16 @@
 #calls handler for PIT
 .globl call_handler
 call_handler:
-#push callee-saved registers
+#push registers except eax which stores the return value
+pushl 	%es 
+pushl 	%ds
+pushl  	%ebp
+pushl 	%edx
+pushl 	%ecx
 pushl 	%ebx
 pushl 	%edi
 pushl 	%esi
+pushfl
 
 #check if eax value (system call number) is within bounds 
 cmpl    $1,  %eax
@@ -72,9 +78,16 @@ done:
 popl   	%ebx
 popl   	%ecx 
 popl   	%edx
-popl 	%edi
+
+popfl
 popl 	%esi
+popl 	%edi
 popl 	%ebx
+popl 	%ecx
+popl 	%edx
+popl 	%ebp
+popl 	%ds
+popl 	%es
 iret
 
 jump_table:
