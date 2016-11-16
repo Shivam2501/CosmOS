@@ -208,13 +208,14 @@ int32_t fs_open(const uint8_t* filename){
  *   RETURN VALUE: bytes read on success, -1 on failure
  */ 
 int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
-	dentry_t dentry;
-	
-	if(read_dentry_by_name((uint8_t*)buf, &dentry) == 0) {
-		return read_data(dentry.inode, 0, (uint8_t*) buf, nbytes);
-	} else {
-		return -1;
-	}
+	int bytes_copied;
+	PCB_t* current_process = get_current_pcb();
+
+	bytes_copied = read_data(current_process->FD[fd].inode, current_process->FD[fd].file_position, (uint8_t*) buf, nbytes);
+	current_process->FD[fd].file_position += bytes_copied;
+
+	return bytes_copied;
+
 }
 
 /*
@@ -287,13 +288,17 @@ int32_t dir_open(const uint8_t* filename) {
  */ 
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
 	dentry_t dentry;
+	PCB_t* current_process = get_current_pcb();
 
-	if(read_dentry_by_index(dir_read_counter, &dentry) == 0) {
+	if(read_dentry_by_index(current_process->FD[fd].file_position, &dentry) == 0) {
 		memcpy(buf, dentry.file_name, NAME_SIZE);
-		dir_read_counter++;
+		((int8_t*)buf)[NAME_SIZE] = '\0';
+		//dir_read_counter++; 
+		current_process->FD[fd].file_position++;
 		return strlen((int8_t*)buf);
 	} else {
-		dir_read_counter = 0;
+		//dir_read_counter = 0;
+		current_process->FD[fd].file_position = 0;
 		return 0; 
 	}
 }

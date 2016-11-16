@@ -227,8 +227,6 @@ int32_t syscall_halt (uint8_t status){
 	PCB_t* parent_process = (PCB_t*)(KERNEL_PROCESS_START - (parent_pid+1)*KERNEL_STACK_SIZE);
 	PCB_t* current_process = (PCB_t*)(KERNEL_PROCESS_START - (current_pid+1)*KERNEL_STACK_SIZE);
 
-	//parent becomes current process's parent
-	parent_pointer = parent_process;
 	pid_tracker[current_process->pid] = 0; 
 
 	//close each fd that is open in current process
@@ -250,6 +248,9 @@ int32_t syscall_halt (uint8_t status){
 		return -1;
 	}
 
+	//parent becomes current process's parent
+	parent_pointer = parent_process;
+	
 	//have to return status
 	uint32_t new_status = status;
 
@@ -388,4 +389,8 @@ int32_t syscall_execute (const uint8_t* command){
 			);
 
 	return 0;
+}
+
+PCB_t* get_current_pcb() {
+	return parent_pointer;
 }
