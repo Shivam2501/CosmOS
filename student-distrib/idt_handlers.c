@@ -1,9 +1,4 @@
 #include "idt_handlers.h"
-#include "lib.h"
-#include "rtc.h"
-#include "i8259.h"
-#include "asm_linkage.h"
-
 
 /* 
  * init_idt
@@ -61,7 +56,7 @@ void init_idt(){
 	SET_IDT_ENTRY(idt[44],&asm_default); 
 	SET_IDT_ENTRY(idt[45],&asm_default); 
 	SET_IDT_ENTRY(idt[46],&asm_default); 
-	SET_IDT_ENTRY(idt[SYSTEM_CALL_ADDR],&SYSTEM_CALL);
+	SET_IDT_ENTRY(idt[SYSTEM_CALL_ADDR],&call_handler);
 }
 
 
@@ -185,17 +180,4 @@ void TIMER_CHIP(){
 	// printf("Timer Chip Handled\n");
 	outb(EOI_SIGNAL, EOI_SIGNAL);
 	sti();
-}
-
-
-/* 
- *   Handler for System Calls
- *   DESCRIPTION: Is the handler called for all system calls. 
- *   INPUTS: none
- *   OUTPUTS: prints notification
- *   RETURN VALUE: none
- *   SIDE EFFECTS: 
- */
-void SYSTEM_CALL(){
-	printf("Call for any system call");
 }

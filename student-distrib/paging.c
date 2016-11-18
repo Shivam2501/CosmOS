@@ -1,11 +1,5 @@
 #include "paging.h"
 
-//page directory array
-uint32_t page_directory[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
-//page table array
-uint32_t page_table[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
-
-
 /*
  * init_paging
  *   DESCRIPTION: Initialize the paging. 
@@ -37,4 +31,19 @@ void init_paging() {
 
 	/* Enable page directory */
 	enablePaging();
+}
+
+void add_paging(uint32_t virtual, uint32_t physical) {
+
+	page_directory[virtual] = physical | PS | USER | READ_WRITE | PRESENT  ;
+	
+	//tlb flush
+	asm volatile("				\n\
+		movl	%%cr3,%%eax		\n\
+		movl	%%eax,%%cr3		\n\
+		"
+		:
+		:
+		: "eax"
+		);
 }

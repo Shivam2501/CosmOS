@@ -2,11 +2,18 @@
 #define _IDT_HANDLERS
 
 #include "x86_desc.h"
+#include "lib.h"
+#include "rtc.h"
+#include "i8259.h"
+#include "asm_linkage.h"
+#include "idt_system_call.h"
 
 #define NUMBER_HANDLER    	48
 #define IDT_TOTAL_NUMBER  	256
 #define	SYSTEM_CALL_ADDR  	128
-#define	EOI_SIGNAL 			  	0x20
+#define	EOI_SIGNAL 			0x20
+
+
 
 void init_idt();
 

@@ -11,7 +11,7 @@
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success
  */ 
-int32_t terminal_open(void) {
+int32_t terminal_open(const uint8_t* filename) {
 	keyboard_init();
 	return 0; 
 }
@@ -36,13 +36,12 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 		if(i==buffer_index-1)
 			break;
 	}
-	
+
 	//line feed character at the end of the buffer
 	if(i < nbytes && temp_buf[i] != '\n')
 		temp_buf[++i] = '\n';
-
+	
 	clear_buffer();
-
 	return i+1;
 }
 
@@ -78,7 +77,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success
  */
-int32_t terminal_close(void) {
+int32_t terminal_close(int32_t fd) {
 	clear_buffer();
 	return 0;
 }

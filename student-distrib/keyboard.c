@@ -237,7 +237,7 @@ void keyboard_handler() {
 void clear_buffer() {
 	int32_t i;
 	for(i=0; i < BUFFER_SIZE; i++) 
-		buffer[i] = ' ';
+		buffer[i] = '\0';
 	buffer_index = 0;
 	terminal_read_ready = 0;
 }

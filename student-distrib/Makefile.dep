@@ -1,0 +1,26 @@
+asm_linkage.o: asm_linkage.S x86_desc.h types.h
+asm_paging.o: asm_paging.S
+boot.o: boot.S multiboot.h x86_desc.h types.h
+idt_system_call.o: idt_system_call.S
+x86_desc.o: x86_desc.S x86_desc.h types.h
+file.o: file.c file.h types.h multiboot.h lib.h general_operations.h \
+  x86_desc.h paging.h rtc.h terminal.h keyboard.h i8259.h test.h
+general_operations.o: general_operations.c general_operations.h \
+  x86_desc.h types.h lib.h paging.h file.h multiboot.h rtc.h terminal.h \
+  keyboard.h i8259.h test.h
+i8259.o: i8259.c i8259.h types.h lib.h
+idt_handlers.o: idt_handlers.c idt_handlers.h x86_desc.h types.h lib.h \
+  rtc.h i8259.h asm_linkage.h idt_system_call.h
+kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
+  idt_handlers.h rtc.h asm_linkage.h idt_system_call.h keyboard.h test.h \
+  terminal.h file.h general_operations.h paging.h
+keyboard.o: keyboard.c keyboard.h types.h i8259.h lib.h test.h terminal.h \
+  rtc.h file.h multiboot.h general_operations.h x86_desc.h paging.h
+lib.o: lib.c lib.h types.h
+paging.o: paging.c paging.h types.h lib.h
+rtc.o: rtc.c rtc.h types.h i8259.h lib.h general_operations.h x86_desc.h \
+  paging.h file.h multiboot.h terminal.h keyboard.h test.h
+terminal.o: terminal.c terminal.h types.h keyboard.h i8259.h lib.h test.h \
+  rtc.h file.h multiboot.h general_operations.h x86_desc.h paging.h
+test.o: test.c test.h terminal.h types.h keyboard.h i8259.h lib.h rtc.h \
+  file.h multiboot.h general_operations.h x86_desc.h paging.h
