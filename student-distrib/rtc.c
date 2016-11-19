@@ -1,10 +1,9 @@
 #include "rtc.h"
-#include "i8259.h"
-#include "lib.h"
-#include "general_operations.h"
-#include "file.h"
 
 volatile int interrupt_flag;
+
+//store the GCF of interrupts by all processes
+int greatest_common_factor = DEFAULT_FREQUENCY;
 
 /*
  * rtc_init
@@ -57,7 +56,6 @@ void rtc_handler() {
 	/* Mask all interrupts 
 	cli(); */
 
-	//test_interrupts();
 	interrupt_flag = 1;
 	/* Select register C*/
 	outb(REGISTER_C, RTC_REGISTER);
@@ -156,17 +154,11 @@ int32_t set_frequency(int32_t freq) {
  *   RETURN VALUE: 0 on success
  */ 
 int32_t rtc_open(const uint8_t* filename) {
-	/*int index = DEFAULT_FD; 
-	while(parent_pointer->FD[index].flags ==1 && index <FD_SIZE){
-		index++;
-	}
 
-	parent_pointer->FD[index].inode = NULL;
-	parent_pointer->FD[index].file_position = 0;
-	parent_pointer->FD[index].flags = 1;
-	*/
 	//set the rtc to DEFAULT frequency
 	set_frequency(DEFAULT_FREQUENCY);
+
+	update_gcf(DEFAULT_FREQUENCY);
 
 	//interrupt flag set to 0 on rtc open
 	interrupt_flag = 0;
@@ -184,11 +176,20 @@ int32_t rtc_open(const uint8_t* filename) {
  */ 
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes) {
 
-	//wait until interrupt occurs
-	while(!interrupt_flag);
+	PCB_t* current_process = get_current_pcb();
 
-	interrupt_flag = 0;
+	//wait until interrupt of process is equal to the number of interrupts*GCF
+	while(current_process->FD[fd].file_position != current_process->FD[fd].inode) {
+		//wait until interrupt occurs
+		while(!interrupt_flag);
+		//set the interrupt flag to 0 and wait for another interrupt
+		interrupt_flag = 0;
+		//update the number of interrupt for current process
+		current_process->FD[fd].file_position += greatest_common_factor;
+	}
 
+	//set it again to 0 and wait for the next interrupt
+	current_process->FD[fd].file_position = 0;
 	return 0;
 }
 
@@ -202,6 +203,7 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes) {
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes) {
 
 	int success;
+	PCB_t* current_process = get_current_pcb();
 
 	//check if frequency is 4 bytes
 	if(nbytes != MAX_BYTES) {
@@ -209,6 +211,9 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes) {
 	} else {
 		//set the frequency to input frequency
 		success = set_frequency(*((int32_t *)buf));
+
+		//save the rtc value in the process file descriptor->inode
+		current_process->FD[fd].inode = *((int32_t *)buf);
 	}
 
 	return success;
@@ -223,16 +228,6 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes) {
  *   RETURN VALUE: 0 on success
  */
 int32_t rtc_close(int32_t fd) {
-
-	//set the rtc to DEFAULT frequency
-	set_frequency(DEFAULT_FREQUENCY);
-
-	/*
-	if(fd < DEFAULT_FD || fd >= FD_SIZE)
-		return -1;
-
-	parent_pointer->FD[fd].flags = 0;
-	*/
 	return 0;
 }
 
@@ -241,3 +236,24 @@ int32_t rtc_close(int32_t fd) {
  * End of System Calls
  */
  
+/*
+ * update_gcf
+ *   DESCRIPTION: Update the GCF for all processes
+ *   INPUTS: takes the frequency of the current process
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success
+ */
+int32_t update_gcf(int32_t freq) {
+
+	//subtract the smaller number with the larger number until both numbers are equal
+	while(greatest_common_factor != freq) {
+
+		//if new frequency is smaller or the stored GCF
+		if(greatest_common_factor > freq)
+			greatest_common_factor -= freq;
+		else
+			freq -= greatest_common_factor;
+	}
+
+	return 0;
+}
