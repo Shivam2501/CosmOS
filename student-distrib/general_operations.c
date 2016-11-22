@@ -189,7 +189,7 @@ int32_t syscall_getargs (uint8_t* buf, int32_t nbytes)
 	uint32_t current_pid = parent_pointer->pid;
 	PCB_t* current_pcb = (PCB_t*)(KERNEL_PROCESS_START - (current_pid+1)*KERNEL_STACK_SIZE);
 
-	if(strlen( (uint8_t*)current_pcb->arguments ) > nbytes)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
+	if(strlen((uint8_t*)current_pcb->arguments) > nbytes || buf == NULL)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
 		return -1; 	
 
 	memcpy(buf, current_pcb->arguments, nbytes);
