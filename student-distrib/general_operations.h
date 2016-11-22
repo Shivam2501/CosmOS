@@ -43,6 +43,7 @@ typedef struct PCB{
 	tss_t 				tss;
 	file_array_t 		FD[MAX_OPEN_FILES];
 	uint32_t			parent_ptr;
+	uint8_t* 			arguments;
 } PCB_t;
 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes);
