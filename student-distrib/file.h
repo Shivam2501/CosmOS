@@ -4,7 +4,6 @@
 #include "types.h"
 #include "multiboot.h"
 #include "lib.h"
-#include "lib.h"
 #include "general_operations.h"
 
 #define NUMBER_DIR_ENTRIES 			1

@@ -29,12 +29,16 @@
 #define PS 						0x80
 #define USER					0x4
 
+#define 4MB_OFFSET				0x400000
+
 //page directory array
 uint32_t page_directory[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
 //page table array
 uint32_t page_table[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
 
 void add_paging(uint32_t virtual, uint32_t physical);
+void kernel_add_paging(uint32_t virtual_start, uint32_t virtual_end, uint32_t physical);
+void user_add_paging(uint32_t virtual_start, uint32_t virtual_end, uint32_t physical);
 
 /* Initialize the paging */
 extern void init_paging();
