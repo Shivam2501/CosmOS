@@ -65,12 +65,12 @@ void add_paging(uint32_t virtual, uint32_t physical) {
 void kernel_add_paging(uint32_t virtual_start, uint32_t virtual_end, uint32_t physical) {
 
 	int i, index;
-	for(i = virtual_start; i < virtual_end; i = i + 4MB_OFFSET) {
+	for(i = virtual_start; i < virtual_end; i = i + _4MB_OFFSET) {
 		//calculate page directory index of 4MB page
 		index = (i >> 22);
 		//page directory for 4MB pages (0x83: Enable PS, Present and Read/Write)
 		page_directory[index] = physical | PS | READ_WRITE | PRESENT;
-		physical = physical + 4MB_OFFSET;
+		physical = physical + _4MB_OFFSET;
 	}
 
 }
@@ -85,12 +85,12 @@ void kernel_add_paging(uint32_t virtual_start, uint32_t virtual_end, uint32_t ph
 void user_add_paging(uint32_t virtual_start, uint32_t virtual_end, uint32_t physical) {
 
 	int i, index;
-	for(i = virtual_start; i < virtual_end; i = i + 4MB_OFFSET) {
+	for(i = virtual_start; i < virtual_end; i = i + _4MB_OFFSET) {
 		//calculate page directory index of 4MB page
 		index = (i >> 22);
 		//page directory for 4MB pages (0x83: Enable PS, Present and Read/Write)
 		page_directory[index] = physical | PS | USER | READ_WRITE | PRESENT;
-		physical = physical + 4MB_OFFSET;
+		physical = physical + _4MB_OFFSET;
 	}
 
 }
