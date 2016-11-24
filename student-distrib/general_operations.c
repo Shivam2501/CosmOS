@@ -60,7 +60,7 @@ int32_t syscall_open(const uint8_t* filename) {
 	dentry_t dentry_file_info;
 	if(read_dentry_by_name((uint8_t*)filename, &dentry_file_info) == 0) {				 
 		switch(dentry_file_info.file_type){
-			//rtc handling
+			//rtc handlingcreated
 			case 0:	
 				{
 					//make jump table to specific rtc functions
@@ -298,6 +298,9 @@ int32_t syscall_execute (const uint8_t* command){
 	uint8_t first_command[MAX_BUFFER_SIZE], arg_buf[MAX_BUFFER_SIZE]; 
 	int is_command = 1;
 
+	memset(first_command, '\0', MAX_BUFFER_SIZE);
+	memset(arg_buf, '\0', MAX_BUFFER_SIZE);
+
 	//parse args to get the first word
 	while(command[i] != '\0')															
 	{
@@ -384,6 +387,7 @@ int32_t syscall_execute (const uint8_t* command){
 		pcb->parent_ptr = parent_pointer->pid;	
 	}
 
+	memset(pcb->arguments, '\0', MAX_BUFFER_SIZE);
 	//copy arguments into pcb
 	memcpy(pcb->arguments, arg_buf, strlen((int8_t*)arg_buf));
 
