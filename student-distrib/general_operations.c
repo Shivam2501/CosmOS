@@ -189,7 +189,7 @@ int32_t syscall_getargs (uint8_t* buf, int32_t nbytes)
 	uint32_t current_pid = parent_pointer->pid;
 	PCB_t* current_pcb = (PCB_t*)(KERNEL_PROCESS_START - (current_pid+1)*KERNEL_STACK_SIZE);
 
-	if(strlen((uint8_t*)current_pcb->arguments) > nbytes || buf == NULL)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
+	if(strlen((int8_t*)current_pcb->arguments) > nbytes || buf == NULL)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
 		return -1; 	
 
 	memcpy(buf, current_pcb->arguments, nbytes);
@@ -296,7 +296,7 @@ int32_t syscall_halt (uint8_t status){
 int32_t syscall_execute (const uint8_t* command){
 	int i = 0, j=0; 																		//set stdin, stdout
 	uint8_t first_command[MAX_BUFFER_SIZE], arg_buf[MAX_BUFFER_SIZE]; 
-	bool is_command = true;
+	int is_command = 1;
 
 	//parse args to get the first word
 	while(command[i] != '\0')															
@@ -310,18 +310,16 @@ int32_t syscall_execute (const uint8_t* command){
 			}
 		}else{
 			if(is_command)
-				is_command = false;					//if first space, then we are starting argument list, dont insert space
+				is_command = 0;					//if first space, then we are starting argument list, dont insert space
 			else{
 				arg_buf[j] = command[i];			//if second+ space, then arguments need to be separated by space
 			}
 		}
 		i++;
 	}
-	//printf("bbb%sbbb\n",argument);
+	
 	first_command[i] = '\0';
 	arg_buf[j] = '\0';
-	//printf("ccc%sccc\n",argument)
-
 
 	uint8_t buf[EXE_BUF_SIZE];
 
@@ -387,11 +385,11 @@ int32_t syscall_execute (const uint8_t* command){
 	}
 
 	//copy arguments into pcb
-	memcpy(pcb->arguments, arg_buf, MAX_BUFFER_SIZE);
+	memcpy(pcb->arguments, arg_buf, strlen((int8_t*)arg_buf));
 
 	//save current pcb for next process
 	parent_pointer = pcb;
-	init_FD()
+	init_FD();
 
 	//read 24-27 bytes of executable file which serves as entrypoint
 	read_data(dentry_file_info.inode, EIP_READ_OFFSET, buf, EXE_BUF_SIZE);
