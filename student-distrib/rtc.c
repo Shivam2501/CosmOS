@@ -240,4 +240,3 @@ int32_t rtc_close(int32_t fd) {
 /*
  * End of System Calls
  */
- 

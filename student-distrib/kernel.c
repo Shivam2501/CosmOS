@@ -15,6 +15,7 @@
 #include "test.h" 
 #include "general_operations.h"
 #include "memory_allocator.h"
+#include "kmalloc_test.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -173,16 +174,8 @@ entry (unsigned long magic, unsigned long addr)
 	init_paging();
 
 	kernel_mem_init();
-
-	int *p = kmalloc(sizeof(int));
-	*p = 5;
-
-	int *p2 = kmalloc(sizeof(int));
-	*p2 = 5;
-
-	kfree(p);
-	kfree(p2);
-
+	test_kmalloc_1();
+	
     /*
     //check paging
 	int *p;
