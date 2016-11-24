@@ -14,6 +14,7 @@
 #include "file.h"
 #include "test.h" 
 #include "general_operations.h"
+#include "memory_allocator.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -170,6 +171,12 @@ entry (unsigned long magic, unsigned long addr)
 	keyboard_init();
 	
 	init_paging();
+
+	kernel_mem_init();
+
+	int *p = buddy_allocator(sizeof(int));
+	*p = 5;
+	buddy_deallocator(p);
 
     /*
     //check paging

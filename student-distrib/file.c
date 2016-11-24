@@ -211,7 +211,7 @@ int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
 	int bytes_copied;
 	PCB_t* current_process = get_current_pcb();
 
-	bytes_copied = read_data(current_process->FD[fd].inode, current_process->FD[fd].file_position, (uint8_t*) buf, nbytes);
+	bytes_copied = read_data(*(current_process->FD[fd].inode), current_process->FD[fd].file_position, (uint8_t*) buf, nbytes);
 	current_process->FD[fd].file_position += bytes_copied;
 
 	return bytes_copied;

@@ -63,11 +63,11 @@ int32_t kernel_mem_init() {
 
 	//initialize the list with 4MB pages
 	int count = 1;
-	for(i = KERNEL_HEAP_BASE; i < KERNEL_HEAP_MAX; i = i + 4MB_OFFSET) {
+	for(i = KERNEL_HEAP_BASE; i < KERNEL_HEAP_MAX; i = i + _4MB_OFFSET) {
 		mem_page *new_page = (mem_page*)i;
 
 		new_page->count_free = count; //store the number of free page when this node is the head of the list
-		new_page->addr = i; //base address which the node points to
+		new_page->addr = new_page; //base address which the node points to
 
 		//check if the list is empty, if yes then list points to NULL otherwise to the current head
 		if(kernel_heap.lists[MEMLIST - 1] == 0) {
@@ -82,6 +82,7 @@ int32_t kernel_mem_init() {
 		count++;
 	}
 
+	return 1;
 }
 
 /*
@@ -128,14 +129,14 @@ uint32_t power_of_2(uint32_t num) {
  *   OUTPUTS: 
  *   RETURN VALUE: address of the buddy block
  */ 
-void* buddy_block(uint32_t address, uint32_t size) {
-	int block_sign = (address - kernel_heap->base_address) / (size*MAX_SIZE);
+void* buddy_block(void* address, uint32_t size) {
+	int block_sign = (int)(address - kernel_heap.base_address) / (size*MAX_SIZE);
 	if(block_sign == 0 || block_sign % 2 == 0) {
 		//even signedness
-		return address + (size*MAX_SIZE);
+		return (void*)(address + (size*MAX_SIZE));
 	} else {
 		//odd signedness
-		return address - (size*MAX_SIZE);
+		return (void*)(address - (size*MAX_SIZE));
 	}
 }
 
@@ -192,7 +193,7 @@ void* buddy_allocator(uint32_t size) {
 
         //second page will be present at current address + number of bytes in the new block size
        	mem_page *second_page = (mem_page*)(buddy_block(curr_page->addr, new_block_size));
-       	second_page->addr = buddy_block(curr_page->addr, new_block_size);
+       	second_page->addr = second_page;
 
        	//check if the list is empty, if yes then list points to NULL otherwise to the current head
 		if(kernel_heap.lists[temp - 1] == 0) {
@@ -219,7 +220,7 @@ void* buddy_allocator(uint32_t size) {
     //remove the curr_page from the free list
     kernel_heap.lists[temp] = alloc_page->next;
 
-   	return (alloc_page->addr) + sizeof(mem_page);
+   	return (void*)((alloc_page->addr) + sizeof(mem_page));
 }
 
 /*
@@ -245,7 +246,7 @@ void buddy_deallocator(void* address) {
 
 		//find the buddy block
 		mem_page *buddy_page = (mem_page*)(buddy_block(curr_page->addr, block_size));
-       	buddy_page->addr = buddy_block(curr_page->addr, block_size);
+       	buddy_page->addr = buddy_page;
 
        	//iterate the list to see if the buddy block is present
        	mem_page *head = kernel_heap.lists[temp];
@@ -262,7 +263,7 @@ void buddy_deallocator(void* address) {
        	//merge into current page
        	curr_page->block_number = temp + 1;
        	if(curr_page->addr > buddy_page->addr)
-       		curr_page->addr = buddy_page->addr
+       		curr_page->addr = buddy_page->addr;
 
        	//check if buddy page is head of the list
        	if(kernel_heap.lists[temp]->addr == buddy_page->addr) {

@@ -2,6 +2,7 @@
 #define _MEMORY_ALLOCATOR_H
 
 #include "lib.h"
+#include "paging.h"
 
 #define KERNEL_HEAP_BASE		0x800000 	//8MB
 #define KERNEL_HEAP_MAX			0x7FFFFFC 	//128MB - 4Bits
@@ -16,11 +17,13 @@
 #define MIN_SIZE				1
 #define	MAX_SIZE				4096
 
+#define _4MB_OFFSET				0x400000
+
 typedef struct mem_page mem_page;
 
 struct mem_page {
 	uint32_t	count_free;
-	uint32_t 	addr;
+	void* 		addr;
 	mem_page*	next;
 	uint32_t	block_number;
 };
@@ -37,7 +40,7 @@ int32_t kernel_mem_init();
 /* Helper Functions */
 uint32_t next_power_of_2(uint32_t num);
 uint32_t power_of_2(uint32_t num);
-void* buddy_block(uint32_t address, uint32_t size);
+void* buddy_block(void* address, uint32_t size);
 
 /* Main Functions */
 void* buddy_allocator(uint32_t size);

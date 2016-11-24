@@ -6,10 +6,6 @@
 #define _RTC_H
 
 #include "types.h"
-#include "i8259.h"
-#include "lib.h"
-#include "general_operations.h"
-#include "file.h"
 
 #define RTC_IRQ						0x08
 #define RTC_REGISTER				0x70
@@ -62,4 +58,3 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t rtc_close(int32_t fd);
 
 #endif /* _RTC_H */
-
