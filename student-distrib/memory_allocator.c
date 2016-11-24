@@ -147,7 +147,7 @@ void* buddy_block(void* address, uint32_t size) {
  *   OUTPUTS: 
  *   RETURN VALUE: address where memory is allocated
  */ 
-void* buddy_allocator(uint32_t size) {
+void* kmalloc(uint32_t size) {
 
 	//node information is stored at the beginning
 	size = size + sizeof(mem_page);
@@ -230,7 +230,7 @@ void* buddy_allocator(uint32_t size) {
  *   OUTPUTS: 
  *   RETURN VALUE: none
  */ 
-void buddy_deallocator(void* address) {
+void kfree(void* address) {
 	mem_page *curr_page = (mem_page*)(address - sizeof(mem_page));
 
 	//check the bounds of the block_number
@@ -259,11 +259,12 @@ void buddy_deallocator(void* address) {
        	if(head == 0)
        		break;
 
+       	if(curr_page->addr > buddy_page->addr){
+       		curr_page = buddy_page;
+       	}
 
        	//merge into current page
        	curr_page->block_number = temp + 1;
-       	if(curr_page->addr > buddy_page->addr)
-       		curr_page->addr = buddy_page->addr;
 
        	//check if buddy page is head of the list
        	if(kernel_heap.lists[temp]->addr == buddy_page->addr) {

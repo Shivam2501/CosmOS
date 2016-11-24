@@ -43,7 +43,7 @@ uint32_t power_of_2(uint32_t num);
 void* buddy_block(void* address, uint32_t size);
 
 /* Main Functions */
-void* buddy_allocator(uint32_t size);
-void buddy_deallocator(void* address);
+void* kmalloc(uint32_t size);
+void kfree(void* address);
 
 #endif

@@ -174,9 +174,14 @@ entry (unsigned long magic, unsigned long addr)
 
 	kernel_mem_init();
 
-	int *p = buddy_allocator(sizeof(int));
+	int *p = kmalloc(sizeof(int));
 	*p = 5;
-	buddy_deallocator(p);
+
+	int *p2 = kmalloc(sizeof(int));
+	*p2 = 5;
+
+	kfree(p);
+	kfree(p2);
 
     /*
     //check paging
