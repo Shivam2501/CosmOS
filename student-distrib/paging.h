@@ -11,11 +11,15 @@
 // video memory address
 #define VIDEO_MEMORY_ADDRESS	0xB8000
 
+#define VGA_ADDRESS				0xA0000
+
 // kernel memory address
 #define KERNEL_MEMORY_ADDRESS	0x400000
 
 // page table address for video memory
 #define INDEX_TO_TABLE 			0xB8
+
+#define INDEX_VGA				0xA0
 
 #define SIZE_DIR_TABLE			1024
 

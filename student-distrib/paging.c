@@ -21,6 +21,7 @@ void init_paging() {
 
 	//enable video memory (0x3: Present and Read/Write)
 	page_table[INDEX_TO_TABLE] = VIDEO_MEMORY_ADDRESS | READ_WRITE | PRESENT;
+	page_table[INDEX_VGA] = VGA_ADDRESS | READ_WRITE | PRESENT;
 
 	//page directory index points to page table and is set to present
 	// (0x3: Present and Read/Write)

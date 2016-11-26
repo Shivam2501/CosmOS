@@ -16,6 +16,8 @@
 #include "general_operations.h"
 #include "memory_allocator.h"
 #include "kmalloc_test.h"
+#include "asm_modex.h"
+#include "modex.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -156,6 +158,9 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 	
+	graphics_mode();
+	set_mode_X();
+	
 	//clear the screen
 	clear();
 
@@ -176,6 +181,7 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_mem_init();
 	test_kmalloc_1();
 	
+
     /*
     //check paging
 	int *p;
