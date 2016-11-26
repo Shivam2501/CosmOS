@@ -18,13 +18,13 @@ int32_t init_FD(){
 	op_table.open = &terminal_open;
 	op_table.close = &terminal_close;
 	op_table.read = &terminal_read;
-	op_table.write = NULL;
+	op_table.write = &terminal_fail;
 
 	stdin.ops_table_ptr = op_table;
 	stdin.file_position = 0; 
 	stdin.inode = NULL;
 
-	op_table.read = NULL;
+	op_table.read = &terminal_fail;
 	op_table.write = &terminal_write;
 
 	file_array_t stdout;																//sets values for stdout
@@ -134,7 +134,7 @@ int32_t syscall_open(const uint8_t* filename) {
 int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
 
 	//check if file descriptor is not valid
-	if(fd < 0 || fd >= FD_SIZE)  
+	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)  
 		return -1;
 
 	//call read specific to type
@@ -150,7 +150,7 @@ int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
  */ 
 int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
 	//check if file descriptor is valid
-	if(fd < 0 || fd >= FD_SIZE)
+	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)
 		return -1;
 
 	//call write specific to type
@@ -165,8 +165,8 @@ int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
  *   RETURN VALUE: 0 on success, -1 on failure
  */ 
 int32_t syscall_close(int32_t fd) {
-	//check if file descriptor is valid
-	if(fd < 0 || fd >= FD_SIZE)
+	//check if file descriptor is valid, can't close stdin or stdout
+	if(fd < 2 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)
 		return -1;
 
 	//set flag to not being used now
