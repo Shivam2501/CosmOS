@@ -24,7 +24,7 @@
 #define MAX_OPEN_FILES			8
 #define FILE_SIZE  				0x3FFFFC
 #define PAGE_ALIGNMENT			4
-#define _136MB					0x08800000
+#define _132MB					0x8400000
 
 typedef struct ops_table{
 	int32_t (*open) (const uint8_t* filename);
