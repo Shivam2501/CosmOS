@@ -119,6 +119,9 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	if(file_length % BLOCK_SIZE_FOUR != 0)
 		number_blocks++;
 
+	if(file_length - offset < length)
+		length = file_length - offset;
+
 	uint32_t i = 0;
 
 	//calculate full block (4) and individual blocks (<4) offset
@@ -215,7 +218,6 @@ int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
 	current_process->FD[fd].file_position += bytes_copied;
 
 	return bytes_copied;
-
 }
 
 /*

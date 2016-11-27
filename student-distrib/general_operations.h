@@ -11,6 +11,7 @@
 #define EXE_BUF_SIZE		 	4
 #define PAGE_DIR_ENTRY			0x20
 #define	MAX_NUM_PROCESS		   	6
+#define USER_PROGRAM_START		0x08000000
 #define VIRTUAL_ADDRESS_PROGRAM	0x08048000
 #define KERNEL_PROCESS_START	0x800000
 #define KERNEL_PROCESS_SIZE		0x400000
@@ -23,6 +24,7 @@
 #define MAX_OPEN_FILES			8
 #define FILE_SIZE  				100000
 #define PAGE_ALIGNMENT			4
+#define _136MB					0x08800000
 
 typedef struct ops_table{
 	int32_t (*open) (const uint8_t* filename);

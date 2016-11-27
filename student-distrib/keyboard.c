@@ -113,6 +113,7 @@ void process_code(uint8_t scancode) {
 			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_L) {
 				clear_buffer();
 				clear();
+				terminal_read_ready = 1;
 				return;
 			} 
 

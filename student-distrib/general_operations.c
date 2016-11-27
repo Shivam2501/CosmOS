@@ -18,13 +18,13 @@ int32_t init_FD(){
 	op_table.open = &terminal_open;
 	op_table.close = &terminal_close;
 	op_table.read = &terminal_read;
-	op_table.write = &terminal_fail;
+	op_table.write = NULL;
 
 	stdin.ops_table_ptr = op_table;
 	stdin.file_position = 0; 
 	stdin.inode = NULL;
 
-	op_table.read = &terminal_fail;
+	op_table.read = NULL;
 	op_table.write = &terminal_write;
 
 	file_array_t stdout;																//sets values for stdout
@@ -134,7 +134,7 @@ int32_t syscall_open(const uint8_t* filename) {
 int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
 
 	//check if file descriptor is not valid
-	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)  
+	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0 || parent_pointer->FD[fd].ops_table_ptr.read == NULL)  
 		return -1;
 
 	//call read specific to type
@@ -150,7 +150,7 @@ int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
  */ 
 int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
 	//check if file descriptor is valid
-	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)
+	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0 || parent_pointer->FD[fd].ops_table_ptr.write == NULL)
 		return -1;
 
 	//call write specific to type
@@ -184,31 +184,40 @@ int32_t syscall_close(int32_t fd) {
  */ 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes)
 {
-	//we dont have access to pcb so get it
-
-	uint32_t current_pid = parent_pointer->pid;
-	PCB_t* current_pcb = (PCB_t*)(KERNEL_PROCESS_START - (current_pid+1)*KERNEL_STACK_SIZE);
-
-	if(strlen((int8_t*)current_pcb->arguments) > nbytes || buf == NULL)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
+	if(strlen((int8_t*)parent_pointer->arguments) > nbytes || buf == NULL)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
 		return -1; 	
 
-	memcpy(buf, current_pcb->arguments, nbytes);
-
+	memcpy(buf, parent_pointer->arguments, nbytes);
 	return 0;
-
 }
+
+/*
+ * syscall_vidmap
+ *   DESCRIPTION: assign video mem to user space
+ *   INPUTS: address which should point to the virtual address where video mem is mapped
+ *   OUTPUTS: none
+ *   RETURN VALUE: address of video memory
+ */ 
 int32_t syscall_vidmap (uint8_t** screen_start)
 {
-	return 0;
+	if(screen_start == NULL || screen_start < (uint8_t**)USER_PROGRAM_START || screen_start > (uint8_t**)ESP_VALUE)
+		return -1;
 
+	//add paging from 136MB -> xB80000
+	add_paging_4kb(_136MB);
+	//assign the address pointing to the video mem
+	*screen_start = (uint8_t*)_136MB;
+	return _136MB;
 }
+
 int32_t syscall_set_handler (int32_t signum, void* handler_address)
 {
-	return 0;
+	return -1;
 }
+
 int32_t syscall_sigreturn (void)
 {
-	return 0;
+	return -1;
 
 }
 
@@ -221,8 +230,8 @@ int32_t syscall_sigreturn (void)
  */ 
 int32_t syscall_fail (void)
 {
-	printf("Invalid system call\n");
-	return 0;
+	//printf("Invalid system call\n");
+	return -1;
 
 }
 
@@ -296,29 +305,34 @@ int32_t syscall_halt (uint8_t status){
 int32_t syscall_execute (const uint8_t* command){
 	int i = 0, j=0; 																		//set stdin, stdout
 	uint8_t first_command[MAX_BUFFER_SIZE], arg_buf[MAX_BUFFER_SIZE]; 
-	int is_command = 1;
 
 	memset(first_command, '\0', MAX_BUFFER_SIZE);
 	memset(arg_buf, '\0', MAX_BUFFER_SIZE);
 
+	//ignore spaces at the start before the command
+	while(command[i] == ' ')															
+		i++;
+
 	//parse args to get the first word
 	while(command[i] != '\0')															
 	{
-		if(command[i] != ' '){
-			if(is_command)
-				first_command[i] = command[i]; 		//save command in one buffer
-			else{
-				arg_buf[j] = command[i];			//save argument in another buffer
-				j++;
-			}
-		}else{
-			if(is_command)
-				is_command = 0;					//if first space, then we are starting argument list, dont insert space
-			else{
-				arg_buf[j] = command[i];			//if second+ space, then arguments need to be separated by space
-			}
-		}
+		if(command[i] == ' ')
+			break;
+		first_command[j] = command[i]; 		//save command in one buffer
 		i++;
+		j++;
+	}
+
+	//ignore spaces at the start before the command
+	while(command[i] == ' ')															
+		i++;
+
+	j = 0;
+	//parse the argument and store
+	while(command[i] != '\0') {	
+		arg_buf[j] = command[i];
+		i++;
+		j++;
 	}
 	
 	first_command[i] = '\0';

@@ -83,16 +83,5 @@ int32_t terminal_close(int32_t fd) {
 }
 
 /*
- * terminal_fail
- *   DESCRIPTION: Close the terminal
- *   INPUTS: none
- *   OUTPUTS: none
- *   RETURN VALUE: 0 on success
- */
-int32_t terminal_fail(int32_t fd) {
-	return -1;
-}
-
-/*
  * End of System Calls
  */ 
