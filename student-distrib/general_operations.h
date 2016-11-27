@@ -22,7 +22,7 @@
 #define ESP_VALUE				0x83FFFFC
 #define MAX_BUFFER_SIZE		 	128
 #define MAX_OPEN_FILES			8
-#define FILE_SIZE  				100000
+#define FILE_SIZE  				0x3FFFFC
 #define PAGE_ALIGNMENT			4
 #define _136MB					0x08800000
 

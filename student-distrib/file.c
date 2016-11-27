@@ -168,12 +168,8 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 		}
 		starting_block++;
 	}
-
-	//check to see if copying was done successfully
-	if(length != 0)
-		return 0;
-	else
-		return bytes_copied;
+ 
+	return bytes_copied;
 } 
 
 /*start of system calls*/
