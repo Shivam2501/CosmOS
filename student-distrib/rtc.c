@@ -1,7 +1,7 @@
 #include "rtc.h"
 #include "i8259.h"
 #include "lib.h"
-#include "general_operations.h"
+#include "syscalls.h"
 #include "file.h"
 
 volatile int interrupt_flag;

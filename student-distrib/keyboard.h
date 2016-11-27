@@ -9,6 +9,7 @@
 #include "i8259.h"
 #include "lib.h"
 #include "test.h"
+#include "syscalls.h"
 
 #define KEYBOARD_IRQ					0x01
 #define KEYBOARD_DATA_PORT				0x60

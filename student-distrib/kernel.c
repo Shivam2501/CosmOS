@@ -13,7 +13,7 @@
 #include "paging.h"
 #include "file.h"
 #include "test.h" 
-#include "general_operations.h"
+#include "syscalls.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */

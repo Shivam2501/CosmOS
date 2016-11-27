@@ -119,7 +119,8 @@ void process_code(uint8_t scancode) {
 
 			// if CTRL+C then notify shell
 			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_C) {
-				stop = 1;
+				//stop = 1;
+				syscall_halt (0);
 				return;
 			} 
 

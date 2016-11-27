@@ -1,5 +1,5 @@
-#ifndef _GENERAL_OPERATIONS_H
-#define _GENERAL_OPERATIONS_H
+#ifndef _SYSCALLS_H
+#define _SYSCALLS_H
 
 #include "x86_desc.h"
 #include "lib.h"

@@ -1,4 +1,4 @@
-#include "general_operations.h"
+#include "syscalls.h"
 
 PCB_t *parent_pointer = NULL; 
 int32_t pid_tracker[MAX_NUM_PROCESS];					//index into pid_tracker is pid-1
@@ -165,7 +165,7 @@ int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
  *   RETURN VALUE: 0 on success, -1 on failure
  */ 
 int32_t syscall_close(int32_t fd) {
-	//check if file descriptor is valid, can't close stdin or stdout
+	//check if file descriptor is valid, can't close stdin or stdout(fd < 2)
 	if(fd < 2 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)
 		return -1;
 
@@ -359,7 +359,7 @@ int32_t syscall_execute (const uint8_t* command){
 	}
 
 	if(i == MAX_NUM_PROCESS){
-		printf("No processes free");
+		printf("No processes free\n");
 		return -1;
 	}
 
@@ -438,6 +438,13 @@ int32_t syscall_execute (const uint8_t* command){
 	return 0;
 }
 
+/*
+ * get_current_pcb
+ *   DESCRIPTION: return a pointer to the current process's pcb
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: pointer to current pcb
+ */
 PCB_t* get_current_pcb() {
 	return parent_pointer;
 }
