@@ -557,20 +557,20 @@ clear_screens ()
 void outputText(const char* buffer) {
     int i;
      //buffer for the string
-    unsigned char textBuffer[SCROLL_STATUS_BAR];
+    unsigned char textBuffer[MODE_X_MEM_SIZE/4];
 
     //initialize the buffer with background color
-    for(i = 0; i< SCROLL_STATUS_BAR; i++) {
+    for(i = 0; i< MODE_X_MEM_SIZE/4; i++) {
       textBuffer[i] = BACKGROUND_COLOR;
     }
 
     //create the buffer using the string
-    text_to_graphics(buffer, textBuffer); 
+    //text_to_graphics(buffer, textBuffer); 
 
     //write to vga
     for(i = 0; i < 4; i++) {
       SET_WRITE_MASK (1 << (i + 8));
-      memcpy(mem_image, textBuffer + (i * STATUS_BAR_SIZE), STATUS_BAR_SIZE);
+      memcpy(mem_image, textBuffer + (i * MODE_X_MEM_SIZE/4), MODE_X_MEM_SIZE/4);
     }
 }
 
