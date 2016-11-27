@@ -113,10 +113,7 @@
  */
 
 /* configure VGA for mode X; initializes logical view to (0,0) */
-extern int set_mode_X (void (*horiz_fill_fn)
-                            (int, int, unsigned char[SCROLL_X_DIM]),
-		       void (*vert_fill_fn) 
-		            (int, int, unsigned char[SCROLL_Y_DIM]));
+extern int set_mode_X ();
 
 /* return to text mode */
 extern void clear_mode_X ();
@@ -135,6 +132,8 @@ extern int draw_horiz_line (int y);
 
 /* draw a vertical line at horizontal pixel x within the logical view window */
 extern int draw_vert_line (int x);
+
+extern void outputText(const char* buffer);
 
 /* create text to draw the msg sent on the status bar */
 extern void createText(const char* room_name, const char* status_msg, const char* input_str);

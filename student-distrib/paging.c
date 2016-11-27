@@ -21,7 +21,13 @@ void init_paging() {
 
 	//enable video memory (0x3: Present and Read/Write)
 	page_table[INDEX_TO_TABLE] = VIDEO_MEMORY_ADDRESS | READ_WRITE | PRESENT;
-	page_table[INDEX_VGA] = VGA_ADDRESS | READ_WRITE | PRESENT;
+
+	//enable paging for mode 13
+	int physical = VGA_ADDRESS;
+	for(i = INDEX_VGA; i < INDEX_VGA + 64; i++) {
+		page_table[i] = physical | READ_WRITE | PRESENT;
+		physical += _4KB_OFFSET;
+	}
 
 	//page directory index points to page table and is set to present
 	// (0x3: Present and Read/Write)

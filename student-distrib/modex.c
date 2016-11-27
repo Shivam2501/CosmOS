@@ -296,7 +296,7 @@ set_mode_X ()
 {
     int i; /* loop index for filling memory fence with magic numbers */
 
-    mem_image = (unsigned char*)0xA0000;
+    mem_image = (uint8_t*)0xA0000;
 
     /* Initialize the logical view window to position (0,0). */
     show_x = show_y = 0;
@@ -311,7 +311,7 @@ set_mode_X ()
 
     /* One display page goes at the start of video memory. */
     //target_img = SIZE_STATUS_BAR * IMAGE_X_WIDTH; 
-    target_img = (unsigned short)0xA05A0;
+    target_img = (uint16_t)0xA05A0;
     /* Map video memory and obtain permission for VGA port access. */
     if (open_memory_and_ports () == -1)
         return -1;
@@ -360,7 +360,7 @@ clear_mode_X ()
     set_text_mode_3 (1);
 
     /* Unmap video memory. */
-    (void)munmap (mem_image, VID_MEM_SIZE);
+    //(void)munmap (mem_image, VID_MEM_SIZE);
 
     /* Check validity of build buffer memory fence.  Report breakage. */
     for (i = 0; i < MEM_FENCE_WIDTH; i++) {
@@ -554,117 +554,25 @@ clear_screens ()
     memset (mem_image, 0, MODE_X_MEM_SIZE);
 }
 
+void outputText(const char* buffer) {
+    int i;
+     //buffer for the string
+    unsigned char textBuffer[SCROLL_STATUS_BAR];
 
-/* 
- * The functions inside the preprocessor block below rely on functions
- * in maze.c to generate graphical images of the maze.  These functions
- * are neither available nor necessary for the text restoration program
- * based on this file, and are omitted to simplify linking that program.
- */
-#if !defined(TEXT_RESTORE_PROGRAM)
-
-
-/*
- * draw_vert_line
- *   DESCRIPTION: Draw a vertical map line into the build buffer.  The 
- *                line should be offset from the left side of the logical
- *                view window screen by the given number of pixels.  
- *   INPUTS: x -- the 0-based pixel column number of the line to be drawn
- *                within the logical view window (equivalent to the number
- *                of pixels from the leftmost pixel to the line to be
- *                drawn)
- *   OUTPUTS: none
- *   RETURN VALUE: Returns 0 on success.  If x is outside of the valid 
- *                 SCROLL range, the function returns -1.  
- *   SIDE EFFECTS: draws into the build buffer
- */   
-int
-draw_vert_line (int x)
-{
-    unsigned char buf[SCROLL_Y_DIM]; /* buffer for graphical image of line */
-    unsigned char* addr;             /* address of first pixel in build    */
-               /*     buffer (without plane offset)  */
-    int p_off;                       /* offset of plane of first pixel     */
-    int i;           /* loop index over pixels             */
-
-    /* Check whether requested line falls in the logical view window. */
-    if (x < 0 || x >= SCROLL_X_DIM)
-      return -1;
-
-    /* Adjust x to the logical row value. */
-    x += show_x;
-
-    /* Get the image of the line. */
-    (*vert_line_fn) (x, show_y, buf);
-
-    /* Calculate starting address in build buffer. */
-    addr = img3 + (x >> 2) + show_y * SCROLL_X_WIDTH;
-
-    /* Calculate plane offset of first pixel. */
-    p_off = (3 - (x & 3));
-
-    /* Copy image data into appropriate planes in build buffer. */
-    for (i = 0; i < SCROLL_Y_DIM; i++) {
-        addr[p_off * SCROLL_SIZE] = buf[i];
-        addr += SCROLL_X_WIDTH;
+    //initialize the buffer with background color
+    for(i = 0; i< SCROLL_STATUS_BAR; i++) {
+      textBuffer[i] = BACKGROUND_COLOR;
     }
 
-    return 0;
-}
+    //create the buffer using the string
+    text_to_graphics(buffer, textBuffer); 
 
-
-/*
- * draw_horiz_line
- *   DESCRIPTION: Draw a horizontal map line into the build buffer.  The 
- *                line should be offset from the top of the logical view 
- *                window screen by the given number of pixels.  
- *   INPUTS: y -- the 0-based pixel row number of the line to be drawn
- *                within the logical view window (equivalent to the number
- *                of pixels from the top pixel to the line to be drawn)
- *   OUTPUTS: none
- *   RETURN VALUE: Returns 0 on success.  If y is outside of the valid 
- *                 SCROLL range, the function returns -1.  
- *   SIDE EFFECTS: draws into the build buffer
- */   
-int
-draw_horiz_line (int y)
-{
-    unsigned char buf[SCROLL_X_DIM]; /* buffer for graphical image of line */
-    unsigned char* addr;             /* address of first pixel in build    */
-   				     /*     buffer (without plane offset)  */
-    int p_off;                       /* offset of plane of first pixel     */
-    int i;			     /* loop index over pixels             */
-
-    /* Check whether requested line falls in the logical view window. */
-    if (y < 0 || y >= SCROLL_Y_DIM)
-	return -1;
-
-    /* Adjust y to the logical row value. */
-    y += show_y;
-
-    /* Get the image of the line. */
-    (*horiz_line_fn) (show_x, y, buf);
-
-    /* Calculate starting address in build buffer. */
-    addr = img3 + (show_x >> 2) + y * SCROLL_X_WIDTH;
-
-    /* Calculate plane offset of first pixel. */
-    p_off = (3 - (show_x & 3));
-
-    /* Copy image data into appropriate planes in build buffer. */
-    for (i = 0; i < SCROLL_X_DIM; i++) {
-        addr[p_off * SCROLL_SIZE] = buf[i];
-	if (--p_off < 0) {
-	    p_off = 3;
-	    addr++;
-	}
+    //write to vga
+    for(i = 0; i < 4; i++) {
+      SET_WRITE_MASK (1 << (i + 8));
+      memcpy(mem_image, textBuffer + (i * STATUS_BAR_SIZE), STATUS_BAR_SIZE);
     }
-
-    /* Return success. */
-    return 0;
 }
-
-#endif /* !defined(TEXT_RESTORE_PROGRAM) */
 
 /*
  * createText
@@ -754,29 +662,6 @@ void createText(const char* room_name, const char* status_msg, const char* input
 static int
 open_memory_and_ports ()
 {
-    int mem_fd;  /* file descriptor for physical memory image */
-
-    /* Obtain permission to access ports 0x03C0 through 0x03DA. */
-    if (ioperm (0x03C0, 0x03DA - 0x03C0 + 1, 1) == -1) {
-	perror ("set port permissions");
-	return -1;
-    }
-
-    /* Open file to access physical memory. */
-    if ((mem_fd = open ("/dev/mem", O_RDWR)) == -1) {
-        perror ("open /dev/mem");
-	return -1;
-    }
-
-    /* Map video memory (0xA0000 - 0xBFFFF) into our address space. */
-    if ((mem_image = mmap (0, VID_MEM_SIZE, PROT_READ | PROT_WRITE,
-			   MAP_SHARED, mem_fd, 0xA0000)) == MAP_FAILED) {
-	perror ("mmap video memory");
-	return -1;
-    }
-
-    /* Close /dev/mem file descriptor and return success. */
-    (void)close (mem_fd);
     return 0;
 }
 
@@ -1078,6 +963,33 @@ set_text_mode_3 (int clear_scr)
     VGA_blank (0);			         /* unblank the screen      */
 }
 
+/*
+ * copy_image_mp3
+ *   DESCRIPTION: Copy one plane of a screen from the build buffer to the 
+ *                video memory.
+ *   INPUTS: img -- a pointer to a single screen plane in the build buffer
+ *           scr_addr -- the destination offset in video memory
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: copies a plane from the build buffer to video memory
+ */   
+static void
+copy_image_mp3 (unsigned char* img, unsigned short scr_addr)
+{
+    /* 
+     * memcpy is actually probably good enough here, and is usually
+     * implemented using ISA-specific features like those below,
+     * but the code here provides an example of x86 string moves
+     */
+    asm volatile (
+        "cld                                                 ;"
+        "movl $1440,%%ecx                                   ;"
+        "rep movsb    # copy ECX bytes from M[ESI] to M[EDI]  "
+      : /* no outputs */
+      : "S" (img), "D" (mem_image + scr_addr) 
+      : "eax", "ecx", "memory"
+    );
+}
 
 /*
  * copy_image
@@ -1131,7 +1043,7 @@ main ()
     set_text_mode_3 (0);
 
     /* Unmap video memory. */ 
-    (void)munmap (mem_image, VID_MEM_SIZE);
+    //(void)munmap (mem_image, VID_MEM_SIZE);
 
     /* Return success. */
     return 0;

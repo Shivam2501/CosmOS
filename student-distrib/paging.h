@@ -34,6 +34,7 @@
 #define USER					0x4
 
 #define _4MB_OFFSET				0x400000
+#define _4KB_OFFSET				0x1000
 
 //page directory array
 uint32_t page_directory[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));

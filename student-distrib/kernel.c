@@ -16,7 +16,6 @@
 #include "general_operations.h"
 #include "memory_allocator.h"
 #include "kmalloc_test.h"
-#include "asm_modex.h"
 #include "modex.h"
 
 /* Macros. */
@@ -158,8 +157,6 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 	
-	graphics_mode();
-	set_mode_X();
 	
 	//clear the screen
 	clear();
@@ -178,9 +175,12 @@ entry (unsigned long magic, unsigned long addr)
 	
 	init_paging();
 
+	set_mode_X();
+
 	kernel_mem_init();
-	test_kmalloc_1();
+	//test_kmalloc_1();
 	
+	outputText("Test 1");
 
     /*
     //check paging
@@ -194,7 +194,7 @@ entry (unsigned long magic, unsigned long addr)
 	 * without showing you any output */
 	//printf("Enabling Interrupts\n");
 	sti();
-	
+
 	//test rtc, terminal and file system syscalls
 	//shell();
 	syscall_execute((uint8_t*)"shell");
