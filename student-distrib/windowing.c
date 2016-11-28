@@ -7,20 +7,20 @@
  *   OUTPUTS: none
  *   RETURN VALUE: pointer to the window struct
  */ 
-window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, context* context) {
+window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, context* cont) {
 
 	//allocate memory for a new window struct
 	window* new_window = (window*)kmalloc(sizeof(window));
 	//if malloc fails
 	if(new_window == NULL)
-		return -1;	
+		return NULL;	
 
 	//assign values if successful malloc
 	new_window->x = x;
 	new_window->y = y;
 	new_window->width = width;
 	new_window->height = height;
-	new_window->context = context;
+	new_window->context = cont;
 
 	return new_window;
 }
@@ -32,27 +32,22 @@ window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, cont
  *   OUTPUTS: none
  *   RETURN VALUE: none
  */ 
-void draw_rectangle(context* context, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
+void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
 	uint32_t current_x;
 	uint32_t max_x = x + width;
 	uint32_t max_y = y + height;
 
 	//check bounds
-	if(max_x > context->width)
-		max_x = context->width;
-	if(max_y > context->height)
-		max_y = context->height;
+	if(max_x > cont->width)
+		max_x = cont->width;
+	if(max_y > cont->height)
+		max_y = cont->height;
 
 	for(; y < max_y; y++) {
 		for(current_x = x; current_x < max_x; current_x++) {
-			context->buffer[y * context->width + current_x] = color;
+			cont->buffer[y * cont->width + current_x] = color;
 		}
 	}
-}
-
-uint8_t pseudo_rand_8() {
-	static uint16_t seed = 0;
-	return (uint8_t)(seed = (12657*seed + 12345) % 256);
 }
 
 /*
@@ -62,9 +57,9 @@ uint8_t pseudo_rand_8() {
  *   OUTPUTS: none
  *   RETURN VALUE: none
  */ 
-void window_paint(window* window) {
-	uint32_t fill_color = 0xFF000000 | pseudo_rand_8() << 16 | pseudo_rand_8() << 8 | pseudo_rand_8();
-	draw_rectangle(window->context, window->x, window->y, window->width, window->height, fill_color);
+void window_paint(window* curr_window) {
+	uint32_t fill_color = 17;
+	draw_rectangle(curr_window->context, curr_window->x, curr_window->y, curr_window->width, curr_window->height, fill_color);
 }
 
 /*
@@ -76,15 +71,15 @@ void window_paint(window* window) {
  */ 
 List* new_list() {
 
-	List* list = (List*)kmalloc(sizeof(List));
+	List* new_list = (List*)kmalloc(sizeof(List));
 	//if malloc fails
-	if(list == NULL)
-		return -1;
+	if(new_list == NULL)
+		return NULL;
 
-	list->count = 0;
-	list->root = (ListNode*)0;
+	new_list->count = 0;
+	new_list->root = NULL;
 
-	return list;
+	return new_list;
 }
 
 /*
@@ -99,10 +94,10 @@ ListNode* new_ListNode(void* payload) {
 	ListNode* node = (ListNode*)kmalloc(sizeof(ListNode));
 
 	if(node == NULL)
-		return -1;
+		return NULL;
 
-	node->prev = (ListNode*)0;
-	node->next = (ListNode*)0;
+	node->prev = NULL;
+	node->next = NULL;
 	node->payload = payload;
 
 	return node;
@@ -115,20 +110,20 @@ ListNode* new_ListNode(void* payload) {
  *   OUTPUTS: none
  *   RETURN VALUE: 1 on success and 0 on failure
  */
-int add_to_list(list* list, void* payload) {
+int add_to_list(List* curr_list, void* payload) {
 
 	ListNode* new_node = new_ListNode(payload);
 
-	if(new_node == -1)
+	if(new_node == NULL)
 		return 0;
 
 	//check if the list is empty
-	if(!list->root) {
-		list->root = new_node;
+	if(!curr_list->root) {
+		curr_list->root = new_node;
 	} else {
-		ListNode* curr_node = list->root;
+		ListNode* curr_node = curr_list->root;
 
-		//go to the end of the list
+		//go to the end of the curr_list
 		while(curr_node->next)
 			curr_node = curr_node->next;
 
@@ -136,7 +131,102 @@ int add_to_list(list* list, void* payload) {
 		new_node->prev = curr_node;
 	}
 
-	list->count++;
+	curr_list->count++;
 	return 1;
 }
 
+/*
+ * find_node
+ *   DESCRIPTION: Find the node in the given list
+ *   INPUTS: list and the index of the node to be found
+ *   OUTPUTS: none
+ *   RETURN VALUE: payload of the node on success and 0 on failure
+ */
+void* find_node(List* curr_list, uint32_t index) {
+	//check if current list is empty or index is greater than elements in the list
+	if(curr_list->count == 0 || curr_list->count < index)
+		return (void*)0;
+
+	ListNode* curr_node = curr_list->root;
+	while(curr_node != NULL && index > 0) {
+		curr_node = curr_node->next;
+		index--;
+	}
+	if(curr_node == NULL)
+		return (void*)0;
+	else
+		return curr_node->payload;
+}
+
+/*
+ * new_desktop
+ *   DESCRIPTION: Initialize a new desktop
+ *   INPUTS: context of the framebuffer
+ *   OUTPUTS: none
+ *   RETURN VALUE: desktop created
+ */
+desktop* new_desktop(context* cont) {
+	desktop* new_desktop = (desktop*)kmalloc(sizeof(desktop));
+
+	if(new_desktop == NULL)
+		return NULL;
+
+	new_desktop->children = new_list();
+	if(new_desktop->children == NULL) {
+		kfree(new_desktop);
+		return NULL;
+	}
+
+	new_desktop->context = cont;
+	return new_desktop;
+}
+
+/*
+ * new_desktop
+ *   DESCRIPTION: Add a window to desktop
+ *   INPUTS: desktop and info about the window
+ *   OUTPUTS: none
+ *   RETURN VALUE: window created
+ */
+window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+	window* curr_window = new_window(x, y, width, height, curr_desktop->context);
+
+	if(curr_window == NULL)
+		return NULL;
+
+	//add the window to the list
+	int add_window = add_to_list(curr_desktop->children, (void*)curr_window);
+	if(!add_window) {
+		kfree(curr_window);
+		return NULL;
+	} else {
+		return curr_window;
+	}
+}
+
+/*
+ * clear_desktop
+ *   DESCRIPTION: clear the screen
+ *   INPUTS: desktop 
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
+void clear_desktop(desktop* curr_desktop) {
+	draw_rectangle(curr_desktop->context, 0, 0, curr_desktop->context->width, curr_desktop->context->height, BACKGROUND_COLOR);
+}
+
+/*
+ * desktop_paint
+ *   DESCRIPTION: Draw all the windows in the desktop list
+ *   INPUTS: desktop
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
+void desktop_paint(desktop* curr_desktop) {
+	clear_desktop(curr_desktop);
+
+	int i;
+	window* curr_window;
+	for(i = 0; (curr_window = (window*)find_node(curr_desktop->children, i));i++)
+		window_paint(curr_window);
+}

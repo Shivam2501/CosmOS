@@ -189,19 +189,19 @@ entry (unsigned long magic, unsigned long addr)
       textBuffer[i] = 15;
     }
 
-    context* context = (context*)kmalloc(sizeof(context));
-    context->buffer = textBuffer;
-    context->width = 320;
-    context->height = 200;
+    context* cont = (context*)kmalloc(sizeof(context));
+    cont->buffer = textBuffer;
+    cont->width = 320;
+    cont->height = 200;
 
-    window* win1 = new_window(10, 10, 300, 200, context);
-    window* win2 = new_window(100, 150, 400, 400, context);
-    window* win3 = new_window(200, 100, 200, 600, context);
+    desktop* curr_desktop = new_desktop(cont);
 
-    window_paint(win1);
-    window_paint(win2);
-    window_paint(win3);
+    new_window_desktop(curr_desktop, 10, 10, 300, 200);
+    new_window_desktop(curr_desktop, 100, 150, 400, 400);
+    new_window_desktop(curr_desktop, 200, 100, 200, 600);
     
+    desktop_paint(curr_desktop);
+
 	outputBuffer();
 
     /*
