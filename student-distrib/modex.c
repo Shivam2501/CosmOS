@@ -557,10 +557,10 @@ clear_screens ()
 void outputText(const char* buffer) {
     int i;
      //buffer for the string
-    unsigned char textBuffer[MODE_X_MEM_SIZE/4];
+    unsigned char textBuffer[MODE_X_MEM_SIZE];
 
     //initialize the buffer with background color
-    for(i = 0; i< MODE_X_MEM_SIZE/4; i++) {
+    for(i = 0; i< MODE_X_MEM_SIZE; i++) {
       textBuffer[i] = BACKGROUND_COLOR;
     }
 
