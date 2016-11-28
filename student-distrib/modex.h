@@ -60,7 +60,21 @@
 #define SCROLL_Y_DIM    IMAGE_Y_DIM                /* full image width      */
 #define SCROLL_X_WIDTH  (IMAGE_X_DIM / 4)          /* addresses (bytes)     */
 
+/* Mode X and general VGA parameters */
+#define VID_MEM_SIZE       131072
+#define MODE_X_MEM_SIZE     65536
+#define NUM_SEQUENCER_REGS      5
+#define NUM_CRTC_REGS          25
+#define NUM_GRAPHICS_REGS       9
+#define NUM_ATTR_REGS          22
+#define SIZE_STATUS_BAR        18
 
+#define SCROLL_STATUS_BAR   5760
+#define NUM_CHARACTERS      40
+#define STATUS_BAR_SIZE     1440
+#define SPACE_VALUE         32
+#define BACKGROUND_COLOR    15
+#define ALLOWED_CHARACTERS  20
 /*
  * NOTES
  *
@@ -111,6 +125,7 @@
  * window shifts one pixel to the left, only the left border of the screen
  * is drawn.  Other data are left untouched in most cases.
  */
+extern unsigned char textBuffer[MODE_X_MEM_SIZE];
 
 /* configure VGA for mode X; initializes logical view to (0,0) */
 extern int set_mode_X ();
@@ -133,7 +148,7 @@ extern int draw_horiz_line (int y);
 /* draw a vertical line at horizontal pixel x within the logical view window */
 extern int draw_vert_line (int x);
 
-extern void outputText(const char* buffer);
+extern void outputBuffer();
 
 /* create text to draw the msg sent on the status bar */
 extern void createText(const char* room_name, const char* status_msg, const char* input_str);

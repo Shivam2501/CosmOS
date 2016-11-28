@@ -17,6 +17,7 @@
 #include "memory_allocator.h"
 #include "kmalloc_test.h"
 #include "modex.h"
+#include "windowing.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -180,7 +181,14 @@ entry (unsigned long magic, unsigned long addr)
 	kernel_mem_init();
 	//test_kmalloc_1();
 	
-	outputText("Test 1");
+	int i;
+     //buffer for the string
+
+    //initialize the buffer with background color
+    for(i = 0; i< 65536; i++) {
+      textBuffer[i] = 15;
+    }
+	outputBuffer();
 
     /*
     //check paging

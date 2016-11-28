@@ -67,22 +67,6 @@
 #define BUILD_BUF_SIZE  (SCREEN_SIZE + 20000) 
 #define BUILD_BASE_INIT ((BUILD_BUF_SIZE - SCREEN_SIZE) / 2)
 
-/* Mode X and general VGA parameters */
-#define VID_MEM_SIZE       131072
-#define MODE_X_MEM_SIZE     65536
-#define NUM_SEQUENCER_REGS      5
-#define NUM_CRTC_REGS          25
-#define NUM_GRAPHICS_REGS       9
-#define NUM_ATTR_REGS          22
-#define SIZE_STATUS_BAR        18
-
-#define SCROLL_STATUS_BAR   5760
-#define NUM_CHARACTERS      40
-#define STATUS_BAR_SIZE     1440
-#define SPACE_VALUE         32
-#define BACKGROUND_COLOR    15
-#define ALLOWED_CHARACTERS  20
-
 /* VGA register settings for mode X */
 static unsigned short mode_X_seq[NUM_SEQUENCER_REGS] = {
     0x0100, 0x2101, 0x0F02, 0x0003, 0x0604
@@ -198,6 +182,7 @@ static int show_x, show_y;          /* logical view coordinates     */
 static unsigned char* mem_image;    /* pointer to start of video memory */
 static unsigned short target_img;   /* offset of displayed screen image */
 
+unsigned char textBuffer[MODE_X_MEM_SIZE];
 
 /* 
  * functions provided by the caller to set_mode_X() and used to obtain  
@@ -354,7 +339,7 @@ set_mode_X ()
 void
 clear_mode_X ()
 {
-    int i;   /* loop index for checking memory fence */
+    //int i;   /* loop index for checking memory fence */
     
     /* Put VGA into text mode, restore font data, and clear screens. */
     set_text_mode_3 (1);
@@ -363,18 +348,18 @@ clear_mode_X ()
     //(void)munmap (mem_image, VID_MEM_SIZE);
 
     /* Check validity of build buffer memory fence.  Report breakage. */
-    for (i = 0; i < MEM_FENCE_WIDTH; i++) {
-	if (build[i] != MEM_FENCE_MAGIC) {
-	    puts ("lower build fence was broken");
-	    break;
-	}
-    }
-    for (i = 0; i < MEM_FENCE_WIDTH; i++) {
-        if (build[BUILD_BUF_SIZE + MEM_FENCE_WIDTH + i] != MEM_FENCE_MAGIC) {
-	    puts ("upper build fence was broken");
-	    break;
-	}
-    }
+ //    for (i = 0; i < MEM_FENCE_WIDTH; i++) {
+	// if (build[i] != MEM_FENCE_MAGIC) {
+	//     puts ("lower build fence was broken");
+	//     break;
+	// }
+ //    }
+ //    for (i = 0; i < MEM_FENCE_WIDTH; i++) {
+ //        if (build[BUILD_BUF_SIZE + MEM_FENCE_WIDTH + i] != MEM_FENCE_MAGIC) {
+	//     puts ("upper build fence was broken");
+	//     break;
+	// }
+ //    }
 }
 
 
@@ -551,19 +536,11 @@ clear_screens ()
     SET_WRITE_MASK (0x0F00);
 
     /* Set 64kB to zero (times four planes = 256kB). */
-    memset (mem_image, 0, MODE_X_MEM_SIZE);
+    memset (mem_image, BACKGROUND_COLOR, MODE_X_MEM_SIZE);
 }
 
-void outputText(const char* buffer) {
+void outputBuffer() {
     int i;
-     //buffer for the string
-    unsigned char textBuffer[MODE_X_MEM_SIZE];
-
-    //initialize the buffer with background color
-    for(i = 0; i< MODE_X_MEM_SIZE; i++) {
-      textBuffer[i] = BACKGROUND_COLOR;
-    }
-
     //create the buffer using the string
     //text_to_graphics(buffer, textBuffer); 
 
@@ -961,34 +938,6 @@ set_text_mode_3 (int clear_scr)
     }
     write_font_data ();                          /* copy fonts to video mem */
     VGA_blank (0);			         /* unblank the screen      */
-}
-
-/*
- * copy_image_mp3
- *   DESCRIPTION: Copy one plane of a screen from the build buffer to the 
- *                video memory.
- *   INPUTS: img -- a pointer to a single screen plane in the build buffer
- *           scr_addr -- the destination offset in video memory
- *   OUTPUTS: none
- *   RETURN VALUE: none
- *   SIDE EFFECTS: copies a plane from the build buffer to video memory
- */   
-static void
-copy_image_mp3 (unsigned char* img, unsigned short scr_addr)
-{
-    /* 
-     * memcpy is actually probably good enough here, and is usually
-     * implemented using ISA-specific features like those below,
-     * but the code here provides an example of x86 string moves
-     */
-    asm volatile (
-        "cld                                                 ;"
-        "movl $1440,%%ecx                                   ;"
-        "rep movsb    # copy ECX bytes from M[ESI] to M[EDI]  "
-      : /* no outputs */
-      : "S" (img), "D" (mem_image + scr_addr) 
-      : "eax", "ecx", "memory"
-    );
 }
 
 /*
