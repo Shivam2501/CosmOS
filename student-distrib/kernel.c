@@ -188,6 +188,20 @@ entry (unsigned long magic, unsigned long addr)
     for(i = 0; i< 65536; i++) {
       textBuffer[i] = 15;
     }
+
+    context* context = (context*)kmalloc(sizeof(context));
+    context->buffer = textBuffer;
+    context->width = 320;
+    context->height = 200;
+
+    window* win1 = new_window(10, 10, 300, 200, context);
+    window* win2 = new_window(100, 150, 400, 400, context);
+    window* win3 = new_window(200, 100, 200, 600, context);
+
+    window_paint(win1);
+    window_paint(win2);
+    window_paint(win3);
+    
 	outputBuffer();
 
     /*
