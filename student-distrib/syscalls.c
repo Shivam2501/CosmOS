@@ -108,7 +108,7 @@ int32_t syscall_open(const uint8_t* filename) {
 					op_table.write = &fs_write;
 
 					parent_pointer->FD[index].ops_table_ptr = op_table;
-					parent_pointer->FD[index].inode = &(dentry_file_info.inode);
+					parent_pointer->FD[index].inode = dentry_file_info.inode;
 					parent_pointer->FD[index].file_position = 0;
 					parent_pointer->FD[index].flags = 1;
 
@@ -119,7 +119,6 @@ int32_t syscall_open(const uint8_t* filename) {
 	} else {
 		return -1;
 	}
-
 	//returns the file descriptor
 	return index; 
 }

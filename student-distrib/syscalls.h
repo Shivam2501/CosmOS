@@ -35,7 +35,7 @@ typedef struct ops_table{
 
 typedef struct file_array{
     ops_table_t 	ops_table_ptr;
-    uint32_t*   	inode; 
+    uint32_t	   	inode; 
     uint32_t		file_position;   
     uint32_t 		flags;                  
 } file_array_t;

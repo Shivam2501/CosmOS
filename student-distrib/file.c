@@ -132,7 +132,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	uint32_t* starting_block = inode_start_addr + offset_blocks + 1;
 	
 	uint32_t block_number;
-	uint8_t *block_addr;
+	uint8_t* block_addr;
 	uint32_t bytes_copied = 0;
 
 	for(i = 0; i < number_blocks - offset_blocks; i++) {
@@ -217,7 +217,7 @@ int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
 	int bytes_copied;
 	PCB_t* current_process = get_current_pcb();
 
-	bytes_copied = read_data(*(current_process->FD[fd].inode), current_process->FD[fd].file_position, (uint8_t*) buf, nbytes);
+	bytes_copied = read_data(current_process->FD[fd].inode, current_process->FD[fd].file_position, (uint8_t*) buf, nbytes);
 	current_process->FD[fd].file_position += bytes_copied;
 
 	return bytes_copied;
