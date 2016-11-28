@@ -131,7 +131,8 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	//offset to particular block we want
 	uint32_t* starting_block = inode_start_addr + offset_blocks + 1;
 	
-	uint32_t block_number, *block_addr;
+	uint32_t block_number;
+	uint8_t *block_addr;
 	uint32_t bytes_copied = 0;
 
 	for(i = 0; i < number_blocks - offset_blocks; i++) {
@@ -140,7 +141,13 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 		block_addr = data_block_start_addr + (block_number * BLOCK_SIZE);
 		//if we have an offset
 		if(remaining_offset != 0) {
-			block_addr += remaining_offset/SIZE_DATA_BLOCK;
+			//block_addr += remaining_offset/SIZE_DATA_BLOCK;
+			uint8_t temp = remaining_offset;
+			while(temp) {
+				block_addr++;
+				temp--;
+			}
+			
 			if((BLOCK_SIZE_FOUR - remaining_offset) < length) {
 				memcpy(buf+bytes_copied, block_addr, BLOCK_SIZE_FOUR - remaining_offset);
 				//we copied some, so decrease length and increase the number of bytes we copied
