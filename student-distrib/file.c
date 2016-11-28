@@ -131,8 +131,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	//offset to particular block we want
 	uint32_t* starting_block = inode_start_addr + offset_blocks + 1;
 	
-	uint32_t block_number;
-	uint8_t* block_addr;
+	uint32_t block_number, *block_addr;
 	uint32_t bytes_copied = 0;
 
 	for(i = 0; i < number_blocks - offset_blocks; i++) {
@@ -142,9 +141,10 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 		//if we have an offset
 		if(remaining_offset != 0) {
 			//block_addr += remaining_offset/SIZE_DATA_BLOCK;
-			uint8_t temp = remaining_offset;
+			
+			uint32_t temp = remaining_offset;
 			while(temp) {
-				block_addr++;
+				block_addr = (uint32_t*)((uint8_t*)block_addr + 1);
 				temp--;
 			}
 			
