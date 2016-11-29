@@ -5,7 +5,7 @@
 #include "multiboot.h"
 #include "lib.h"
 #include "lib.h"
-#include "general_operations.h"
+#include "syscalls.h"
 
 #define NUMBER_DIR_ENTRIES 			1
 #define NUMBER_INODES				1

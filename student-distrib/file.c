@@ -119,6 +119,9 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	if(file_length % BLOCK_SIZE_FOUR != 0)
 		number_blocks++;
 
+	if(file_length - offset < length)
+		length = file_length - offset;
+
 	uint32_t i = 0;
 
 	//calculate full block (4) and individual blocks (<4) offset
@@ -137,7 +140,14 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 		block_addr = data_block_start_addr + (block_number * BLOCK_SIZE);
 		//if we have an offset
 		if(remaining_offset != 0) {
-			block_addr += remaining_offset/SIZE_DATA_BLOCK;
+			//block_addr += remaining_offset/SIZE_DATA_BLOCK;
+			
+			uint32_t temp = remaining_offset;
+			while(temp) {
+				block_addr = (uint32_t*)((uint8_t*)block_addr + 1);
+				temp--;
+			}
+			
 			if((BLOCK_SIZE_FOUR - remaining_offset) < length) {
 				memcpy(buf+bytes_copied, block_addr, BLOCK_SIZE_FOUR - remaining_offset);
 				//we copied some, so decrease length and increase the number of bytes we copied
@@ -165,12 +175,8 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 		}
 		starting_block++;
 	}
-
-	//check to see if copying was done successfully
-	if(length != 0)
-		return 0;
-	else
-		return bytes_copied;
+ 
+	return bytes_copied;
 } 
 
 /*start of system calls*/
@@ -215,7 +221,6 @@ int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
 	current_process->FD[fd].file_position += bytes_copied;
 
 	return bytes_copied;
-
 }
 
 /*

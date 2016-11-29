@@ -14,16 +14,17 @@ pushl 	%edi
 pushl 	%esi
 pushfl
 
-#check if eax value (system call number) is within bounds 
-cmpl    $1,  %eax
-jb      sys_fail 
-cmpl    $10, %eax
-ja  	sys_fail
-
 #push arguments for system call
 pushl  	%edx
 pushl   %ecx 
 pushl   %ebx
+
+#check if eax value (system call number) is within bounds 
+cmpl    $1,  %eax
+jl      sys_fail 
+cmpl    $10, %eax
+jg  	sys_fail
+
 jmp 	*jump_table(, %eax, 4)
 
 #call corresponding system calls using jump table
@@ -70,7 +71,7 @@ jmp 	done
 
 #call fail system call when system call number is not valid
 sys_fail:
-call 	 syscall_fail
+call 	syscall_fail
 jmp 	done
 
 done:

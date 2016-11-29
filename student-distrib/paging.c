@@ -33,10 +33,50 @@ void init_paging() {
 	enablePaging();
 }
 
+/*
+ * add_paging
+ *   DESCRIPTION: Map user program image
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
 void add_paging(uint32_t virtual, uint32_t physical) {
-
 	page_directory[virtual] = physical | PS | USER | READ_WRITE | PRESENT  ;
-	
+	tlb_flush();
+}
+
+/*
+ * add_paging_4kb
+ *   DESCRIPTION: Map text mode video to user space
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
+void add_paging_4kb(uint32_t virtual) {
+	/* Set each page directory entry to not present */
+	int i, index;
+	for(i=0; i < SIZE_DIR_TABLE; i++){
+		page_table_video[i] = READ_WRITE;
+	}
+
+	//enable video memory (0x3: Present and Read/Write)
+	page_table_video[0] = VIDEO_MEMORY_ADDRESS | USER | READ_WRITE | PRESENT;
+
+	index = (virtual >> 22);
+	//page directory index points to page table and is set to present
+	// (0x3: Present and Read/Write)
+	page_directory[index] = (uint32_t)page_table_video | USER | READ_WRITE | PRESENT;
+	tlb_flush();
+}
+
+/*
+ * tlb_flush
+ *   DESCRIPTION: Flush the TLB 
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
+void tlb_flush(void) {
 	//tlb flush
 	asm volatile("				\n\
 		movl	%%cr3,%%eax		\n\
