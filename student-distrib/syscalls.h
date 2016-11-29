@@ -2,6 +2,7 @@
 #define _SYSCALLS_H
 
 #include "x86_desc.h"
+#include "i8259.h"
 #include "lib.h"
 #include "paging.h"
 #include "file.h"

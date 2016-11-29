@@ -59,7 +59,7 @@ void init_idt(){
 	SET_IDT_ENTRY(idt[SYSTEM_CALL_ADDR],&call_handler);
 }
 
-
+#include "syscalls.h"
 /* 
  *   Exception handlers
  *   DESCRIPTION: handlers for all exceptions, including specific ones and intel reserved exceptions
@@ -69,89 +69,89 @@ void init_idt(){
  *   SIDE EFFECTS: Remains in a while loop as it is an exception
  */
 void DIVIDE_BY_ZERO(){
-	printf("Warning: Divided by zero");
-	while(1); 
+	printf("Warning: Divided by zero\n");
+	syscall_halt(RETURN_EXCEPTION); 
 }
 
 void DEBUG_EXCEPTION(){
-	printf("Warning: Debug exception");
-	while(1);
+	printf("Warning: Debug exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 
 void NMI_INTERRUPT(){
-	printf("Warning: NMI Interrupt");
-	while(1);
+	printf("Warning: NMI Interrupt\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 
 void BREAKPOINT_EXCEPTION(){
-	printf("Warning: Breakpoint Exception");
-	while(1);
+	printf("Warning: Breakpoint Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 
 void OVERFLOW_EXCEPTION(){
-	printf("Warning: Overflow Exception");
-	while(1);
+	printf("Warning: Overflow Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void BOUND_RANGE_EXCEEDED_EXCEPTION(){
-	printf("Warning: Bound Range Exceeded Exception");
-	while(1);
+	printf("Warning: Bound Range Exceeded Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void INVALID_OPCODE_EXCEPTION(){
-	printf("Warning: Invalid Opcode Exception");
-	while(1);
+	printf("Warning: Invalid Opcode Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void DEVICE_NOT_AVAILABLE_EXCEPTION(){
-	printf("Warning: Device Not Available Exception");
-	while(1);
+	printf("Warning: Device Not Available Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void DOUBLE_FAULT_EXCEPTION(){
-	printf("Warning: Double Fault Exception");
-	while(1);
+	printf("Warning: Double Fault Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void COPROCESSOR_SEGMENT_OVERRUN(){
-	printf("Warning: Coprocessor Segment Overrun");
-	while(1);
+	printf("Warning: Coprocessor Segment Overrun\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void INVALID_TSS_EXCEPTION(){
-	printf("Warning: Invalid TSS Exception");
-	while(1);
+	printf("Warning: Invalid TSS Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void SEGMENT_NOT_PRESENT_EXCEPTION(){
-	printf("Warning: Segment Not Present Exception");
-	while(1);
+	printf("Warning: Segment Not Present Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void STACK_FAULT_EXCEPTION(){
-	printf("Warning: Stack Fault Exception");
-	while(1);
+	printf("Warning: Stack Fault Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void GENERAL_PROTECTION_EXCEPTION(){
-	printf("Warning: General Protection Exception");
-	while(1);
+	printf("Warning: General Protection Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void PAGE_FAULT_EXCEPTION(){
-	printf("Warning: Page Fault Exception");
-	while(1);
+	printf("Warning: Page Fault Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void x86_FPU_FLOATING_POINT_ERROR(){
-	printf("Warning: FPU Floating Point Error");
-	while(1);
+	printf("Warning: FPU Floating Point Error\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 
 void ALIGNMENT_CHECK_EXCEPTION(){
-	printf("Warning: Alignment Check Exception");
-	while(1);
+	printf("Warning: Alignment Check Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void MACHINE_CHECK_EXCEPTION(){
-	printf("Warning: Machine Check Exception");
-	while(1);
+	printf("Warning: Machine Check Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void SIMD_FLOATING_POINT_EXCEPTION(){
-	printf("Warning: SIMD Floating Point Exception");
-	while(1);
+	printf("Warning: SIMD Floating Point Exception\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 void INTEL_RESERVED(){
-	printf("Warning: Intel Reserved");
-	while(1);
+	printf("Warning: Intel Reserved\n");
+	syscall_halt(RETURN_EXCEPTION);
 }
 
 /*Interrupt Handlers*/

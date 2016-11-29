@@ -3,6 +3,10 @@
 PCB_t *parent_pointer = NULL; 
 int32_t pid_tracker[MAX_NUM_PROCESS];					//index into pid_tracker is pid-1
 
+//ops_table for rtc, file and directory 
+ops_table_t op_table_rtc = { &rtc_open, &rtc_close, &rtc_read, &rtc_write };
+ops_table_t op_table_dir = { &dir_open, &dir_close, &dir_read, &dir_write };
+ops_table_t op_table_file = { &fs_open, &fs_close, &fs_read, &fs_write };
 
 /*
  * init_FD
@@ -47,6 +51,11 @@ int32_t init_FD(){
  *   RETURN VALUE: 0 on success, -1 on failure
  */ 
 int32_t syscall_open(const uint8_t* filename) {
+
+	//if filename is NULL
+	if(filename == NULL)
+		return -1;
+
 	int index = DEFAULT_FD;
 	//find free fd array
 	while(parent_pointer->FD[index].flags == 1 && index < FD_SIZE){								
@@ -63,56 +72,35 @@ int32_t syscall_open(const uint8_t* filename) {
 			//rtc handlingcreated
 			case 0:	
 				{
-					//make jump table to specific rtc functions
-					ops_table_t op_table;
-					op_table.open = &rtc_open;
-					op_table.close = &rtc_close;
-					op_table.read = &rtc_read;
-					op_table.write = &rtc_write;
-		
-					parent_pointer->FD[index].ops_table_ptr = op_table;
+					parent_pointer->FD[index].ops_table_ptr = op_table_rtc;
 					parent_pointer->FD[index].inode = NULL;
 					parent_pointer->FD[index].file_position = 0;
 					parent_pointer->FD[index].flags = 1;
 
-					op_table.open(filename);
+					parent_pointer->FD[index].ops_table_ptr.open(filename);
 					break;
 				}
 				//directory open
 			case 1:
 				{
-					//creates jumptable for dir
-					ops_table_t op_table;												
-					op_table.open = &dir_open;
-					op_table.close = &dir_close;
-					op_table.read = &dir_read;
-					op_table.write = &dir_write;
-			
 					//sets ptr to jumptable in the struct for fd entry
-					parent_pointer->FD[index].ops_table_ptr = op_table;					
+					parent_pointer->FD[index].ops_table_ptr = op_table_dir;					
 					parent_pointer->FD[index].inode = NULL;
 					parent_pointer->FD[index].file_position = 0;
 					parent_pointer->FD[index].flags = 1;
 
-					op_table.open(filename);
+					parent_pointer->FD[index].ops_table_ptr.open(filename);
 					break;
 				}
 				//file open
 			case 2:
 				{
-					//make jumptable for file specific functions
-					ops_table_t op_table;
-					op_table.open = &fs_open;
-					op_table.close = &fs_close;
-					op_table.read = &fs_read;
-					op_table.write = &fs_write;
-
-					parent_pointer->FD[index].ops_table_ptr = op_table;
+					parent_pointer->FD[index].ops_table_ptr = op_table_file;
 					parent_pointer->FD[index].inode = dentry_file_info.inode;
 					parent_pointer->FD[index].file_position = 0;
 					parent_pointer->FD[index].flags = 1;
 
-					op_table.open(filename);
+					parent_pointer->FD[index].ops_table_ptr.open(filename);
 					break;
 				}
 		}
@@ -133,7 +121,11 @@ int32_t syscall_open(const uint8_t* filename) {
 int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
 
 	//check if file descriptor is not valid
-	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0 || parent_pointer->FD[fd].ops_table_ptr.read == NULL)  
+	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)  
+		return -1;
+
+	//check if buf is NULL or the read function is NULL
+	if(parent_pointer->FD[fd].ops_table_ptr.read == NULL || buf == NULL)
 		return -1;
 
 	//call read specific to type
@@ -149,7 +141,11 @@ int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
  */ 
 int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
 	//check if file descriptor is valid
-	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0 || parent_pointer->FD[fd].ops_table_ptr.write == NULL)
+	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)
+		return -1;
+
+	//check if buf is NULL or the write function is NULL
+	if(parent_pointer->FD[fd].ops_table_ptr.write == NULL || buf == NULL)
 		return -1;
 
 	//call write specific to type
@@ -303,6 +299,11 @@ int32_t syscall_halt (uint8_t status){
  */ 
 int32_t syscall_execute (const uint8_t* command){
 	int i = 0, j=0; 																		//set stdin, stdout
+	
+	//check if command is NULL
+	if(command == NULL)
+		return -1;
+
 	uint8_t first_command[MAX_BUFFER_SIZE], arg_buf[MAX_BUFFER_SIZE]; 
 
 	memset(first_command, '\0', MAX_BUFFER_SIZE);
@@ -347,7 +348,7 @@ int32_t syscall_execute (const uint8_t* command){
 	//obtain first four bytes to check if executable
 	read_data(dentry_file_info.inode, 0, buf, EXE_BUF_SIZE);
 
-	//check if not executable
+	//check if not executable (0x7f: DEL, 0x45: E, 0x4c: L, 0x46:F)
 	if(buf[0] != 0x7f || buf[1] != 0x45 || buf[2] != 0x4c || buf[3] != 0x46)		
 		return -1; 
 
