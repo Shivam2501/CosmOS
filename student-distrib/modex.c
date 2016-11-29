@@ -71,22 +71,22 @@
 static unsigned short mode_X_seq[NUM_SEQUENCER_REGS] = {
     0x0100, 0x2101, 0x0F02, 0x0003, 0x0604
 };
-/*
+
 static unsigned short mode_X_CRTC[NUM_CRTC_REGS] = {
     0x5F00, 0x4F01, 0x5002, 0x8203, 0x5404, 0x8005, 0xBF06, 0x1F07,
     0x0008, 0x4109, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
     0x9C10, 0x8E11, 0x8F12, 0x2813, 0x0014, 0x9615, 0xB916, 0xE317,
     0xFF18
 };
-*/
+
 
 // change the line register to split the sceen
-static unsigned short mode_X_CRTC[NUM_CRTC_REGS] = {
-    0x5F00, 0x4F01, 0x5002, 0x8203, 0x5404, 0x8005, 0xBF06, 0x1F07,
-    0x1008, 0x0109, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
-    0x9C10, 0x8E11, 0x8F12, 0x2813, 0x0014, 0x9615, 0xB916, 0xE317,
-    0x6B18
-};
+// static unsigned short mode_X_CRTC[NUM_CRTC_REGS] = {
+//     0x5F00, 0x4F01, 0x5002, 0x8203, 0x5404, 0x8005, 0xBF06, 0x1F07,
+//     0x0008, 0x4109, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
+//     0x9C10, 0x8E11, 0x8F12, 0x2813, 0x0014, 0x9615, 0xB916, 0xE317,
+//     0xFF18
+// };
 
 static unsigned char mode_X_attr[NUM_ATTR_REGS * 2] = {
     0x00, 0x00, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03, 
@@ -296,7 +296,7 @@ set_mode_X ()
 
     /* One display page goes at the start of video memory. */
     //target_img = SIZE_STATUS_BAR * IMAGE_X_WIDTH; 
-    target_img = (uint16_t)0xA05A0;
+    //target_img = (uint16_t)0xA05A0;
     /* Map video memory and obtain permission for VGA port access. */
     if (open_memory_and_ports () == -1)
         return -1;
@@ -539,6 +539,14 @@ clear_screens ()
     memset (mem_image, BACKGROUND_COLOR, MODE_X_MEM_SIZE);
 }
 
+/*
+ * outputBuffer
+ *   DESCRIPTION: Print the buffer on the screen
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: fills all 256kB of VGA video memory with the buffer
+ */  
 void outputBuffer() {
     int i;
     //create the buffer using the string
