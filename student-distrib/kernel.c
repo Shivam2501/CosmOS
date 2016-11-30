@@ -185,7 +185,7 @@ entry (unsigned long magic, unsigned long addr)
      //buffer for the string
 
     //initialize the buffer with background color
-    for(i = 0; i< 65536; i++) {
+    for(i = 0; i < 65536; i++) {
       textBuffer[i] = 15;
     }
 
@@ -196,12 +196,13 @@ entry (unsigned long magic, unsigned long addr)
 
     desktop* curr_desktop = new_desktop(cont);
 
-    new_window_desktop(curr_desktop, 10, 10, 300, 200);
-    new_window_desktop(curr_desktop, 100, 150, 400, 400);
-    new_window_desktop(curr_desktop, 200, 100, 200, 600);
+    new_window_desktop(curr_desktop, 10, 10, 200, 100);
+    // new_window_desktop(curr_desktop, 100, 150, 100, 100);
+    // new_window_desktop(curr_desktop, 200, 100, 300, 150);
     
     desktop_paint(curr_desktop);
 
+    text_to_graphics("Hi. This is a test message", textBuffer);
 	outputBuffer();
 
     /*

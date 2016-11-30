@@ -43,9 +43,13 @@ void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint3
 	if(max_y > cont->height)
 		max_y = cont->height;
 
+	int index, plane, offset;
 	for(; y < max_y; y++) {
 		for(current_x = x; current_x < max_x; current_x++) {
-			cont->buffer[y * cont->width + current_x] = color;
+			index = y * cont->width + current_x;
+			plane = current_x % 4;
+			offset = (current_x / 4) + (y * cont->width / 4);
+			cont->buffer[ ((65536 / 4) * plane) + offset] = color;
 		}
 	}
 }
