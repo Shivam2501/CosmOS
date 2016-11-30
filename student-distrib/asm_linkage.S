@@ -18,6 +18,14 @@ call keyboard_handler
 popal
 iret
 
+#calls handler for mouse
+.globl asm_mouse
+asm_mouse:
+pushal
+call mouse_handler
+popal
+iret
+
 #calls handler for RTC
 .globl asm_rtc
 asm_rtc:

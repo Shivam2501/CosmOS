@@ -7,6 +7,9 @@ extern void asm_timer_chip(void);
 //calls handler for keyboard
 extern void asm_keyboard(void);
 
+//calls handler for mouse
+extern void asm_mouse(void);
+
 //calls handler for RTC
 extern void asm_rtc(void);
 

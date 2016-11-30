@@ -53,7 +53,7 @@ void init_idt(){
 	SET_IDT_ENTRY(idt[41],&asm_default); 
 	SET_IDT_ENTRY(idt[42],&asm_default); 
 	SET_IDT_ENTRY(idt[43],&asm_default); 
-	SET_IDT_ENTRY(idt[44],&asm_default); 
+	SET_IDT_ENTRY(idt[44],&asm_mouse);
 	SET_IDT_ENTRY(idt[45],&asm_default); 
 	SET_IDT_ENTRY(idt[46],&asm_default); 
 	SET_IDT_ENTRY(idt[SYSTEM_CALL_ADDR],&call_handler);

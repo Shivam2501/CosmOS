@@ -18,6 +18,7 @@
 #include "kmalloc_test.h"
 #include "modex.h"
 #include "windowing.h"
+#include "mouse.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -162,6 +163,8 @@ entry (unsigned long magic, unsigned long addr)
 	//clear the screen
 	clear();
 
+	set_mode_X();
+	
 	init_idt();
 
 	/* Initialize devices, memory, filesystem, enable devzice interrupts on the
@@ -174,9 +177,9 @@ entry (unsigned long magic, unsigned long addr)
 
 	keyboard_init();
 	
-	init_paging();
+	mouse_init();
 
-	set_mode_X();
+	init_paging();
 
 	kernel_mem_init();
 	//test_kmalloc_1();
@@ -185,14 +188,14 @@ entry (unsigned long magic, unsigned long addr)
      //buffer for the string
 
     //initialize the buffer with background color
-    for(i = 0; i < 65536; i++) {
-      textBuffer[i] = 15;
+    for(i = 0; i < MODE_X_MEM_SIZE; i++) {
+      textBuffer[i] = BACKGROUND_COLOR;
     }
 
     context* cont = (context*)kmalloc(sizeof(context));
     cont->buffer = textBuffer;
-    cont->width = 320;
-    cont->height = 200;
+    cont->width = IMAGE_X_DIM;
+    cont->height = IMAGE_Y_DIM;
 
     desktop* curr_desktop = new_desktop(cont);
 

@@ -36,14 +36,6 @@
  *	SL	4	Sat Sep 14 16:26:25 2011
  *		Split fill_palette by mode and cleaned up code for release.
  */
-
-#ifndef MODEX_H
-#define MODEX_H
-
-
-#include "text.h"
-
-
 /* 
  * IMAGE  is the whole screen in mode X: 320x200 pixels in our flavor.
  * SCROLL is the scrolling region of the screen.
@@ -75,6 +67,13 @@
 #define SPACE_VALUE         32
 #define BACKGROUND_COLOR    15
 #define ALLOWED_CHARACTERS  20
+
+#ifndef MODEX_H
+#define MODEX_H
+
+
+#include "text.h"
+
 /*
  * NOTES
  *
