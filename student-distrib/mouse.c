@@ -106,19 +106,6 @@ void mouse_handler() {
 		//check for overflow bits (0x80 and 0x40) to be clear
 		//check bit 3 to be set to verify package
 		if((byte1 & 0x80 == 0) && (byte1 & 0x40 == 0) && (byte1 & 0x8 == 1)) {
-			//check if left button(bit 1/ 0x1) is pressed
-			if(byte1 & 0x1) {
-
-			}
-			//check if right button (bit 2/ 0x2) is pressed
-			if(byte1 & 0x2) {
-				
-			}
-			//check if middle button (bit 3/ 0x4) is pressed
-			if(byte1 & 0x4) {
-				
-			}
-
 			int32_t byte2 = read_data_mouse();
 			//check if delta X is a negative number (bit 5/ 0x10)
 			if(byte1 & 0x10) {
@@ -131,10 +118,45 @@ void mouse_handler() {
 				byte3 |= 0xFFFFFF00;
 			}
 
+			//check if left button(bit 1/ 0x1) is pressed
+			if(byte1 & 0x1) {
+				//if no movement and left button is already pressed
+				if(!byte2 && !byte3) {
+					if(left_button_pressed) {
+						handle_double_click();
+					}
+				}
+				left_button_pressed = 1;
+			} else {
+				if(left_button_pressed) {
+					left_button_pressed = 0;
+				}
+			}
+
+			//check if right button (bit 2/ 0x2) is pressed
+			if(byte1 & 0x2) {
+				right_button_pressed = 1;
+			} else {
+				if(right_button_pressed) {
+					right_button_pressed = 0;
+				}
+			}
+
+			//check if middle button (bit 3/ 0x4) is pressed
+			if(byte1 & 0x4) {
+				middle_button_pressed = 1;
+			} else {
+				if(middle_button_pressed) {
+					middle_button_pressed = 0;
+				}
+			}
+
 			//check if mouse moved
 			if(byte2 || byte3) {
 				mouse_moved = 1;
 				handle_mouse_movement(byte2, byte3);
+			} else {
+				mouse_moved = 0;
 			}
 		}
 
@@ -143,5 +165,17 @@ void mouse_handler() {
 }
 
 void handle_mouse_movement(int32_t delta_x, int32_t delta_y) {
+	mouse_coord.position_x += delta_x;
+	mouse_coord.position_y += delta_y;
+	if(left_button_pressed) {
+		handle_drag();
+	}
+}
+
+void handle_double_click() {
+
+}
+
+void handle_drag() {
 
 }

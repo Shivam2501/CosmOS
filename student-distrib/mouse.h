@@ -25,6 +25,9 @@ void write_data(uint8_t data);
 uint8_t read_data_mouse();
 void wait_acknowledgement();
 
+/* Handle mouse actions */
 void handle_mouse_movement(int32_t delta_x, int32_t delta_y);
+void handle_drag();
+void handle_double_click();
 
 #endif
