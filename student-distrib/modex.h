@@ -55,6 +55,7 @@
 /* Mode X and general VGA parameters */
 #define VID_MEM_SIZE       131072
 #define MODE_X_MEM_SIZE     65536
+#define MODEX_PLANES			4
 #define NUM_SEQUENCER_REGS      5
 #define NUM_CRTC_REGS          25
 #define NUM_GRAPHICS_REGS       9

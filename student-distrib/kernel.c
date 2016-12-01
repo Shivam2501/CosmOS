@@ -205,7 +205,7 @@ entry (unsigned long magic, unsigned long addr)
     
     desktop_paint(curr_desktop);
 
-    text_to_graphics("Hi. This is a test message", textBuffer);
+    text_to_graphics("Test message", textBuffer);
 	outputBuffer();
 
     /*

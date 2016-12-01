@@ -1,5 +1,12 @@
 #include "mouse.h"
 
+position mouse_coord;
+
+uint8_t left_button_pressed;
+uint8_t right_button_pressed;
+uint8_t middle_button_pressed;
+uint8_t mouse_moved;
+
 /*
  * mouse_wait()
  *   DESCRIPTION: Wait for read/write signal
@@ -64,9 +71,8 @@ void mouse_init() {
 	uint8_t status;
 	//read the status
 	status = read_data_mouse();
-	//set bit 1 and clear bit 5
-	status |= 0x2;
-	status &= ~(0x20);
+	//set bit 1 (0x2) and clear bit 5 (0xEF)
+	status = (status | 0x2) & (0xEF);
 
 	// Set Compaq Status Byte (0x60)
 	mouse_wait(1);
@@ -81,8 +87,61 @@ void mouse_init() {
 
 	//enable acknowledgment (0xF4)
 	write_data(0xF4);
+
+	//initialize all the values
+	mouse_coord.position_x = 0;
+	mouse_coord.position_y = 0;
+	left_button_pressed = 0;
+	right_button_pressed = 0;
+	middle_button_pressed = 0;
+	mouse_moved = 0;
+
+	/* Enable the IRQ Port for Mouse*/
+	enable_irq(MOUSE_IRQ);
 }
 
 void mouse_handler() {
+	if((inb(SIGNAL_PORT) & 0x1) == 0) {
+		uint8_t byte1 = inb(DATA_PORT);
+		//check for overflow bits (0x80 and 0x40) to be clear
+		//check bit 3 to be set to verify package
+		if((byte1 & 0x80 == 0) && (byte1 & 0x40 == 0) && (byte1 & 0x8 == 1)) {
+			//check if left button(bit 1/ 0x1) is pressed
+			if(byte1 & 0x1) {
+
+			}
+			//check if right button (bit 2/ 0x2) is pressed
+			if(byte1 & 0x2) {
+				
+			}
+			//check if middle button (bit 3/ 0x4) is pressed
+			if(byte1 & 0x4) {
+				
+			}
+
+			int32_t byte2 = read_data_mouse();
+			//check if delta X is a negative number (bit 5/ 0x10)
+			if(byte1 & 0x10) {
+				byte2 |= 0xFFFFFF00;
+			}
+
+			int32_t byte3 = read_data_mouse();
+			//check if delta y is a negative number (bit 6/ 0x20)
+			if(byte1 & 0x20) {
+				byte3 |= 0xFFFFFF00;
+			}
+
+			//check if mouse moved
+			if(byte2 || byte3) {
+				mouse_moved = 1;
+				handle_mouse_movement(byte2, byte3);
+			}
+		}
+
+	}
+	send_eoi(MOUSE_IRQ);
+}
+
+void handle_mouse_movement(int32_t delta_x, int32_t delta_y) {
 
 }

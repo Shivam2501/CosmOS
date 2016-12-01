@@ -47,9 +47,9 @@ void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint3
 	for(; y < max_y; y++) {
 		for(current_x = x; current_x < max_x; current_x++) {
 			index = y * cont->width + current_x;
-			plane = current_x % 4;
-			offset = (current_x / 4) + (y * cont->width / 4);
-			cont->buffer[ ((65536 / 4) * plane) + offset] = color;
+			plane = current_x % MODEX_PLANES;
+			offset = (current_x / MODEX_PLANES) + (y * cont->width / MODEX_PLANES);
+			cont->buffer[ ((MODE_X_MEM_SIZE / MODEX_PLANES) * plane) + offset] = color;
 		}
 	}
 }

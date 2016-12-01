@@ -5,7 +5,7 @@
 #include "i8259.h"
 #include "lib.h"
 
-#define MOUSE_IRQ 		0x2C
+#define MOUSE_IRQ 		12
 #define SIGNAL_PORT		0x64
 #define DATA_PORT		0x60
 
@@ -24,5 +24,7 @@ void mouse_init();
 void write_data(uint8_t data);
 uint8_t read_data_mouse();
 void wait_acknowledgement();
+
+void handle_mouse_movement(int32_t delta_x, int32_t delta_y);
 
 #endif

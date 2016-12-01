@@ -5,8 +5,6 @@
 #include "modex.h"
 #include "memory_allocator.h"
 
-#define BACKGROUND_COLOR	15
-
 typedef struct context {
 	uint8_t* buffer;
 	uint32_t width;

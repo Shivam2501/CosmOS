@@ -36,6 +36,9 @@
 #ifndef TEXT_H
 #define TEXT_H
 
+#include "lib.h"
+#include "modex.h"
+
 /* The default VGA text mode font is 8x16 pixels. */
 #define FONT_WIDTH   8
 #define FONT_HEIGHT 16
@@ -44,6 +47,7 @@
 extern unsigned char font_data[256][16];
 
 /* text to graphics image generation routine*/
-extern void text_to_graphics(const char str[40], unsigned char* textBuffer);
+extern void text_to_graphics_old(const char str[40], unsigned char* textBuffer);
+extern void text_to_graphics(const char* str, unsigned char* textBuffer);
 
 #endif /* TEXT_H */

@@ -574,7 +574,7 @@ unsigned char font_data[256][16] = {
  *   OUTPUTS: none
  *   RETURN VALUE: none
  */  
-void text_to_graphics(const char str[40], unsigned char* textBuffer){
+void text_to_graphics_old(const char str[40], unsigned char* textBuffer){
 
     int j = 0, i, k, plane, offset;
     char fontData;
@@ -605,5 +605,40 @@ void text_to_graphics(const char str[40], unsigned char* textBuffer){
             }
          }
          j++;
+    }
+}
+
+/*
+ * text to graphice image generation routine
+ *   DESCRIPTION: Create a buffer for printing the text on status bar.
+ *   INPUTS: str -- string to be printed
+ *           textBuffer -- buffer to be creates
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */  
+void text_to_graphics(const char* str, unsigned char* textBuffer) {
+
+    int j = 0, i, k, plane, offset;
+    char fontData;
+
+    // iterate through each character to be stored in the buffer
+    while(j < strlen(str)) {
+        // iterate through each font data of a character
+        for(i=1; i<CHAR_HEIGHT+1;i++) {
+
+            k = CHAR_WIDTH-1;
+            fontData = font_data[(int)str[j]][i-1];
+        
+            while(k>=0) {
+                plane = k % MODEX_PLANES;
+                offset = (k / MODEX_PLANES) + (i * IMAGE_X_DIM / MODEX_PLANES) + (j * CHAR_WIDTH / MODEX_PLANES);
+                if (fontData & 0x01)
+                    textBuffer[ ((MODE_X_MEM_SIZE / MODEX_PLANES) * plane) + offset] = TEXT_COLOR;
+
+                k--;
+                fontData >>= 1;
+            }
+        }
+        j++;
     }
 }
