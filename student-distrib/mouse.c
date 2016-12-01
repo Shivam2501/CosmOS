@@ -101,7 +101,7 @@ void mouse_init() {
 }
 
 void mouse_handler() {
-	if((inb(SIGNAL_PORT) & 0x1) == 0) {
+	if((inb(SIGNAL_PORT) & 0x1) && (inb(SIGNAL_PORT) & 0x20)) {
 		uint8_t byte1 = inb(DATA_PORT);
 		//check for overflow bits (0x80 and 0x40) to be clear
 		//check bit 3 to be set to verify package
