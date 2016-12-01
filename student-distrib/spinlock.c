@@ -7,15 +7,15 @@ void spin_lock_init(spinlock_t *lock) {
 //acquire a spin lock, spin waiting if it is not available
 void spin_lock(spinlock_t *lock) {
 	asm volatile (" 				\n\
-			acquire_lock: 			\n\
 			movl $1, %%eax; 		\n\
-			xchgl %%eax,(%%ebx); 	\n\
-			test %%eax, %%eax; 		\n\
-			jnz acquire_lock; 		\n\
+			acquire_lock: 			\n\
+			xchgl %%eax,(%0);	 	\n\
+			cmpl %1, %%eax; 		\n\
+			je acquire_lock; 		\n\
 			"
 			:
-			: "b" (&lock->slock)
-			: "eax", "cc"
+			: "r" (&(lock->slock)), "r" (SPINLOCK_LOCKED)
+			: "eax", "cc", "memory"
 			);
 }
 
@@ -28,7 +28,7 @@ void spin_lock_irqsave(spinlock_t *lock, unsigned long flags) {
 			"
 			:
 			: "r"(flags)
-			: "cc"
+			: "cc", "memory"
 			);
 	spin_lock(lock);
 }

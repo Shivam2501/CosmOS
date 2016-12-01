@@ -100,14 +100,22 @@ void mouse_init() {
 	enable_irq(MOUSE_IRQ);
 }
 
+/*
+ * mouse_handler()
+ *   DESCRIPTION: Handles the mouse movement
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
 void mouse_handler() {
-	if((inb(SIGNAL_PORT) & 0x1) && (inb(SIGNAL_PORT) & 0x20)) {
+	//check interrupt from mouse(0x20)
+	if(((inb(SIGNAL_PORT) & 0x1) != 0) && ((inb(SIGNAL_PORT) & 0x20) != 0)) {
 		uint8_t byte1 = inb(DATA_PORT);
 		//check for overflow bits (0x80 and 0x40) to be clear
 		//check bit 3 to be set to verify package
-		if(((byte1 & 0x80) == 0) && ((byte1 & 0x40) == 0) && ((byte1 & 0x8) == 1)) {
+		if(((byte1 & 0x80) == 0) && ((byte1 & 0x40) == 0) && ((byte1 & 0x8) != 0)) {
 			int32_t byte2 = read_data_mouse();
-			//check if delta X is a negative number (bit 5/ 0x10)
+			//check if delta X is a negative number (bit 5/ 0x10)d b
 			if(byte1 & 0x10) {
 				byte2 |= 0xFFFFFF00;
 			}
