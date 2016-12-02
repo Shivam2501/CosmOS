@@ -62,5 +62,6 @@ int32_t syscall_open (const uint8_t* filename);
 int32_t syscall_close (int32_t fd);
 int32_t syscall_fail (void);
 PCB_t* get_current_pcb();
+int get_available_pid();
 
 #endif

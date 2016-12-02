@@ -356,15 +356,7 @@ int32_t syscall_execute (const uint8_t* command){
 		return -1; 
 
 	//find empty process 
-	for(i = 0; i < MAX_NUM_PROCESS; i++){											
-		if(pid_tracker[i] == 0)
-			break;
-	}
-
-	if(i == MAX_NUM_PROCESS){
-		printf("No processes free\n");
-		return -1;
-	}
+	i = get_available_pid();
 
 	/*Paging*/
 	//change entry in page directory
@@ -450,4 +442,24 @@ int32_t syscall_execute (const uint8_t* command){
  */
 PCB_t* get_current_pcb() {
 	return terminals[active_terminal].current_process;
+}
+
+/*
+ * get_available_pid
+ *   DESCRIPTION: return the pid which is free
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: pid on success, -1 on fail
+ */
+int get_available_pid() {
+	int i;
+	for(i = 0; i < MAX_NUM_PROCESS; i++){											
+		if(pid_tracker[i] == 0)
+			return i;
+	}
+
+	if(i == MAX_NUM_PROCESS){
+		printf("No processes free\n");
+		return -1;
+	}
 }

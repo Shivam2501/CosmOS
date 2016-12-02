@@ -28,6 +28,7 @@
 typedef struct tasks {
 	PCB_t* current_process;
 	uint8_t keyboard_buffer[BUFFER_SIZE];
+	int32_t buffer_index;
 	uint32_t virtual_video_mem;
 	uint32_t physical_video_mem;
 	uint32_t cursor_x;

@@ -70,7 +70,6 @@ void toggle_ctrl();
 void toggle_alt();
 
 //buffer to store the keryboard input
-extern int32_t buffer_index;
 extern volatile int ctrl_c_ready;
 
 /* Keyboard Interrupt Handler */

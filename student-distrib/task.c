@@ -18,6 +18,8 @@ void init_tasks() {
 		terminals[i].current_process = NULL;
 		//empty keyboard buffer
 		memset(terminals[i].keyboard_buffer, '\0', BUFFER_SIZE);
+		terminals[i].buffer_index = 0;
+
 		//set cursor x and y to (0,0)
 		terminals[i].cursor_x = 0;
 		terminals[i].cursor_y = 0;
@@ -68,6 +70,11 @@ int switch_tasks(uint32_t index) {
 	if(index >= NUMBER_TERMINALS && index < 0)
 		return -1;
 
+	if(terminals[active_terminal].current_process == NULL) {
+		if(get_available_pid() == -1)
+			return -1;
+	}
+
 	cli();
 
 	//inline assembly - save current context
@@ -82,29 +89,36 @@ int switch_tasks(uint32_t index) {
 			: "memory", "cc"
 			);
 
+	//save the old screen coordinates in the task struct
 	terminals[active_terminal].cursor_x = screen_x;
 	terminals[active_terminal].cursor_y = screen_y;
 	
+	//change the active terminal to the current task
 	active_terminal = index;
 	remap_video_mem(terminals[active_terminal].physical_video_mem);
 	update_screen_coord(terminals[active_terminal].cursor_x, terminals[active_terminal].cursor_y);
 	update_cursors();
 
-	//context switch
-	asm volatile("                  \n\
-			movl    %0, %%esp   	\n\
-			movl 	%1, %%ebp, 	    \n\
-			push    %2				\n\
-			popfl					\n\
-			"
-			:
-			: "S"(terminals[active_terminal].esp), "b"(terminals[active_terminal].ebp), "c"(terminals[active_terminal].eflags)
-			: "memory", "cc"
-			);
+	//if there is a process running then do a context switch
+	if(terminals[active_terminal].current_process != NULL) {
+		//context switch
+		asm volatile("                  \n\
+				movl    %0, %%esp   	\n\
+				movl 	%1, %%ebp, 	    \n\
+				push    %2				\n\
+				popfl					\n\
+				"
+				:
+				: "S"(terminals[active_terminal].esp), "b"(terminals[active_terminal].ebp), "c"(terminals[active_terminal].eflags)
+				: "memory", "cc"
+				);
+	}
+
+	sti();
 
 	//check if shell 1 or 2 not executed
-	if(terminals[active_terminal].current_process == NULL)
+	if(terminals[active_terminal].current_process == NULL) {
 		syscall_execute((uint8_t*)"shell");
-	
-	sti();
+	}
+
 }

@@ -32,8 +32,8 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 	uint8_t *temp_buf = (uint8_t*)buf;
 	//copy the terminal line buffer
 	for(i = 0; i < nbytes; i++) {
-		temp_buf[i] = buffer[i];
-		if(i==buffer_index-1)
+		temp_buf[i] = terminals[active_terminal].keyboard_buffer[i];
+		if(i==terminals[active_terminal].buffer_index-1)
 			break;
 	}
 
