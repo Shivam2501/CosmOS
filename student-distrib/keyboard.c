@@ -4,11 +4,11 @@
 0 bit - CAPS ON/OFF
 1 bit - SHIFT ON/OFF
 2 bit - CTRL ON/OFF
+3 bit - ALT ON/OFF
 */
 uint8_t status;
 
 //buffer to store the keryboard input
-uint8_t buffer[BUFFER_SIZE];
 int32_t buffer_index;
 volatile int terminal_read_ready;
 volatile int ctrl_c_ready;
@@ -110,6 +110,17 @@ void process_code(uint8_t scancode) {
 				return;
 			}
 
+			// if ALT+F* then switch terminal
+			if(((status & ALT_ON)>>3) == 1)
+			{
+				if(scancode == SCANCODE_F1)
+					switch_tasks(0);
+				else if(scancode == SCANCODE_F2)
+					switch_tasks(1);
+				else if(scancode == SCANCODE_F3)
+					switch_tasks(2);
+				
+			}
 			// if CTRL+L then clear the screen
 			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_L) {
 				clear_buffer();
@@ -129,10 +140,10 @@ void process_code(uint8_t scancode) {
 			//backspace is pressed
 			if(scancode == SCANCODE_BACKSPACE) {
 				if(buffer_index > 0) {
-					buffer[buffer_index-1] = ' ';
+					terminals[active_terminal].keyboard_buffer[buffer_index-1] = ' ';
 					buffer_index--;
 					update_coordinate();
-					putc(buffer[buffer_index]);
+					putc(terminals[active_terminal].keyboard_buffer[buffer_index]);
 					update_coordinate();
 				}
 				return;
@@ -144,23 +155,23 @@ void process_code(uint8_t scancode) {
 
 			//check if both shift and caps lock are on
 			if(((status & SHIFT_ON)>>1) == 1 && (status & CAPSLOCK_ON) == 1) {
-				buffer[buffer_index] = map[MAP_SIZE-1][scancode];
-				putc(buffer[buffer_index]);
+				terminals[active_terminal].keyboard_buffer[buffer_index] = map[MAP_SIZE-1][scancode];
+				putc(terminals[active_terminal].keyboard_buffer[buffer_index]);
 				buffer_index++;
 			//check if only shift is pressed
 			} else if((status & SHIFT_ON)>>1) {
-				buffer[buffer_index] = map[MAP_SIZE-3][scancode];
-				putc(buffer[buffer_index]);
+				terminals[active_terminal].keyboard_buffer[buffer_index] = map[MAP_SIZE-3][scancode];
+				putc(terminals[active_terminal].keyboard_buffer[buffer_index]);
 				buffer_index++;
 			//check if caps lock is on
 			} else if (status & CAPSLOCK_ON) {
-				buffer[buffer_index] = map[MAP_SIZE-2][scancode];
-				putc(buffer[buffer_index]);
+				terminals[active_terminal].keyboard_buffer[buffer_index] = map[MAP_SIZE-2][scancode];
+				putc(terminals[active_terminal].keyboard_buffer[buffer_index]);
 				buffer_index++;
 			//if both caps lock and shift is not on
 			} else{
-				buffer[buffer_index] = map[MAP_SIZE-4][scancode];
-				putc(buffer[buffer_index]);
+				terminals[active_terminal].keyboard_buffer[buffer_index] = map[MAP_SIZE-4][scancode];
+				putc(terminals[active_terminal].keyboard_buffer[buffer_index]);
 				buffer_index++;
 			}
 
@@ -204,7 +215,17 @@ void toggle_ctrl() {
 	//toggle the third LSB
 	status = status^CTRL_ON;
 }
-
+/*
+ * toggle_alt
+ *   DESCRIPTION: Flip the alt bit
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
+void toggle_alt() {
+	//toggle the fourth LSB
+	status = status^ALT_ON;
+}
 /*
  * keyboard_handler
  *   DESCRIPTION: Keyboard interrupt handler
@@ -241,7 +262,7 @@ void keyboard_handler() {
 void clear_buffer() {
 	int32_t i;
 	for(i=0; i < BUFFER_SIZE; i++) 
-		buffer[i] = '\0';
+		terminals[active_terminal].keyboard_buffer[i] = '\0';
 	buffer_index = 0;
 	terminal_read_ready = 0;
 	ctrl_c_ready = 0;

@@ -77,7 +77,7 @@ int switch_tasks(uint32_t index) {
 			pushfl					\n\
 			popl	%2				\n\
 			"
-			: "=S"(terminals[active_terminal].esp), "=b"(terminals[active_terminal].esp), "=c"(terminals[active_terminal].eflags)
+			: "=S"(terminals[active_terminal].esp), "=b"(terminals[active_terminal].ebp), "=c"(terminals[active_terminal].eflags)
 			:
 			: "memory", "cc"
 			);
@@ -91,7 +91,16 @@ int switch_tasks(uint32_t index) {
 	update_cursors();
 
 	//context switch
-
+	asm volatile("                  \n\
+			movl    %0, %%esp   	\n\
+			movl 	%1, %%ebp, 	    \n\
+			push    %2				\n\
+			popfl					\n\
+			"
+			:
+			: "S"(terminals[active_terminal].esp), "b"(terminals[active_terminal].ebp), "c"(terminals[active_terminal].eflags)
+			: "memory", "cc"
+			);
 
 	//check if shell 1 or 2 not executed
 	if(terminals[active_terminal].current_process == NULL)
