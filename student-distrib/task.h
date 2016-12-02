@@ -4,11 +4,6 @@
 #include "x86_desc.h"
 #include "i8259.h"
 #include "lib.h"
-#include "paging.h"
-#include "file.h"
-#include "rtc.h"
-#include "terminal.h"
-#include "keyboard.h"
 #include "syscalls.h"
 
 #define NUMBER_TERMINALS 	3

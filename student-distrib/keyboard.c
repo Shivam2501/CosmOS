@@ -276,7 +276,7 @@ void clear_buffer() {
 void keyboard_init() {
 	/* Set the status to 0 initially */
 	status = 0x00;
-	clear_buffer();
+	//clear_buffer();
 
 	/* Enable the IRQ Port for Keyboard*/
 	enable_irq(KEYBOARD_IRQ);

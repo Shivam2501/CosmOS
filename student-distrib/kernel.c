@@ -156,7 +156,7 @@ entry (unsigned long magic, unsigned long addr)
 	}
 	
 	//clear the screen
-	clear();
+	//clear();
 
 	init_idt();
 
