@@ -269,6 +269,9 @@ int32_t syscall_halt (uint8_t status){
 		return -1;
 	}
 
+	//clear thekeyboard buffer
+	clear_buffer();
+
 	//parent becomes current process's parent
 	parent_pointer = parent_process;
 	

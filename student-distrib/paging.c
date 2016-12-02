@@ -46,21 +46,35 @@ void add_paging(uint32_t virtual, uint32_t physical) {
 }
 
 /*
+ * remap_video_mem
+ *   DESCRIPTION: Map video mem to current terminal's video mem
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
+void remap_video_mem(uint32_t physical) {
+	page_table[INDEX_TO_TABLE] = physical | READ_WRITE | PRESENT;
+	tlb_flush();
+}
+
+/*
  * add_paging_4kb
  *   DESCRIPTION: Map text mode video to user space
  *   INPUTS: none
  *   OUTPUTS: none
  *   RETURN VALUE: none
  */ 
-void add_paging_4kb(uint32_t virtual) {
+void add_paging_4kb(uint32_t virtual, uint32_t physical) {
 	/* Set each page directory entry to not present */
 	int i, index;
 	for(i=0; i < SIZE_DIR_TABLE; i++){
 		page_table_video[i] = READ_WRITE;
 	}
 
+	//bitmask by 0x0038 and shift by 12 to get middle 10 bits
+	index = (virtual >> 12) & 0x0038;
 	//enable video memory (0x3: Present and Read/Write)
-	page_table_video[0] = VIDEO_MEMORY_ADDRESS | USER | READ_WRITE | PRESENT;
+	page_table_video[index] = physical | USER | READ_WRITE | PRESENT;
 
 	index = (virtual >> 22);
 	//page directory index points to page table and is set to present

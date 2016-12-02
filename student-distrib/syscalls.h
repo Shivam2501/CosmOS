@@ -8,6 +8,7 @@
 #include "file.h"
 #include "rtc.h"
 #include "terminal.h"
+#include "keyboard.h"
 
 #define EXE_BUF_SIZE		 	4
 #define PAGE_DIR_ENTRY			0x20

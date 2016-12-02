@@ -2,6 +2,8 @@
  * vim:ts=4 noexpandtab
  */
 
+#define BUFFER_SIZE						0x80
+
 #ifndef _KEYBOARD_H
 #define _KEYBOARD_H
 
@@ -42,8 +44,6 @@
 #define SCANCODE_C 						0x2E
 #define SCANCODE_ENTER					0x1C
 #define SCANCODE_BACKSPACE				0x0E
-
-#define BUFFER_SIZE						0x80
 
 /* Initialise the Keyboard */
 void keyboard_init();

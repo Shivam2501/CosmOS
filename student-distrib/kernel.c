@@ -14,6 +14,7 @@
 #include "file.h"
 #include "test.h" 
 #include "syscalls.h"
+#include "task.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -186,7 +187,7 @@ entry (unsigned long magic, unsigned long addr)
 	
 	//test rtc, terminal and file system syscalls
 	//shell();
-	syscall_execute((uint8_t*)"shell");
+	init_tasks();
 
 	//int i = 4/0;
 	//printf("returned from idt");

@@ -8,8 +8,8 @@
 #define NUM_ROWS 25
 #define ATTRIB 0x9F
 
-static int screen_x;
-static int screen_y;
+int screen_x;
+int screen_y;
 static char* video_mem = (char *)VIDEO;
 
 /*
@@ -30,17 +30,50 @@ clear(void)
     screen_y = 0;
     screen_x = 0;
 
-    update_cursor(screen_x, screen_y);
+    update_cursor();
 }
 
 /*
-* void update_cursor(int screen_x, int screen_y);
-*   Inputs: screen x and y coordinates
+* void clear_background(uint8_t color);
+*   Inputs: background color to be set to
+*   Return Value: none
+*	Function: Clears video memory
+*/
+
+void
+clear_background(uint8_t color)
+{
+    int32_t i;
+    for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem + (i << 1) + 1) = color;
+    }
+    screen_y = 0;
+    screen_x = 0;
+
+    update_cursor();
+}
+
+/*
+* update_screen_coord;
+*   Inputs: cursor coordinates
+*   Return Value: none
+*	Function: updates the screen coordinates
+*/
+void
+update_screen_coord(int cursor_x, int cursor_y)
+{
+	screen_x = cursor_x;
+	screen_y = cursor_y;
+}
+/*
+* void update_cursor();
+*   Inputs: none
 *   Return Value: none
 *	Function: Set the cursor to the screen location
 */
 void
-update_cursor(int screen_x, int screen_y)
+update_cursor()
 {
 	unsigned short position = (screen_y*NUM_COLS) + screen_x;
 
@@ -80,7 +113,7 @@ update_coordinate()
 		screen_y--;
 		screen_x = NUM_COLS-1;
 	}
-	update_cursor(screen_x, screen_y);
+	update_cursor();
 }
 
 /*
@@ -288,7 +321,7 @@ putc(uint8_t c)
         //screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
     scrolling();
-    update_cursor(screen_x, screen_y);
+    update_cursor();
 }
 
 /*
