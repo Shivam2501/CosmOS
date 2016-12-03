@@ -99,12 +99,13 @@ int switch_tasks(uint32_t index) {
 	//save the old screen coordinates in the task struct
 	terminals[active_terminal].cursor_x = screen_x;
 	terminals[active_terminal].cursor_y = screen_y;
-	
+	memcpy((uint8_t *)terminals[active_terminal].virtual_video_mem, (uint8_t*)VIDEO_MEM, _4KB);
+
 	//change the active terminal to the current task
 	active_terminal = index;
-	memcpy((uint8_t*)VIDEO_MEM, (uint8_t *)terminals[active_terminal].virtual_video_mem, _4KB);
 	update_screen_coord(terminals[active_terminal].cursor_x, terminals[active_terminal].cursor_y);
 	update_cursor();
+	memcpy((uint8_t*)VIDEO_MEM, (uint8_t *)terminals[active_terminal].virtual_video_mem, _4KB);
 
 	//if there is a process running then do a context switch
 	if(terminals[active_terminal].current_process != NULL) {
