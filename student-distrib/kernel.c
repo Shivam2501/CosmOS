@@ -28,7 +28,7 @@ entry (unsigned long magic, unsigned long addr)
 	multiboot_info_t *mbi;
 	get_file_system_start(addr);
 	/* Clear the screen. */
-	clear();
+	//clear();
 
 	/* Am I booted by a Multiboot-compliant boot loader? */
 	if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
@@ -156,7 +156,7 @@ entry (unsigned long magic, unsigned long addr)
 	}
 	
 	//clear the screen
-	clear();
+	//clear();
 
 	init_idt();
 

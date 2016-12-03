@@ -16,6 +16,10 @@ void init_paging() {
 		page_table[i] = READ_WRITE;
 	}
 
+	for(i=0; i < SIZE_DIR_TABLE; i++){
+		page_table_video[i] = READ_WRITE;
+	}
+
 	//page directory for 4MB pages (0x83: Enable PS, Present and Read/Write)
 	page_directory[KERNEL_INDEX] = KERNEL_MEMORY_ADDRESS | PS | READ_WRITE | PRESENT;
 
@@ -54,10 +58,7 @@ void add_paging(uint32_t virtual, uint32_t physical) {
  */ 
 void add_paging_4kb(uint32_t virtual, uint32_t physical, uint32_t privilege) {
 	/* Set each page directory entry to not present */
-	int i, index;
-	for(i=0; i < SIZE_DIR_TABLE; i++){
-		page_table_video[i] = READ_WRITE;
-	}
+	int index;
 
 	//bitmask by 0x3FF and shift by 12 to get middle 10 bits
 	index = (virtual >> 12) & 0x3FF;

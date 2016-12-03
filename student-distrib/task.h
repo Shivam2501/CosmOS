@@ -8,7 +8,7 @@
 #define NUMBER_TERMINALS 		3
 
 #define TERMINAL_ONE_COLOR		0x9F
-#define TERMINAL_TWO_COLOR		0x8F
+#define TERMINAL_TWO_COLOR		0x7F
 #define TERMINAL_THREE_COLOR	0xAF
 
 #define _132MB_4KB				0x8401000
@@ -30,6 +30,7 @@ typedef struct tasks{
 	PCB_t* current_process;
 	uint8_t keyboard_buffer[BUFFER_SIZE];
 	int32_t buffer_index;
+	uint8_t color;
 	uint32_t virtual_video_mem;
 	uint32_t physical_video_mem;
 	uint32_t cursor_x;

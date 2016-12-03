@@ -85,10 +85,14 @@ void process_code(uint8_t scancode) {
 		//if ctrl is released
 		else if(scancode == CTRL_LOCK_RELEASED)
 			toggle_ctrl();
+		else if(scancode == ALT_LOCK_RELEASED)
+			toggle_alt();
 	} else {
 		//if caps is toggled
 		if(scancode == CAPS_LOCK_PRESSED)
 			toggle_capslock();
+		else if(scancode == ALT_LOCK_PRESSED)
+			toggle_alt();
 		//if shift is pressed
 		else if(scancode == RIGHT_SHIFT_LOCK_PRESSED || scancode == LEFT_SHIFT_LOCK_PRESSED)
 			toggle_shift();
@@ -111,12 +115,18 @@ void process_code(uint8_t scancode) {
 			// if ALT+F* then switch terminal
 			if(((status & ALT_ON)>>3) == 1)
 			{
-				if(scancode == SCANCODE_F1)
+				if(scancode == SCANCODE_F1){
+					send_eoi(KEYBOARD_IRQ);
 					switch_tasks(0);
-				else if(scancode == SCANCODE_F2)
+				}
+				else if(scancode == SCANCODE_F2){
+					send_eoi(KEYBOARD_IRQ);
 					switch_tasks(1);
-				else if(scancode == SCANCODE_F3)
+				}
+				else if(scancode == SCANCODE_F3){
+					send_eoi(KEYBOARD_IRQ);
 					switch_tasks(2);
+				}
 				return;
 			}
 			// if CTRL+L then clear the screen
