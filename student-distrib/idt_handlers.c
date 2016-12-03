@@ -167,17 +167,3 @@ void INTEL_RESERVED(){
 void INTERRUPT_DEFAULT(){
 	printf("Standard Default for other interrupts");
 }
-
-/* 
- *   handler for PIT (Timer Chip)
- *   DESCRIPTION: Is the handler called for PIT. It sends an end-of-interrupt signal.
- *   INPUTS: none
- *   OUTPUTS: prints warning
- *   RETURN VALUE: none
- *   SIDE EFFECTS: none
- */
-void TIMER_CHIP(){
-	// printf("Timer Chip Handled\n");
-	outb(EOI_SIGNAL, EOI_SIGNAL);
-	sti();
-}

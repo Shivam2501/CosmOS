@@ -357,7 +357,9 @@ int32_t syscall_execute (const uint8_t* command){
 		return -1; 
 
 	//find empty process 
-	i = get_available_pid();
+	if(-1 == (i = get_available_pid())){
+		return -1;
+	}
 
 	/*Paging*/
 	//change entry in page directory

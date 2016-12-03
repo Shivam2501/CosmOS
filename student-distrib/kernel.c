@@ -15,6 +15,7 @@
 #include "test.h" 
 #include "syscalls.h"
 #include "task.h"
+#include "pit.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -166,6 +167,8 @@ entry (unsigned long magic, unsigned long addr)
 	/* Initialize PIC, RTC, keyboard, and paging*/
 	i8259_init();
 
+	pit_init();
+	
 	rtc_init();
 
 	keyboard_init();

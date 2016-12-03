@@ -34,7 +34,7 @@
 #define ALT_LOCK_PRESSED				0x38
 #define ALT_LOCK_RELEASED				0xB8
 
-#define KEYCODES_COUNT					0x3C
+#define KEYCODES_COUNT					0x3D
 
 #define CAPSLOCK_BIT					0x80
 

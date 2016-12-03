@@ -27,7 +27,7 @@ static uint8_t map[MAP_SIZE][KEYCODES_COUNT] = {
 	 	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l' , 
 	 	';', '\'', '`', 0, '\\', 
 	 	'z', 'x', 'c', 'v', 'b', 'n', 'm',
-	 	',', '.', '/', 0, '*', 0, ' ', 0
+	 	',', '.', '/', 0, '*', 0, ' ', 0, 0
 	},
 	{ 
 		0, 0, 
@@ -38,7 +38,7 @@ static uint8_t map[MAP_SIZE][KEYCODES_COUNT] = {
 	 	'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L' , 
 	 	':', '"', '~', 0, '|', 
 	 	'Z', 'X', 'C', 'V', 'B', 'N', 'M', 
-	 	'<', '>', '?', 0, '*', 0, ' ', 0
+	 	'<', '>', '?', 0, '*', 0, ' ', 0, 0
 	},
 	{ 
 		0, 0, 
@@ -49,7 +49,7 @@ static uint8_t map[MAP_SIZE][KEYCODES_COUNT] = {
 	 	'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L' , 
 	 	';', '\'', '`', 0, '\\', 
 	 	'Z', 'X', 'C', 'V', 'B', 'N', 'M', 
-	 	',', '.', '/', 0, '*', 0, ' ', 0
+	 	',', '.', '/', 0, '*', 0, ' ', 0, 0
 	},
 	{ 
 		0, 0, 
@@ -60,7 +60,7 @@ static uint8_t map[MAP_SIZE][KEYCODES_COUNT] = {
 	 	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l' , 
 	 	':', '"', '~', 0, '|', 
 	 	'z', 'x', 'c', 'v', 'b', 'n', 'm', 
-	 	'<', '>', '?', 0, '*', 0, ' ', 0
+	 	'<', '>', '?', 0, '*', 0, ' ', 0, 0
 	}
 };
 
@@ -77,7 +77,6 @@ void process_code(uint8_t scancode) {
 	Check MSB(0x80) indicating that key
 	is being released.
 	*/
-
 	if(scancode & CAPSLOCK_BIT) {
 		//if shift is released
 		if(scancode == RIGHT_SHIFT_LOCK_RELEASED || scancode == LEFT_SHIFT_LOCK_RELEASED)
