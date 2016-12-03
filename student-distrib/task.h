@@ -11,13 +11,20 @@
 #define TERMINAL_TWO_COLOR		0x8F
 #define TERMINAL_THREE_COLOR	0xAF
 
-#define _132MB					0x8400000
 #define _132MB_4KB				0x8401000
 #define _132MB_8KB				0x8402000
+#define _132MB_12KB				0x8403000
 
 #define _32MB 					0x2000000
 #define _32MB_4KB 				0x2001000
 #define _32MB_8KB 				0x2002000
+
+#define VIDEO_MEM 				0xB8000
+
+#define NUM_COLS 				80
+#define NUM_ROWS 				25
+
+#define _4KB 					4096
 
 typedef struct tasks{
 	PCB_t* current_process;

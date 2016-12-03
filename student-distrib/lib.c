@@ -34,27 +34,6 @@ clear(void)
 }
 
 /*
-* void clear_background(uint8_t color);
-*   Inputs: background color to be set to
-*   Return Value: none
-*	Function: Clears video memory
-*/
-
-void
-clear_background(uint8_t color)
-{
-    int32_t i;
-    for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
-        *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = color;
-    }
-    screen_y = 0;
-    screen_x = 0;
-
-    update_cursor();
-}
-
-/*
 * update_screen_coord;
 *   Inputs: cursor coordinates
 *   Return Value: none

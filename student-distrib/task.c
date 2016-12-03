@@ -3,6 +3,14 @@
 int active_terminal;
 tasks_t terminals[NUMBER_TERMINALS];
 
+void clear_video_mem(uint32_t video_mem, uint8_t color) {
+	int i;
+	for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem + (i << 1) + 1) = color;
+    }
+}
+
 /*
  * init_tasks
  *   DESCRIPTION: Initialize all the terminals
@@ -30,27 +38,26 @@ void init_tasks() {
 	}
 
 	//create video mem for each terminal
-	terminals[0].virtual_video_mem = _132MB;
+	terminals[0].virtual_video_mem = _132MB_4KB;
 	terminals[0].physical_video_mem = _32MB;
-	add_paging_4kb(_132MB, _32MB);
-	remap_video_mem(terminals[0].physical_video_mem);
-	clear_background(TERMINAL_ONE_COLOR);
+	add_paging_4kb(_132MB_4KB, _32MB);
+	clear_video_mem(_132MB_4KB, TERMINAL_ONE_COLOR);
 
-	terminals[1].virtual_video_mem = _132MB_4KB;
+	terminals[1].virtual_video_mem = _132MB_8KB;
 	terminals[1].physical_video_mem = _32MB_4KB;
-	add_paging_4kb(_132MB_4KB, _32MB_4KB);
-	remap_video_mem(terminals[1].physical_video_mem);
-	clear_background(TERMINAL_TWO_COLOR);
+	add_paging_4kb(_132MB_8KB, _32MB_4KB);
+	clear_video_mem(_132MB_8KB, TERMINAL_TWO_COLOR);
 
-	terminals[2].virtual_video_mem = _132MB_8KB;
+	terminals[2].virtual_video_mem = _132MB_12KB;
 	terminals[2].physical_video_mem = _32MB_8KB;
-	add_paging_4kb(_132MB_8KB, _32MB_8KB);
-	remap_video_mem(terminals[2].physical_video_mem);
-	clear_background(TERMINAL_THREE_COLOR);
+	add_paging_4kb(_132MB_12KB, _32MB_8KB);
+	clear_video_mem(_132MB_12KB, TERMINAL_THREE_COLOR);
 
 	//start shell 0
 	active_terminal = 0;
-	remap_video_mem(terminals[active_terminal].physical_video_mem);
+	update_screen_coord(terminals[active_terminal].cursor_x, terminals[active_terminal].cursor_y);
+	update_cursor();
+	memcpy((uint8_t*)VIDEO_MEM, (uint8_t *)terminals[active_terminal].virtual_video_mem, _4KB);
 	syscall_execute((uint8_t*)"shell");
 }
 
@@ -95,7 +102,7 @@ int switch_tasks(uint32_t index) {
 	
 	//change the active terminal to the current task
 	active_terminal = index;
-	remap_video_mem(terminals[active_terminal].physical_video_mem);
+	memcpy((uint8_t*)VIDEO_MEM, (uint8_t *)terminals[active_terminal].virtual_video_mem, _4KB);
 	update_screen_coord(terminals[active_terminal].cursor_x, terminals[active_terminal].cursor_y);
 	update_cursor();
 

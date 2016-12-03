@@ -47,8 +47,6 @@ extern void loadPageDirectory(unsigned int*);
 /* enable paging */
 extern void enablePaging();
 
-extern void remap_video_mem(uint32_t physical);
-
 extern void add_paging_4kb(uint32_t virtual, uint32_t physical);
 
 void tlb_flush(void);

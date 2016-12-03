@@ -46,18 +46,6 @@ void add_paging(uint32_t virtual, uint32_t physical) {
 }
 
 /*
- * remap_video_mem
- *   DESCRIPTION: Map video mem to current terminal's video mem
- *   INPUTS: none
- *   OUTPUTS: none
- *   RETURN VALUE: none
- */ 
-void remap_video_mem(uint32_t physical) {
-	page_table[INDEX_TO_TABLE] = physical | READ_WRITE | PRESENT;
-	tlb_flush();
-}
-
-/*
  * add_paging_4kb
  *   DESCRIPTION: Map text mode video to user space
  *   INPUTS: none

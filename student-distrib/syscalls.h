@@ -18,6 +18,7 @@
 #define FILE_SIZE  				0x3FFFFC
 #define PAGE_ALIGNMENT			4
 #define _132MB					0x8400000
+#define VIDEO_MEM 				0xB8000
 
 #include "x86_desc.h"
 
