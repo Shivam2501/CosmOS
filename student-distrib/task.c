@@ -35,6 +35,8 @@ void init_tasks() {
 		terminals[i].esp = 0;
 		terminals[i].ebp = 0;
 		terminals[i].eflags = 0;
+
+		terminals[i].terminal_read_ready = 0;
 	}
 
 	//create video mem for each terminal
@@ -86,17 +88,6 @@ int switch_tasks(uint32_t index) {
 	}
 
 	cli();
-	//inline assembly - save current context
-	// asm volatile("                  \n\
-	// 		movl    %%esp, %0   	\n\
-	// 		movl 	%%ebp, %1	    \n\
-	// 		pushfl					\n\
-	// 		popl	%2				\n\
-	// 		"
-	// 		: "=S"(terminals[active_terminal].esp), "=b"(terminals[active_terminal].ebp), "=c"(terminals[active_terminal].eflags)
-	// 		:
-	// 		: "memory", "cc"
-	// 		);
 
 	//save the old screen coordinates in the task struct
 	terminals[active_terminal].cursor_x = screen_x;
@@ -108,21 +99,6 @@ int switch_tasks(uint32_t index) {
 	update_screen_coord(terminals[active_terminal].cursor_x, terminals[active_terminal].cursor_y);
 	update_cursor();
 	memcpy((uint8_t*)VIDEO_MEM, (uint8_t *)terminals[active_terminal].virtual_video_mem, _4KB);
-
-	//if there is a process running then do a context switch
-	// if(terminals[active_terminal].current_process != NULL) {
-	// 	//context switch
-	// 	asm volatile("                  \n\
-	// 			movl    %0, %%esp   	\n\
-	// 			movl 	%1, %%ebp 	    \n\
-	// 			push    %2				\n\
-	// 			popfl					\n\
-	// 			"
-	// 			:
-	// 			: "r"(terminals[active_terminal].esp), "r"(terminals[active_terminal].ebp), "r"(terminals[active_terminal].eflags)
-	// 			: "memory", "cc"
-	// 			);
-	// }
 
 	sti();
 

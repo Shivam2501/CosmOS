@@ -305,6 +305,53 @@ putc(uint8_t c)
 }
 
 /*
+* void putc(uint8_t c);
+*   Inputs: uint_8* c = character to print
+*   Return Value: void
+*	Function: Output a character to the console 
+*/
+
+void
+putc_buffer(uint8_t c)
+{
+    if(c == '\n' || c == '\r') {
+        terminals[current_task].cursor_y++;
+        terminals[current_task].cursor_x=0;
+    } else {
+        *(uint8_t *)(terminals[current_task].virtual_video_mem + ((NUM_COLS*terminals[current_task].cursor_y + terminals[current_task].cursor_x) << 1)) = c;
+        *(uint8_t *)(terminals[current_task].virtual_video_mem + ((NUM_COLS*terminals[current_task].cursor_y + terminals[current_task].cursor_x) << 1) + 1) = ATTRIB;
+        terminals[current_task].cursor_x++;
+    }
+    scrolling_buffer();
+}
+
+void scrolling_buffer() {
+    if(terminals[current_task].cursor_x >= NUM_COLS){
+    	terminals[current_task].cursor_y++;
+    	terminals[current_task].cursor_x = 0;
+    }
+
+   	if(terminals[current_task].cursor_y >= NUM_ROWS) {
+   		//copy second line character on first and similarly do it for all lines
+   		int32_t i,j;
+   		for (i=0; i < (NUM_ROWS-1)*NUM_COLS; i++) {
+   			*(uint8_t *)(terminals[current_task].virtual_video_mem + (i << 1)) = *(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+NUM_COLS) << 1));
+        	*(uint8_t *)(terminals[current_task].virtual_video_mem + (i << 1) + 1) = *(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+NUM_COLS) << 1) + 1);
+   		}
+
+   		//last line cleared
+   		for (j=0; j < NUM_COLS; j++) {
+   			*(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+j) << 1)) = ' ';
+        	*(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+j) << 1) + 1) = ATTRIB;
+   		}
+
+   		//update coordinates
+   		terminals[current_task].cursor_x = 0;
+   		terminals[current_task].cursor_y = NUM_ROWS-1;
+   	}
+}
+
+/*
 * int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
 *   Inputs: uint32_t value = number to convert
 *			int8_t* buf = allocated buffer to place string in

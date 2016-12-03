@@ -81,6 +81,4 @@ void process_code(uint8_t scancode);
 /* Clear the buffer */
 void clear_buffer();
 
-int get_terminal_status();
-
 #endif /* _KEYBOARD_H */

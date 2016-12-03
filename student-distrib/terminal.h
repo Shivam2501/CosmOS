@@ -9,6 +9,7 @@
 #include "keyboard.h"
 #include "i8259.h"
 #include "lib.h"
+#include "scheduler.h"
 
 #define KEYBOARD_IRQ					0x01
 

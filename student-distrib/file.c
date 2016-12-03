@@ -216,8 +216,8 @@ int32_t fs_open(const uint8_t* filename){
 int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
 	int bytes_copied;
 
-	bytes_copied = read_data(terminals[active_terminal].current_process->FD[fd].inode, terminals[active_terminal].current_process->FD[fd].file_position, (uint8_t*) buf, nbytes);
-	terminals[active_terminal].current_process->FD[fd].file_position += bytes_copied;
+	bytes_copied = read_data(terminals[current_task].current_process->FD[fd].inode, terminals[current_task].current_process->FD[fd].file_position, (uint8_t*) buf, nbytes);
+	terminals[current_task].current_process->FD[fd].file_position += bytes_copied;
 
 	return bytes_copied;
 }
@@ -293,15 +293,15 @@ int32_t dir_open(const uint8_t* filename) {
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
 	dentry_t dentry;
 
-	if(read_dentry_by_index(terminals[active_terminal].current_process->FD[fd].file_position, &dentry) == 0) {
+	if(read_dentry_by_index(terminals[current_task].current_process->FD[fd].file_position, &dentry) == 0) {
 		memcpy(buf, dentry.file_name, NAME_SIZE);
 		((int8_t*)buf)[NAME_SIZE] = '\0';
 		//dir_read_counter++; 
-		terminals[active_terminal].current_process->FD[fd].file_position++;
+		terminals[current_task].current_process->FD[fd].file_position++;
 		return strlen((int8_t*)buf);
 	} else {
 		//dir_read_counter = 0;
-		terminals[active_terminal].current_process->FD[fd].file_position = 0;
+		terminals[current_task].current_process->FD[fd].file_position = 0;
 		return 0; 
 	}
 }

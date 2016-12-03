@@ -1,6 +1,3 @@
-#ifndef _SYSCALLS_H
-#define _SYSCALLS_H
-
 #define EXE_BUF_SIZE		 	4
 #define PAGE_DIR_ENTRY			0x20
 #define	MAX_NUM_PROCESS		   	6
@@ -19,6 +16,9 @@
 #define PAGE_ALIGNMENT			4
 #define _132MB					0x8400000
 #define VIDEO_MEM 				0xB8000
+
+#ifndef _SYSCALLS_H
+#define _SYSCALLS_H
 
 #include "x86_desc.h"
 
@@ -51,6 +51,7 @@ typedef struct PCB{
 #include "rtc.h"
 #include "terminal.h"
 #include "keyboard.h"
+#include "scheduler.h"
 
 // extern PCB_t PCB_t;
 

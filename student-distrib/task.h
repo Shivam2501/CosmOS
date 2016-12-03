@@ -1,11 +1,11 @@
+#define NUMBER_TERMINALS 		3
+
 #ifndef _TASK_H
 #define _TASK_H
 
 #include "syscalls.h"
 #include "lib.h"
 #include "keyboard.h"
-
-#define NUMBER_TERMINALS 		3
 
 #define TERMINAL_ONE_COLOR		0x9F
 #define TERMINAL_TWO_COLOR		0x7F
@@ -30,6 +30,7 @@ typedef struct tasks{
 	PCB_t* current_process;
 	uint8_t keyboard_buffer[BUFFER_SIZE];
 	int32_t buffer_index;
+	volatile int8_t terminal_read_ready; 
 	uint8_t color;
 	uint32_t virtual_video_mem;
 	uint32_t physical_video_mem;

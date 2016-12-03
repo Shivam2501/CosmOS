@@ -8,7 +8,6 @@
 */
 uint8_t status;
 
-volatile int terminal_read_ready;
 volatile int ctrl_c_ready;
 
 /*
@@ -106,7 +105,7 @@ void process_code(uint8_t scancode) {
 			//enter is pressed
 			if(scancode == SCANCODE_ENTER) {
 				newline();
-				terminal_read_ready = 1;
+				terminals[active_terminal].terminal_read_ready = 1;
 				//clear_buffer(); //remove during test
 				return;
 			}
@@ -132,7 +131,7 @@ void process_code(uint8_t scancode) {
 			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_L) {
 				clear_buffer();
 				clear();
-				terminal_read_ready = 1;
+				terminals[active_terminal].terminal_read_ready = 1;
 				return;
 			} 
 
@@ -271,7 +270,7 @@ void clear_buffer() {
 	for(i=0; i < BUFFER_SIZE; i++) 
 		terminals[active_terminal].keyboard_buffer[i] = '\0';
 	terminals[active_terminal].buffer_index = 0;
-	terminal_read_ready = 0;
+	terminals[active_terminal].terminal_read_ready = 0;
 	ctrl_c_ready = 0;
 }
 
@@ -289,15 +288,4 @@ void keyboard_init() {
 
 	/* Enable the IRQ Port for Keyboard*/
 	enable_irq(KEYBOARD_IRQ);
-}
-
-/*
- * get_terminal_status
- *   DESCRIPTION: Return the status of the terminal
- *   INPUTS: none
- *   OUTPUTS: none
- *   RETURN VALUE: none
- */
-int get_terminal_status() {
-	return terminal_read_ready;
 }

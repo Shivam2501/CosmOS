@@ -1,6 +1,6 @@
 #include "syscalls.h"
 
-//PCB_t *terminals[active_terminal].current_process = NULL; 
+//PCB_t *terminals[current_task].current_process = NULL; 
 int32_t pid_tracker[MAX_NUM_PROCESS];					//index into pid_tracker is pid-1
 
 //ops_table for rtc, file and directory 
@@ -37,9 +37,9 @@ int32_t init_FD(){
 	stdout.file_position = 0; 
 	stdout.inode = NULL;
 
-	//terminals[active_terminal].buffer_index = 0;
-	terminals[active_terminal].current_process->FD[0] = stdin;
-	terminals[active_terminal].current_process->FD[1] = stdout;
+	//terminals[current_task].buffer_index = 0;
+	terminals[current_task].current_process->FD[0] = stdin;
+	terminals[current_task].current_process->FD[1] = stdout;
 
 	return 0;
 }
@@ -59,7 +59,7 @@ int32_t syscall_open(const uint8_t* filename) {
 
 	int index = DEFAULT_FD;
 	//find free fd array
-	while(terminals[active_terminal].current_process->FD[index].flags == 1 && index < FD_SIZE){								
+	while(terminals[current_task].current_process->FD[index].flags == 1 && index < FD_SIZE){								
 		index++;
 	}
 
@@ -73,35 +73,35 @@ int32_t syscall_open(const uint8_t* filename) {
 			//rtc handlingcreated
 			case 0:	
 				{
-					terminals[active_terminal].current_process->FD[index].ops_table_ptr = op_table_rtc;
-					terminals[active_terminal].current_process->FD[index].inode = NULL;
-					terminals[active_terminal].current_process->FD[index].file_position = 0;
-					terminals[active_terminal].current_process->FD[index].flags = 1;
+					terminals[current_task].current_process->FD[index].ops_table_ptr = op_table_rtc;
+					terminals[current_task].current_process->FD[index].inode = NULL;
+					terminals[current_task].current_process->FD[index].file_position = 0;
+					terminals[current_task].current_process->FD[index].flags = 1;
 
-					terminals[active_terminal].current_process->FD[index].ops_table_ptr.open(filename);
+					terminals[current_task].current_process->FD[index].ops_table_ptr.open(filename);
 					break;
 				}
 				//directory open
 			case 1:
 				{
 					//sets ptr to jumptable in the struct for fd entry
-					terminals[active_terminal].current_process->FD[index].ops_table_ptr = op_table_dir;					
-					terminals[active_terminal].current_process->FD[index].inode = NULL;
-					terminals[active_terminal].current_process->FD[index].file_position = 0;
-					terminals[active_terminal].current_process->FD[index].flags = 1;
+					terminals[current_task].current_process->FD[index].ops_table_ptr = op_table_dir;					
+					terminals[current_task].current_process->FD[index].inode = NULL;
+					terminals[current_task].current_process->FD[index].file_position = 0;
+					terminals[current_task].current_process->FD[index].flags = 1;
 
-					terminals[active_terminal].current_process->FD[index].ops_table_ptr.open(filename);
+					terminals[current_task].current_process->FD[index].ops_table_ptr.open(filename);
 					break;
 				}
 				//file open
 			case 2:
 				{
-					terminals[active_terminal].current_process->FD[index].ops_table_ptr = op_table_file;
-					terminals[active_terminal].current_process->FD[index].inode = dentry_file_info.inode;
-					terminals[active_terminal].current_process->FD[index].file_position = 0;
-					terminals[active_terminal].current_process->FD[index].flags = 1;
+					terminals[current_task].current_process->FD[index].ops_table_ptr = op_table_file;
+					terminals[current_task].current_process->FD[index].inode = dentry_file_info.inode;
+					terminals[current_task].current_process->FD[index].file_position = 0;
+					terminals[current_task].current_process->FD[index].flags = 1;
 
-					terminals[active_terminal].current_process->FD[index].ops_table_ptr.open(filename);
+					terminals[current_task].current_process->FD[index].ops_table_ptr.open(filename);
 					break;
 				}
 		}
@@ -122,15 +122,15 @@ int32_t syscall_open(const uint8_t* filename) {
 int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
 
 	//check if file descriptor is not valid
-	if(fd < 0 || fd >= FD_SIZE || terminals[active_terminal].current_process->FD[fd].flags == 0)  
+	if(fd < 0 || fd >= FD_SIZE || terminals[current_task].current_process->FD[fd].flags == 0)  
 		return -1;
 
 	//check if buf is NULL or the read function is NULL
-	if(terminals[active_terminal].current_process->FD[fd].ops_table_ptr.read == NULL || buf == NULL)
+	if(terminals[current_task].current_process->FD[fd].ops_table_ptr.read == NULL || buf == NULL)
 		return -1;
 
 	//call read specific to type
-	return terminals[active_terminal].current_process->FD[fd].ops_table_ptr.read(fd, buf, nbytes);
+	return terminals[current_task].current_process->FD[fd].ops_table_ptr.read(fd, buf, nbytes);
 }
 
 /*
@@ -142,15 +142,15 @@ int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
  */ 
 int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
 	//check if file descriptor is valid
-	if(fd < 0 || fd >= FD_SIZE || terminals[active_terminal].current_process->FD[fd].flags == 0)
+	if(fd < 0 || fd >= FD_SIZE || terminals[current_task].current_process->FD[fd].flags == 0)
 		return -1;
 
 	//check if buf is NULL or the write function is NULL
-	if(terminals[active_terminal].current_process->FD[fd].ops_table_ptr.write == NULL || buf == NULL)
+	if(terminals[current_task].current_process->FD[fd].ops_table_ptr.write == NULL || buf == NULL)
 		return -1;
 
 	//call write specific to type
-	return terminals[active_terminal].current_process->FD[fd].ops_table_ptr.write(fd, buf, nbytes);
+	return terminals[current_task].current_process->FD[fd].ops_table_ptr.write(fd, buf, nbytes);
 }
 
 /*
@@ -162,13 +162,13 @@ int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
  */ 
 int32_t syscall_close(int32_t fd) {
 	//check if file descriptor is valid, can't close stdin or stdout(fd < 2)
-	if(fd < 2 || fd >= FD_SIZE || terminals[active_terminal].current_process->FD[fd].flags == 0)
+	if(fd < 2 || fd >= FD_SIZE || terminals[current_task].current_process->FD[fd].flags == 0)
 		return -1;
 
 	//set flag to not being used now
-	terminals[active_terminal].current_process->FD[fd].flags = 0;
+	terminals[current_task].current_process->FD[fd].flags = 0;
 	//call close specific to type
-	return terminals[active_terminal].current_process->FD[fd].ops_table_ptr.close(fd);
+	return terminals[current_task].current_process->FD[fd].ops_table_ptr.close(fd);
 }
 
 /*
@@ -180,10 +180,10 @@ int32_t syscall_close(int32_t fd) {
  */ 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes)
 {
-	if(strlen((int8_t*)terminals[active_terminal].current_process->arguments) > nbytes || buf == NULL)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
+	if(strlen((int8_t*)terminals[current_task].current_process->arguments) > nbytes || buf == NULL)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
 		return -1; 	
 
-	memcpy(buf, terminals[active_terminal].current_process->arguments, nbytes);
+	memcpy(buf, terminals[current_task].current_process->arguments, nbytes);
 	return 0;
 }
 
@@ -242,8 +242,8 @@ int32_t syscall_halt (uint8_t status){
 
 	int i = 0;
 	//obtain current and parent's pids
-	uint32_t parent_pid = terminals[active_terminal].current_process->parent_ptr;
-	uint32_t current_pid = terminals[active_terminal].current_process->pid;
+	uint32_t parent_pid = terminals[current_task].current_process->parent_ptr;
+	uint32_t current_pid = terminals[current_task].current_process->pid;
 
 	//get parent pcb
 	PCB_t* parent_process = (PCB_t*)(KERNEL_PROCESS_START - (parent_pid+1)*KERNEL_STACK_SIZE);
@@ -265,7 +265,7 @@ int32_t syscall_halt (uint8_t status){
 
 	//if trying to halt shell
 	if(parent_pid == current_pid) {
-		terminals[active_terminal].current_process = NULL;
+		terminals[current_task].current_process = NULL;
 		syscall_execute((uint8_t*)"shell");
 		return -1;
 	}
@@ -274,7 +274,7 @@ int32_t syscall_halt (uint8_t status){
 	clear_buffer();
 
 	//parent becomes current process's parent
-	terminals[active_terminal].current_process = parent_process;
+	terminals[current_task].current_process = parent_process;
 	
 	//have to return status
 	uint32_t new_status = status;
@@ -393,10 +393,10 @@ int32_t syscall_execute (const uint8_t* command){
 	tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE - PAGE_ALIGNMENT;
 
 	//set the parent pointer
-	if(terminals[active_terminal].current_process == NULL) {
+	if(terminals[current_task].current_process == NULL) {
 		pcb->parent_ptr = pcb->pid;
 	} else {
-		pcb->parent_ptr = terminals[active_terminal].current_process->pid;	
+		pcb->parent_ptr = terminals[current_task].current_process->pid;	
 	}
 
 	memset(pcb->arguments, '\0', MAX_BUFFER_SIZE);
@@ -404,7 +404,7 @@ int32_t syscall_execute (const uint8_t* command){
 	memcpy(pcb->arguments, arg_buf, strlen((int8_t*)arg_buf));
 
 	//save current pcb for next process
-	terminals[active_terminal].current_process = pcb;
+	terminals[current_task].current_process = pcb;
 	init_FD();
 
 	//read 24-27 bytes of executable file which serves as entrypoint
