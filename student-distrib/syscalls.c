@@ -270,8 +270,8 @@ int32_t syscall_halt (uint8_t status){
 		return -1;
 	}
 
-	//clear thekeyboard buffer
-	clear_buffer();
+	//clear the keyboard buffer
+	clear_buffer_scheduler();
 
 	//parent becomes current process's parent
 	terminals[current_task].current_process = parent_process;

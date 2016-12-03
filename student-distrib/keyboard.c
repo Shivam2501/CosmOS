@@ -275,6 +275,22 @@ void clear_buffer() {
 }
 
 /*
+ * clear_buffer
+ *   DESCRIPTION: clear the buffer
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
+void clear_buffer_scheduler() {
+	int32_t i;
+	for(i=0; i < BUFFER_SIZE; i++) 
+		terminals[current_task].keyboard_buffer[i] = '\0';
+	terminals[current_task].buffer_index = 0;
+	terminals[current_task].terminal_read_ready = 0;
+	ctrl_c_ready = 0;
+}
+
+/*
  * keyboard_init
  *   DESCRIPTION: Keyboard initialisation
  *   INPUTS: none

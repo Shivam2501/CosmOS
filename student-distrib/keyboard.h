@@ -81,4 +81,6 @@ void process_code(uint8_t scancode);
 /* Clear the buffer */
 void clear_buffer();
 
+void clear_buffer_scheduler();
+
 #endif /* _KEYBOARD_H */

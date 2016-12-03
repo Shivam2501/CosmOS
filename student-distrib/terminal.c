@@ -41,7 +41,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 	if(i < nbytes && temp_buf[i] != '\n')
 		temp_buf[++i] = '\n';
 	
-	clear_buffer();
+	clear_buffer_scheduler();
 	return i+1;
 }
 
@@ -84,7 +84,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
  *   RETURN VALUE: 0 on success
  */
 int32_t terminal_close(int32_t fd) {
-	clear_buffer();
+	clear_buffer_scheduler();
 	return 0;
 }
 
