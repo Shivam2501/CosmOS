@@ -40,17 +40,17 @@ void init_tasks() {
 	//create video mem for each terminal
 	terminals[0].virtual_video_mem = _132MB_4KB;
 	terminals[0].physical_video_mem = _32MB;
-	add_paging_4kb(_132MB_4KB, _32MB);
+	add_paging_4kb(_132MB_4KB, _32MB, 0);
 	clear_video_mem(_132MB_4KB, TERMINAL_ONE_COLOR);
 
 	terminals[1].virtual_video_mem = _132MB_8KB;
 	terminals[1].physical_video_mem = _32MB_4KB;
-	add_paging_4kb(_132MB_8KB, _32MB_4KB);
+	add_paging_4kb(_132MB_8KB, _32MB_4KB, 0);
 	clear_video_mem(_132MB_8KB, TERMINAL_TWO_COLOR);
 
 	terminals[2].virtual_video_mem = _132MB_12KB;
 	terminals[2].physical_video_mem = _32MB_8KB;
-	add_paging_4kb(_132MB_12KB, _32MB_8KB);
+	add_paging_4kb(_132MB_12KB, _32MB_8KB, 0);
 	clear_video_mem(_132MB_12KB, TERMINAL_THREE_COLOR);
 
 	//start shell 0
