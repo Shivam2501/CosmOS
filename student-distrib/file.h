@@ -4,8 +4,7 @@
 #include "types.h"
 #include "multiboot.h"
 #include "lib.h"
-#include "lib.h"
-#include "syscalls.h"
+#include "task.h"
 
 #define NUMBER_DIR_ENTRIES 			1
 #define NUMBER_INODES				1

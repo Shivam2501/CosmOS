@@ -1,12 +1,11 @@
 #ifndef _TASK_H
 #define _TASK_H
 
-#include "x86_desc.h"
-#include "i8259.h"
-#include "lib.h"
 #include "syscalls.h"
+#include "lib.h"
+#include "keyboard.h"
 
-#define NUMBER_TERMINALS 	3
+#define NUMBER_TERMINALS 		3
 
 #define TERMINAL_ONE_COLOR		0x9F
 #define TERMINAL_TWO_COLOR		0x8F
@@ -20,7 +19,7 @@
 #define _32MB_4KB 				0x2001000
 #define _32MB_8KB 				0x2002000
 
-typedef struct tasks {
+typedef struct tasks{
 	PCB_t* current_process;
 	uint8_t keyboard_buffer[BUFFER_SIZE];
 	int32_t buffer_index;

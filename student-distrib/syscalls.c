@@ -37,6 +37,7 @@ int32_t init_FD(){
 	stdout.file_position = 0; 
 	stdout.inode = NULL;
 
+	//terminals[active_terminal].buffer_index = 0;
 	terminals[active_terminal].current_process->FD[0] = stdin;
 	terminals[active_terminal].current_process->FD[1] = stdout;
 
@@ -199,9 +200,9 @@ int32_t syscall_vidmap (uint8_t** screen_start)
 		return -1;
 
 	//add paging from 132MB -> xB80000
-	add_paging_4kb(_132MB);
+	//add_paging_4kb(_132MB, VIDEO_MEMORY_ADDRESS);
 	//assign the address pointing to the video mem
-	*screen_start = (uint8_t*)_132MB;
+	*screen_start = (uint8_t*)terminals[active_terminal].virtual_video_mem;
 	return _132MB;
 }
 
@@ -434,17 +435,6 @@ int32_t syscall_execute (const uint8_t* command){
 }
 
 /*
- * get_current_pcb
- *   DESCRIPTION: return a pointer to the current process's pcb
- *   INPUTS: none
- *   OUTPUTS: none
- *   RETURN VALUE: pointer to current pcb
- */
-PCB_t* get_current_pcb() {
-	return terminals[active_terminal].current_process;
-}
-
-/*
  * get_available_pid
  *   DESCRIPTION: return the pid which is free
  *   INPUTS: none
@@ -462,4 +452,5 @@ int get_available_pid() {
 		printf("No processes free\n");
 		return -1;
 	}
+	return 0;
 }

@@ -97,14 +97,14 @@ int switch_tasks(uint32_t index) {
 	active_terminal = index;
 	remap_video_mem(terminals[active_terminal].physical_video_mem);
 	update_screen_coord(terminals[active_terminal].cursor_x, terminals[active_terminal].cursor_y);
-	update_cursors();
+	update_cursor();
 
 	//if there is a process running then do a context switch
 	if(terminals[active_terminal].current_process != NULL) {
 		//context switch
 		asm volatile("                  \n\
 				movl    %0, %%esp   	\n\
-				movl 	%1, %%ebp, 	    \n\
+				movl 	%1, %%ebp 	    \n\
 				push    %2				\n\
 				popfl					\n\
 				"
@@ -120,5 +120,5 @@ int switch_tasks(uint32_t index) {
 	if(terminals[active_terminal].current_process == NULL) {
 		syscall_execute((uint8_t*)"shell");
 	}
-
+	return 0;
 }

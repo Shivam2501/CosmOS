@@ -117,7 +117,7 @@ void process_code(uint8_t scancode) {
 					switch_tasks(1);
 				else if(scancode == SCANCODE_F3)
 					switch_tasks(2);
-				
+				return;
 			}
 			// if CTRL+L then clear the screen
 			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_L) {
