@@ -8,8 +8,8 @@
 #include "keyboard.h"
 
 #define TERMINAL_ONE_COLOR		0x9F
-#define TERMINAL_TWO_COLOR		0x7F
-#define TERMINAL_THREE_COLOR	0xAF
+#define TERMINAL_TWO_COLOR		0x4F
+#define TERMINAL_THREE_COLOR	0x6F
 
 #define _132MB_4KB				0x8401000
 #define _132MB_8KB				0x8402000
@@ -41,9 +41,10 @@ typedef struct tasks{
 	uint32_t eflags;
 } tasks_t;
 
-extern int active_terminal;
+extern int volatile active_terminal;
 extern tasks_t terminals[NUMBER_TERMINALS];
 
+void start_term_one();
 void init_tasks();
 int switch_tasks(uint32_t index);
 

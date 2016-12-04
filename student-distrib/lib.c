@@ -27,7 +27,7 @@ clear(void)
     int32_t i;
     for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem + (i << 1) + 1) = terminals[active_terminal].color;
     }
     screen_y = 0;
     screen_x = 0;
@@ -124,7 +124,7 @@ scrolling(void)
    		//last line cleared
    		for (j=0; j < NUM_COLS; j++) {
    			*(uint8_t *)(video_mem + ((i+j) << 1)) = ' ';
-        	*(uint8_t *)(video_mem + ((i+j) << 1) + 1) = ATTRIB;
+        	*(uint8_t *)(video_mem + ((i+j) << 1) + 1) = terminals[active_terminal].color;
    		}
 
    		//update coordinates
@@ -296,7 +296,7 @@ putc(uint8_t c)
         screen_x=0;
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = terminals[active_terminal].color;
         screen_x++;
         //screen_x %= NUM_COLS;
         //screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
@@ -320,7 +320,7 @@ putc_buffer(uint8_t c)
         terminals[current_task].cursor_x=0;
     } else {
         *(uint8_t *)(terminals[current_task].virtual_video_mem + ((NUM_COLS*terminals[current_task].cursor_y + terminals[current_task].cursor_x) << 1)) = c;
-        *(uint8_t *)(terminals[current_task].virtual_video_mem + ((NUM_COLS*terminals[current_task].cursor_y + terminals[current_task].cursor_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(terminals[current_task].virtual_video_mem + ((NUM_COLS*terminals[current_task].cursor_y + terminals[current_task].cursor_x) << 1) + 1) = terminals[current_task].color;
         terminals[current_task].cursor_x++;
     }
     scrolling_buffer();
@@ -343,7 +343,7 @@ void scrolling_buffer() {
    		//last line cleared
    		for (j=0; j < NUM_COLS; j++) {
    			*(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+j) << 1)) = ' ';
-        	*(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+j) << 1) + 1) = ATTRIB;
+        	*(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+j) << 1) + 1) = terminals[current_task].color;
    		}
 
    		//update coordinates

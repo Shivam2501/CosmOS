@@ -180,6 +180,7 @@ entry (unsigned long magic, unsigned long addr)
 	int *p;
 	p = 0xB8000;
 	*p = 5; */
+	// init_tasks();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
@@ -191,7 +192,6 @@ entry (unsigned long magic, unsigned long addr)
 	//test rtc, terminal and file system syscalls
 	//shell();
 	init_tasks();
-
 	//int i = 4/0;
 	//printf("returned from idt");
 

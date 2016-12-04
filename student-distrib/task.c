@@ -1,6 +1,6 @@
 #include "task.h"
 
-int active_terminal;
+int volatile active_terminal;
 tasks_t terminals[NUMBER_TERMINALS];
 
 void clear_video_mem(uint32_t video_mem, uint8_t color) {
@@ -43,28 +43,30 @@ void init_tasks() {
 	//create video mem for each terminal
 	terminals[0].virtual_video_mem = _132MB_4KB;
 	terminals[0].physical_video_mem = _32MB;
-	terminals[active_terminal].color = TERMINAL_ONE_COLOR;
+	terminals[0].color = TERMINAL_ONE_COLOR;
 	add_paging_4kb(_132MB_4KB, _32MB, 1);
 	clear_video_mem(_132MB_4KB, TERMINAL_ONE_COLOR);
 
 	terminals[1].virtual_video_mem = _132MB_8KB;
 	terminals[1].physical_video_mem = _32MB_4KB;
-	terminals[active_terminal].color = TERMINAL_TWO_COLOR;
+	terminals[1].color = TERMINAL_TWO_COLOR;
 	add_paging_4kb(_132MB_8KB, _32MB_4KB, 1);
 	clear_video_mem(_132MB_8KB, TERMINAL_TWO_COLOR);
 
 	terminals[2].virtual_video_mem = _132MB_12KB;
 	terminals[2].physical_video_mem = _32MB_8KB;
-	terminals[active_terminal].color = TERMINAL_THREE_COLOR;
+	terminals[2].color = TERMINAL_THREE_COLOR;
 	add_paging_4kb(_132MB_12KB, _32MB_8KB, 1);
 	clear_video_mem(_132MB_12KB, TERMINAL_THREE_COLOR);
-
+// }
+// void start_term_one(){
 	//start shell 0
 	active_terminal = 0;
 	update_screen_coord(terminals[active_terminal].cursor_x, terminals[active_terminal].cursor_y);
 	update_cursor();
 	memcpy((uint8_t*)VIDEO_MEM, (uint8_t*)terminals[active_terminal].virtual_video_mem, _4KB);
 	add_paging_4kb(terminals[active_terminal].virtual_video_mem, VIDEO_MEM, 1);
+	sti();
 	syscall_execute((uint8_t*)"shell");
 }
 
@@ -104,12 +106,46 @@ int switch_tasks(uint32_t index) {
 	memcpy((uint8_t*)VIDEO_MEM, (uint8_t *)terminals[active_terminal].virtual_video_mem, _4KB);
 	add_paging_4kb(terminals[active_terminal].virtual_video_mem, VIDEO_MEM, 1);
 
-	sti();
-
 	//check if shell 1 or 2 not executed
 	if(terminals[active_terminal].current_process == NULL) {
+		if(current_task == 0) {
+			asm volatile("              \n\
+				movl    %%esp, %0   	\n\
+				movl 	%%ebp, %1	    \n\
+				pushfl					\n\
+				popl	%2				\n\
+				"
+				: "=S"(terminals[0].esp), "=b"(terminals[0].ebp), "=c"(terminals[0].eflags)
+				:
+				: "memory", "cc"
+				);
+		} else if (current_task == 1) {
+			asm volatile("              \n\
+				movl    %%esp, %0   	\n\
+				movl 	%%ebp, %1	    \n\
+				pushfl					\n\
+				popl	%2				\n\
+				"
+				: "=S"(terminals[1].esp), "=b"(terminals[1].ebp), "=c"(terminals[1].eflags)
+				:
+				: "memory", "cc"
+				);
+		} else if (current_task == 2) {
+			asm volatile("              \n\
+				movl    %%esp, %0   	\n\
+				movl 	%%ebp, %1	    \n\
+				pushfl					\n\
+				popl	%2				\n\
+				"
+				: "=S"(terminals[2].esp), "=b"(terminals[2].ebp), "=c"(terminals[2].eflags)
+				:
+				: "memory", "cc"
+				);
+		}
 		current_task = active_terminal;
+		sti();
 		syscall_execute((uint8_t*)"shell");
 	}
+	sti();
 	return 0;
 }

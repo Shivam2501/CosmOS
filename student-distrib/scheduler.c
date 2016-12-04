@@ -1,11 +1,11 @@
 #include "scheduler.h"
 
 //current task running
-int current_task = 0;
-
+volatile int current_task = 0;
+int prev_task = 0;
 
 int next_task() {
-	int prev_task = current_task;
+	prev_task = current_task;
 	//calculate the next task
 	current_task = (current_task + 1) % NUMBER_TERMINALS;
 
@@ -24,6 +24,9 @@ int next_task() {
 
 void context_switch() {
 
+	if(next_task() == -1)
+		return;
+
 	//inline assembly - save current context
 	asm volatile("                  \n\
 			movl    %%esp, %0   	\n\
@@ -31,14 +34,10 @@ void context_switch() {
 			pushfl					\n\
 			popl	%2				\n\
 			"
-			: "=S"(terminals[current_task].esp), "=b"(terminals[current_task].ebp), "=c"(terminals[current_task].eflags)
+			: "=S"(terminals[prev_task].esp), "=b"(terminals[prev_task].ebp), "=c"(terminals[prev_task].eflags)
 			:
 			: "memory", "cc"
 			);
-
-	
-	if(next_task() == -1)
-		return;
 
 	//paging to new current process
 	add_paging(PAGE_DIR_ENTRY, (KERNEL_PROCESS_START + (terminals[current_task].current_process->pid)*KERNEL_PROCESS_SIZE));
@@ -50,12 +49,11 @@ void context_switch() {
 	asm volatile("                  \n\
 				movl    %0, %%esp   	\n\
 				movl 	%1, %%ebp 	    \n\
-				push    %2				\n\
+				pushl    %2				\n\
 				popfl					\n\
 				"
 				:
 				: "r"(terminals[current_task].esp), "r"(terminals[current_task].ebp), "r"(terminals[current_task].eflags)
 				: "memory", "cc"
 				);
-
 }

@@ -302,6 +302,7 @@ int32_t syscall_halt (uint8_t status){
  *   RETURN VALUE: 0
  */ 
 int32_t syscall_execute (const uint8_t* command){
+	cli();
 	int i = 0, j=0; 																		//set stdin, stdout
 	
 	//check if command is NULL
@@ -391,10 +392,11 @@ int32_t syscall_execute (const uint8_t* command){
 	//set tss values
 	tss.ss0 = KERNEL_DS;
 	tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE - PAGE_ALIGNMENT;
-
+	
 	//set the parent pointer
 	if(terminals[current_task].current_process == NULL) {
 		pcb->parent_ptr = pcb->pid;
+		//current_task = active_terminal;
 	} else {
 		pcb->parent_ptr = terminals[current_task].current_process->pid;	
 	}
@@ -411,7 +413,7 @@ int32_t syscall_execute (const uint8_t* command){
 	read_data(dentry_file_info.inode, EIP_READ_OFFSET, buf, EXE_BUF_SIZE);
 	//move data segment, push ss, esp, eflags, cs, eip 
 	uint32_t entrypoint = *((uint32_t*)buf);
-
+	sti();
 	//push correct values onto  stack for iret context
 	asm volatile("                  	\n\
 			mov 	%0, %%ds			\n\
