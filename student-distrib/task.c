@@ -20,6 +20,7 @@ void clear_video_mem(uint32_t video_mem, uint8_t color) {
  */ 
 void init_tasks() {
 	int i;
+	current_task = 0;
 	//initialize all the terminals to default value
 	for(i = 0; i < NUMBER_TERMINALS; i++) {
 		//no process running initially
@@ -43,19 +44,19 @@ void init_tasks() {
 	terminals[0].virtual_video_mem = _132MB_4KB;
 	terminals[0].physical_video_mem = _32MB;
 	terminals[active_terminal].color = TERMINAL_ONE_COLOR;
-	add_paging_4kb(_132MB_4KB, _32MB, 0);
+	add_paging_4kb(_132MB_4KB, _32MB, 1);
 	clear_video_mem(_132MB_4KB, TERMINAL_ONE_COLOR);
 
 	terminals[1].virtual_video_mem = _132MB_8KB;
 	terminals[1].physical_video_mem = _32MB_4KB;
 	terminals[active_terminal].color = TERMINAL_TWO_COLOR;
-	add_paging_4kb(_132MB_8KB, _32MB_4KB, 0);
+	add_paging_4kb(_132MB_8KB, _32MB_4KB, 1);
 	clear_video_mem(_132MB_8KB, TERMINAL_TWO_COLOR);
 
 	terminals[2].virtual_video_mem = _132MB_12KB;
 	terminals[2].physical_video_mem = _32MB_8KB;
 	terminals[active_terminal].color = TERMINAL_THREE_COLOR;
-	add_paging_4kb(_132MB_12KB, _32MB_8KB, 0);
+	add_paging_4kb(_132MB_12KB, _32MB_8KB, 1);
 	clear_video_mem(_132MB_12KB, TERMINAL_THREE_COLOR);
 
 	//start shell 0
@@ -63,6 +64,7 @@ void init_tasks() {
 	update_screen_coord(terminals[active_terminal].cursor_x, terminals[active_terminal].cursor_y);
 	update_cursor();
 	memcpy((uint8_t*)VIDEO_MEM, (uint8_t*)terminals[active_terminal].virtual_video_mem, _4KB);
+	add_paging_4kb(terminals[active_terminal].virtual_video_mem, VIDEO_MEM, 1);
 	syscall_execute((uint8_t*)"shell");
 }
 
@@ -82,7 +84,7 @@ int switch_tasks(uint32_t index) {
 	if(index >= NUMBER_TERMINALS && index < 0)
 		return -1;
 
-	if(terminals[active_terminal].current_process == NULL) {
+	if(terminals[index].current_process == NULL) {
 		if(get_available_pid() == -1)
 			return -1;
 	}
@@ -92,6 +94,7 @@ int switch_tasks(uint32_t index) {
 	//save the old screen coordinates in the task struct
 	terminals[active_terminal].cursor_x = screen_x;
 	terminals[active_terminal].cursor_y = screen_y;
+	add_paging_4kb(terminals[active_terminal].virtual_video_mem, terminals[active_terminal].physical_video_mem, 1);
 	memcpy((uint8_t *)terminals[active_terminal].virtual_video_mem, (uint8_t*)VIDEO_MEM, _4KB);
 
 	//change the active terminal to the current task
@@ -99,11 +102,13 @@ int switch_tasks(uint32_t index) {
 	update_screen_coord(terminals[active_terminal].cursor_x, terminals[active_terminal].cursor_y);
 	update_cursor();
 	memcpy((uint8_t*)VIDEO_MEM, (uint8_t *)terminals[active_terminal].virtual_video_mem, _4KB);
+	add_paging_4kb(terminals[active_terminal].virtual_video_mem, VIDEO_MEM, 1);
 
 	sti();
 
 	//check if shell 1 or 2 not executed
 	if(terminals[active_terminal].current_process == NULL) {
+		current_task = active_terminal;
 		syscall_execute((uint8_t*)"shell");
 	}
 	return 0;

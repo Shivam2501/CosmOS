@@ -10,12 +10,15 @@ int next_task() {
 	current_task = (current_task + 1) % NUMBER_TERMINALS;
 
 	//find an active task
-	while(terminals[current_task].current_process == NULL) {
+	int counter = 0;
+	while(terminals[current_task].current_process == NULL && counter < 3) {
 		current_task ++;
 		current_task %= NUMBER_TERMINALS;
+		counter++;
 	}
-	if(prev_task == current_task)
+	if(prev_task == current_task || counter == 3) {
 		return -1;
+	}
 	return 0;
 }
 

@@ -200,10 +200,10 @@ int32_t syscall_vidmap (uint8_t** screen_start)
 		return -1;
 
 	//add paging from 132MB -> xB80000
-	add_paging_4kb(_132MB, VIDEO_MEM, 1);
+	//add_paging_4kb(terminals[current_task].virtual_video_mem, VIDEO_MEM, 1);
 	//assign the address pointing to the video mem
-	*screen_start = (uint8_t*)_132MB;
-	return _132MB;
+	*screen_start = (uint8_t*)terminals[current_task].virtual_video_mem;
+	return terminals[current_task].virtual_video_mem;
 }
 
 int32_t syscall_set_handler (int32_t signum, void* handler_address)

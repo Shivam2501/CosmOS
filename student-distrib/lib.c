@@ -3,6 +3,7 @@
  */
 
 #include "lib.h"
+#include "task.h"
 
 #define VIDEO 0xB8000
 #define NUM_COLS 80

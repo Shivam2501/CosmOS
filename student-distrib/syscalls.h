@@ -52,6 +52,7 @@ typedef struct PCB{
 #include "terminal.h"
 #include "keyboard.h"
 #include "scheduler.h"
+#include "task.h"
 
 // extern PCB_t PCB_t;
 
