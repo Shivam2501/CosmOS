@@ -45,6 +45,7 @@ void init_tasks() {
 		terminals[i].eflags = 0;
 
 		terminals[i].terminal_read_ready = 0;
+		terminals[i].rtc_interrupt_flag = 0;
 	}
 
 	//create video mem for each terminal

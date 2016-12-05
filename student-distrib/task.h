@@ -36,6 +36,7 @@ typedef struct tasks{
 	uint32_t physical_video_mem;
 	uint32_t cursor_x;
 	uint32_t cursor_y;
+	volatile int8_t rtc_interrupt_flag;
 	uint32_t esp;
 	uint32_t ebp;
 	uint32_t eflags;
