@@ -1,5 +1,6 @@
 #include "task.h"
 
+//keep track of which terminal user is on and information per terminal
 int volatile active_terminal;
 tasks_t terminals[NUMBER_TERMINALS];
 
