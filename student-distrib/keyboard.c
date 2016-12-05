@@ -115,17 +115,17 @@ void process_code(uint8_t scancode) {
 			{
 				if(scancode == SCANCODE_F1){
 					send_eoi(KEYBOARD_IRQ);
-					if(-1==switch_tasks(0))
+					if(-1 == switch_tasks(0))
 						terminals[active_terminal].terminal_read_ready = 1;
 				}
 				else if(scancode == SCANCODE_F2){
 					send_eoi(KEYBOARD_IRQ);
-					if(-1==switch_tasks(1))
+					if(-1 == switch_tasks(1))
 						terminals[active_terminal].terminal_read_ready = 1;
 				}
 				else if(scancode == SCANCODE_F3){
 					send_eoi(KEYBOARD_IRQ);
-					if(-1==switch_tasks(2))
+					if(-1 == switch_tasks(2))
 						terminals[active_terminal].terminal_read_ready = 1;
 				}
 				return;

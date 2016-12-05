@@ -56,28 +56,19 @@ void add_paging(uint32_t virtual, uint32_t physical) {
  *   OUTPUTS: none
  *   RETURN VALUE: none
  */ 
-void add_paging_4kb(uint32_t virtual, uint32_t physical, uint32_t privilege) {
+void add_paging_4kb(uint32_t virtual, uint32_t physical) {
 	/* Set each page directory entry to not present */
 	int index;
 
 	//bitmask by 0x3FF and shift by 12 to get middle 10 bits
 	index = (virtual >> 12) & 0x3FF;
 	//enable video memory (0x3: Present and Read/Write)
-	if(privilege){
-		page_table_video[index] = physical | USER | READ_WRITE | PRESENT;
-	} else {
-		page_table_video[index] = physical | READ_WRITE | PRESENT;
-	}
+	page_table_video[index] = physical | USER | READ_WRITE | PRESENT;
 
 	index = (virtual >> 22);
 	//page directory index points to page table and is set to present
 	// (0x3: Present and Read/Write)
-	if(privilege){
-		page_directory[index] = (uint32_t)page_table_video | USER | READ_WRITE | PRESENT;
-	} else {
-		page_directory[index] = (uint32_t)page_table_video | READ_WRITE | PRESENT;
-	}
-
+	page_directory[index] = (uint32_t)page_table_video | USER | READ_WRITE | PRESENT;
 	tlb_flush();
 }
 

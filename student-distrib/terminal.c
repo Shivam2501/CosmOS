@@ -56,8 +56,8 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
 	int32_t i;
 	uint8_t *temp_buf = (uint8_t*)buf;
 	
-	//disable the keyboard interrupt
-	disable_irq(KEYBOARD_IRQ);
+	//disable the interrupts
+	cli();
 
 	if(current_task == active_terminal) {
 		//print the buffer on the screen
@@ -70,8 +70,8 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
 		}
 	}
 
-	//enable the keyboard interrupt
-	enable_irq(KEYBOARD_IRQ);
+	//enable the interrupts
+	sti();
 
 	return i+1;
 }

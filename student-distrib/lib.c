@@ -173,7 +173,10 @@ format_char_switch:
 					switch(*buf) {
 						/* Print a literal '%' character */
 						case '%':
-							putc('%');
+							if(current_task == active_terminal) 
+								putc('%');
+							else
+								putc_buffer('%');
 							break;
 
 						/* Use alternate formatting */
@@ -235,7 +238,10 @@ format_char_switch:
 
 						/* Print a single character */
 						case 'c':
-							putc( (uint8_t) *((int32_t *)esp) );
+							if(current_task == active_terminal) 
+								putc( (uint8_t) *((int32_t *)esp) );
+							else
+								putc_buffer( (uint8_t) *((int32_t *)esp) );
 							esp++;
 							break;
 
@@ -253,7 +259,10 @@ format_char_switch:
 				break;
 
 			default:
-				putc(*buf);
+				if(current_task == active_terminal) 
+					putc(*buf);
+				else
+					putc_buffer(*buf);
 				break;
 		}
 		buf++;
@@ -274,7 +283,10 @@ puts(int8_t* s)
 {
 	register int32_t index = 0;
 	while(s[index] != '\0') {
-		putc(s[index]);
+		if(current_task == active_terminal) 
+			putc(s[index]);
+		else
+			putc_buffer(s[index]);
 		index++;
 	}
 
@@ -306,11 +318,12 @@ putc(uint8_t c)
 }
 
 /*
-* void putc(uint8_t c);
-*   Inputs: uint_8* c = character to print
+* void putc_buffer(uint8_t c);
+*   Inputs: uint_8* c = character to print for the process scheduled
 *   Return Value: void
 *	Function: Output a character to the console 
 */
+
 
 void
 putc_buffer(uint8_t c)
@@ -325,6 +338,13 @@ putc_buffer(uint8_t c)
     }
     scrolling_buffer();
 }
+
+/*
+* void scrolling_buffer();
+*   Inputs: none
+*   Return Value: void
+*	Function: Scroll the screen by adding a new line at the bottom
+*/
 
 void scrolling_buffer() {
     if(terminals[current_task].cursor_x >= NUM_COLS){

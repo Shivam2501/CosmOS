@@ -199,8 +199,6 @@ int32_t syscall_vidmap (uint8_t** screen_start)
 	if(screen_start == NULL || screen_start < (uint8_t**)USER_PROGRAM_START || screen_start > (uint8_t**)ESP_VALUE)
 		return -1;
 
-	//add paging from 132MB -> xB80000
-	//add_paging_4kb(terminals[current_task].virtual_video_mem, VIDEO_MEM, 1);
 	//assign the address pointing to the video mem
 	*screen_start = (uint8_t*)terminals[current_task].virtual_video_mem;
 	return terminals[current_task].virtual_video_mem;
@@ -239,6 +237,7 @@ int32_t syscall_fail (void)
  *   RETURN VALUE: 0 on success
  */ 
 int32_t syscall_halt (uint8_t status){
+	cli();
 
 	int i = 0;
 	//obtain current and parent's pids
@@ -266,6 +265,10 @@ int32_t syscall_halt (uint8_t status){
 	//if trying to halt shell
 	if(parent_pid == current_pid) {
 		terminals[current_task].current_process = NULL;
+		if(current_task == active_terminal)
+			clear();
+		else
+			clear_buffer_scheduler();
 		syscall_execute((uint8_t*)"shell");
 		return -1;
 	}
@@ -278,7 +281,7 @@ int32_t syscall_halt (uint8_t status){
 	
 	//have to return status
 	uint32_t new_status = status;
-
+	sti();
 	//push correct values to jump
 	asm volatile("                  	\n\
 			movl 	%0, %%esp			\n\
@@ -453,7 +456,7 @@ int get_available_pid() {
 	}
 
 	if(i == MAX_NUM_PROCESS){
-		printf("No processes free\n");
+		printf("No Processes Free\n");
 		return -1;
 	}
 	return 0;

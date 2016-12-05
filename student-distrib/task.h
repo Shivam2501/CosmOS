@@ -1,11 +1,11 @@
-#define NUMBER_TERMINALS 		3
-
 #ifndef _TASK_H
 #define _TASK_H
 
 #include "syscalls.h"
 #include "lib.h"
 #include "keyboard.h"
+
+#define NUMBER_TERMINALS 		3
 
 #define TERMINAL_ONE_COLOR		0x9F
 #define TERMINAL_TWO_COLOR		0x4F
@@ -44,7 +44,7 @@ typedef struct tasks{
 extern int volatile active_terminal;
 extern tasks_t terminals[NUMBER_TERMINALS];
 
-void start_term_one();
+void clear_video_mem(uint32_t video_mem, uint8_t color);
 void init_tasks();
 int switch_tasks(uint32_t index);
 

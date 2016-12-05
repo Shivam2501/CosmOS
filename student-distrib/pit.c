@@ -1,5 +1,12 @@
 #include "pit.h"
 
+/*
+ * pit_init
+ *   DESCRIPTION: Initialize the PIT
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
 void pit_init() {
 
 	//set the mode
@@ -12,10 +19,18 @@ void pit_init() {
 	enable_irq(PIT_IRQ);
 }
 
+/*
+ * pit_handler
+ *   DESCRIPTION: Handler called on each PIT interupt
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
 void pit_handler() {
 	send_eoi(PIT_IRQ);
 
 	cli();
+	//call scheduler to run the next task
 	context_switch();
 	sti();
 }

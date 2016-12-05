@@ -1,3 +1,8 @@
+#ifndef _SYSCALLS_H
+#define _SYSCALLS_H
+
+#include "x86_desc.h"
+
 #define EXE_BUF_SIZE		 	4
 #define PAGE_DIR_ENTRY			0x20
 #define	MAX_NUM_PROCESS		   	6
@@ -16,11 +21,6 @@
 #define PAGE_ALIGNMENT			4
 #define _132MB					0x8400000
 #define VIDEO_MEM 				0xB8000
-
-#ifndef _SYSCALLS_H
-#define _SYSCALLS_H
-
-#include "x86_desc.h"
 
 typedef struct ops_table{
 	int32_t (*open) (const uint8_t* filename);
@@ -53,8 +53,6 @@ typedef struct PCB{
 #include "keyboard.h"
 #include "scheduler.h"
 #include "task.h"
-
-// extern PCB_t PCB_t;
 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes);
 int32_t syscall_vidmap (uint8_t** screen_start);
