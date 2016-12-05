@@ -54,8 +54,9 @@ void rtc_init() {
  *   RETURN VALUE: none
  */ 
 void rtc_handler() {
-	/* Mask all interrupts 
-	cli(); */
+	send_eoi(RTC_IRQ);
+	/* Mask all interrupts */
+	cli(); 
 
 	//test_interrupts();
 	interrupt_flag = 1;
@@ -65,9 +66,8 @@ void rtc_handler() {
 	/* Clear the content */
 	inb(RTC_DATA);
 
-	send_eoi(RTC_IRQ);
-	/* Unmask all interrupts 
-	sti(); */
+	/* Unmask all interrupts */
+	sti(); 
 }
 
 /*
@@ -225,7 +225,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes) {
 int32_t rtc_close(int32_t fd) {
 
 	//set the rtc to DEFAULT frequency
-	set_frequency(DEFAULT_FREQUENCY);
+	//set_frequency(DEFAULT_FREQUENCY);
 
 	/*
 	if(fd < DEFAULT_FD || fd >= FD_SIZE)

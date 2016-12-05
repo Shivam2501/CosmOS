@@ -245,8 +245,8 @@ void toggle_alt() {
 void keyboard_handler() {
 	uint8_t scancode;
 
-	/* Mask all interrupts 
-	cli(); */
+	/* Mask all interrupts */
+	cli(); 
 	
 	/* Read the value in data port */
 	scancode = inb(KEYBOARD_DATA_PORT);
@@ -257,8 +257,8 @@ void keyboard_handler() {
 	/* Send the End of Interrupt Signal */
 	send_eoi(KEYBOARD_IRQ);
 
-	/* Unmask all interrupts 
-	sti(); */
+	/* Unmask all interrupts */
+	sti(); 
 }
 
 /*
