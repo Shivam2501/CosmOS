@@ -38,8 +38,8 @@ int get_file_system_start(unsigned int mod_start){
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry){
 	
 	//check if index is invalid, if it is greater than the max number possible
-	if(index >= boot_info.dir_entries){
-		return -1; 
+	if(index >= boot_info.dir_entries || index < 0 || dentry == NULL){
+		return -1;
 	}
 
 	//memory starts at block 0, then we skip over until specific block needed
@@ -62,7 +62,7 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry){
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
 
 	//if the filename provided is greater than max size
-	if(strlen((int8_t*)fname) > NAME_SIZE)
+	if(strlen((int8_t*)fname) > NAME_SIZE || dentry == NULL)
 		return -1; 
 
 	uint32_t i;
@@ -98,7 +98,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
 
 	//check if inode is invalid
-	if(inode >= boot_info.inodes || inode < 0){
+	if(inode >= boot_info.inodes || inode < 0 || buf == NULL){
 		return -1; 
 	}
 

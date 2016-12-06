@@ -27,6 +27,7 @@ void clear_video_mem(uint32_t video_mem, uint8_t color) {
  *   RETURN VALUE: none
  */ 
 void init_tasks() {
+	cli();
 	int i;
 	current_task = 0;
 	//initialize all the terminals to default value
