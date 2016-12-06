@@ -6,7 +6,7 @@
 .globl asm_timer_chip
 asm_timer_chip:
 pushal
-call TIMER_CHIP
+call pit_handler
 popal
 iret
 

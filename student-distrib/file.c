@@ -38,8 +38,8 @@ int get_file_system_start(unsigned int mod_start){
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry){
 	
 	//check if index is invalid, if it is greater than the max number possible
-	if(index >= boot_info.dir_entries){
-		return -1; 
+	if(index >= boot_info.dir_entries || index < 0 || dentry == NULL){
+		return -1;
 	}
 
 	//memory starts at block 0, then we skip over until specific block needed
@@ -62,7 +62,7 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry){
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
 
 	//if the filename provided is greater than max size
-	if(strlen((int8_t*)fname) > NAME_SIZE)
+	if(strlen((int8_t*)fname) > NAME_SIZE || dentry == NULL)
 		return -1; 
 
 	uint32_t i;
@@ -98,7 +98,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
 
 	//check if inode is invalid
-	if(inode >= boot_info.inodes || inode < 0){
+	if(inode >= boot_info.inodes || inode < 0 || buf == NULL){
 		return -1; 
 	}
 
@@ -215,10 +215,9 @@ int32_t fs_open(const uint8_t* filename){
  */ 
 int32_t fs_read(int32_t fd, void* buf, int32_t nbytes) {
 	int bytes_copied;
-	PCB_t* current_process = get_current_pcb();
 
-	bytes_copied = read_data(current_process->FD[fd].inode, current_process->FD[fd].file_position, (uint8_t*) buf, nbytes);
-	current_process->FD[fd].file_position += bytes_copied;
+	bytes_copied = read_data(terminals[current_task].current_process->FD[fd].inode, terminals[current_task].current_process->FD[fd].file_position, (uint8_t*) buf, nbytes);
+	terminals[current_task].current_process->FD[fd].file_position += bytes_copied;
 
 	return bytes_copied;
 }
@@ -293,17 +292,16 @@ int32_t dir_open(const uint8_t* filename) {
  */ 
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
 	dentry_t dentry;
-	PCB_t* current_process = get_current_pcb();
 
-	if(read_dentry_by_index(current_process->FD[fd].file_position, &dentry) == 0) {
+	if(read_dentry_by_index(terminals[current_task].current_process->FD[fd].file_position, &dentry) == 0) {
 		memcpy(buf, dentry.file_name, NAME_SIZE);
 		((int8_t*)buf)[NAME_SIZE] = '\0';
 		//dir_read_counter++; 
-		current_process->FD[fd].file_position++;
+		terminals[current_task].current_process->FD[fd].file_position++;
 		return strlen((int8_t*)buf);
 	} else {
 		//dir_read_counter = 0;
-		current_process->FD[fd].file_position = 0;
+		terminals[current_task].current_process->FD[fd].file_position = 0;
 		return 0; 
 	}
 }

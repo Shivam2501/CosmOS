@@ -3,8 +3,9 @@
 #include "lib.h"
 #include "syscalls.h"
 #include "file.h"
-
-volatile int interrupt_flag;
+#include "task.h"
+#include "scheduler.h"
+//volatile int interrupt_flag;
 
 /*
  * rtc_init
@@ -40,7 +41,7 @@ void rtc_init() {
 	outb((curr & 0xF0) | rate, RTC_DATA);
 
 	//interrupt flag set to 0 on initialization
-	interrupt_flag = 0;
+	//interrupt_flag = 0;
 
 	/* Enable the IRQ Port for RTC */
 	enable_irq(RTC_IRQ);
@@ -54,20 +55,23 @@ void rtc_init() {
  *   RETURN VALUE: none
  */ 
 void rtc_handler() {
-	/* Mask all interrupts 
-	cli(); */
+	send_eoi(RTC_IRQ);
+	/* Mask all interrupts */
+	cli(); 
 
 	//test_interrupts();
-	interrupt_flag = 1;
+	int i;
+	for(i = 0; i < NUMBER_TERMINALS; i++) {
+		terminals[i].rtc_interrupt_flag = 1;
+	}
 	/* Select register C*/
 	outb(REGISTER_C, RTC_REGISTER);
 
 	/* Clear the content */
 	inb(RTC_DATA);
 
-	send_eoi(RTC_IRQ);
-	/* Unmask all interrupts 
-	sti(); */
+	/* Unmask all interrupts */
+	sti(); 
 }
 
 /*
@@ -169,7 +173,11 @@ int32_t rtc_open(const uint8_t* filename) {
 	set_frequency(DEFAULT_FREQUENCY);
 
 	//interrupt flag set to 0 on rtc open
-	interrupt_flag = 0;
+	//interrupt_flag = 0;
+	int i;
+	for(i = 0; i < NUMBER_TERMINALS; i++) {
+		terminals[i].rtc_interrupt_flag = 1;
+	}
 
 	return 0;
 	
@@ -185,9 +193,9 @@ int32_t rtc_open(const uint8_t* filename) {
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes) {
 
 	//wait until interrupt occurs
-	while(!interrupt_flag);
+	while(!terminals[current_task].rtc_interrupt_flag);
 
-	interrupt_flag = 0;
+	terminals[current_task].rtc_interrupt_flag = 0;
 
 	return 0;
 }
@@ -225,7 +233,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes) {
 int32_t rtc_close(int32_t fd) {
 
 	//set the rtc to DEFAULT frequency
-	set_frequency(DEFAULT_FREQUENCY);
+	//set_frequency(DEFAULT_FREQUENCY);
 
 	/*
 	if(fd < DEFAULT_FD || fd >= FD_SIZE)
