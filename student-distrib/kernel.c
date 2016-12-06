@@ -175,33 +175,28 @@ entry (unsigned long magic, unsigned long addr)
 	/* Initialize PIC, RTC, keyboard, and paging*/
 	i8259_init();
 
-	pit_init();
+	init_paging();
 	
+	kernel_mem_init();
+	//pit_init();
+	init_desktop();
+
 	rtc_init();
 
 	keyboard_init();
 	
 	mouse_init();
 
-	init_paging();
-
-	kernel_mem_init();
 	//test_kmalloc_1();
-	
-	int i;
+
+	//int i;
      //buffer for the string
 
     //initialize the buffer with background color
-    for(i = 0; i < MODE_X_MEM_SIZE; i++) {
-      textBuffer[i] = BACKGROUND_COLOR;
-    }
-
-    context* cont = (context*)kmalloc(sizeof(context));
-    cont->buffer = textBuffer;
-    cont->width = IMAGE_X_DIM;
-    cont->height = IMAGE_Y_DIM;
-
-    desktop* curr_desktop = new_desktop(cont);
+    // for(i = 0; i < MODE_X_MEM_SIZE; i++) {
+    //   textBuffer[i] = BACKGROUND_COLOR;
+    // }
+	clear_desktop(curr_desktop);
 
     new_window_desktop(curr_desktop, 10, 10, 200, 100, 17);
     // new_window_desktop(curr_desktop, 100, 150, 100, 100, 15);
@@ -228,7 +223,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	//test rtc, terminal and file system syscalls
 	//shell();
-	init_tasks();
+	//init_tasks();
 	//int i = 4/0;
 	//printf("returned from idt");
 

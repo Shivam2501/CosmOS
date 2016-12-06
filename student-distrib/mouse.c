@@ -89,8 +89,8 @@ void mouse_init() {
 	write_data(0xF4);
 
 	//initialize all the values
-	mouse_coord.position_x = 0;
-	mouse_coord.position_y = 0;
+	mouse_coord.position_x = curr_desktop->context->width / 2;
+	mouse_coord.position_y = curr_desktop->context->height / 2;
 	left_button_pressed = 0;
 	right_button_pressed = 0;
 	middle_button_pressed = 0;
@@ -164,6 +164,7 @@ void mouse_handler() {
 				mouse_moved = 1;
 				handle_mouse_movement(byte2, byte3);
 			} else {
+				mouse_update(curr_desktop, mouse_coord.position_y, mouse_coord.position_x, left_button_pressed);
 				mouse_moved = 0;
 			}
 		}
@@ -175,6 +176,7 @@ void mouse_handler() {
 void handle_mouse_movement(int32_t delta_x, int32_t delta_y) {
 	mouse_coord.position_x += delta_x;
 	mouse_coord.position_y += delta_y;
+	mouse_update(curr_desktop, mouse_coord.position_y, mouse_coord.position_x, left_button_pressed);
 	if(left_button_pressed) {
 		handle_drag();
 	}

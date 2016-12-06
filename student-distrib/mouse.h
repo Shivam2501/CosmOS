@@ -4,6 +4,7 @@
 #include "types.h"
 #include "i8259.h"
 #include "lib.h"
+#include "windowing.h"
 
 #define MOUSE_IRQ 		12
 #define SIGNAL_PORT		0x64

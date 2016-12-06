@@ -1,5 +1,16 @@
 #include "windowing.h"
 
+desktop* curr_desktop;
+
+void init_desktop() {
+	context* cont = (context*)kmalloc(sizeof(context));
+	cont->buffer = textBuffer;
+	cont->width = IMAGE_X_DIM;
+	cont->height = 200;
+
+	curr_desktop = new_desktop(cont);
+}
+
 /*
  * new_window
  *   DESCRIPTION: Create a new window
@@ -175,7 +186,8 @@ void* delete_node(List* curr_list, uint32_t index) {
 		return (void*)0;
 
 	ListNode* curr_node = curr_list->root;
-	for(uint32_t curr_index = 0; (curr_index < index) && (curr_node != NULL); curr_index++) {
+	uint32_t curr_index;
+	for(curr_index = 0; (curr_index < index) && (curr_node != NULL); curr_index++) {
 		curr_node = curr_node->next;
 	}
 	if(curr_node == NULL)
@@ -298,8 +310,8 @@ void mouse_update(desktop* curr_desktop, uint16_t mouse_x, uint16_t mouse_y, uin
 
 	//check if drag window is there
 	if(curr_desktop->drag_window) {
-		curr_desktop->drag_window = mouse_x - curr_desktop->drag_offset_x;
-		curr_desktop->drag_window = mouse_y - curr_desktop->drag_offset_y;
+		curr_desktop->drag_window->x = mouse_x - curr_desktop->drag_offset_x;
+		curr_desktop->drag_window->y = mouse_y - curr_desktop->drag_offset_y;
 	}
 
 	//update the screen
@@ -336,6 +348,6 @@ void desktop_paint(desktop* curr_desktop) {
 
 	//draw a rectangle for a mouse
 	draw_rectangle(curr_desktop->context, curr_desktop->mouse_x, curr_desktop->mouse_y, 
-		10, 10, 14);
-
+		2, 2, 40);
+	outputBuffer();
 }

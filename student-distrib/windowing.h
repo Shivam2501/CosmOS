@@ -43,6 +43,10 @@ typedef struct desktop {
 	uint16_t drag_offset_y;
 } desktop;
 
+extern desktop* curr_desktop;
+
+void init_desktop();
+
 window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color, context* context);
 void draw_rectangle(context* context, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color);
 void window_paint(window* window);
