@@ -203,9 +203,9 @@ entry (unsigned long magic, unsigned long addr)
 
     desktop* curr_desktop = new_desktop(cont);
 
-    new_window_desktop(curr_desktop, 10, 10, 200, 100);
-    // new_window_desktop(curr_desktop, 100, 150, 100, 100);
-    // new_window_desktop(curr_desktop, 200, 100, 300, 150);
+    new_window_desktop(curr_desktop, 10, 10, 200, 100, 17);
+    // new_window_desktop(curr_desktop, 100, 150, 100, 100, 15);
+    // new_window_desktop(curr_desktop, 200, 100, 300, 150, 24);
     
     desktop_paint(curr_desktop);
 

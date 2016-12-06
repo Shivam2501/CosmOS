@@ -7,7 +7,7 @@
  *   OUTPUTS: none
  *   RETURN VALUE: pointer to the window struct
  */ 
-window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, context* cont) {
+window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color, context* cont) {
 
 	//allocate memory for a new window struct
 	window* new_window = (window*)kmalloc(sizeof(window));
@@ -21,6 +21,7 @@ window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, cont
 	new_window->width = width;
 	new_window->height = height;
 	new_window->context = cont;
+	new_window->color = color;
 
 	return new_window;
 }
@@ -62,8 +63,7 @@ void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint3
  *   RETURN VALUE: none
  */ 
 void window_paint(window* curr_window) {
-	uint32_t fill_color = 17;
-	draw_rectangle(curr_window->context, curr_window->x, curr_window->y, curr_window->width, curr_window->height, fill_color);
+	draw_rectangle(curr_window->context, curr_window->x, curr_window->y, curr_window->width, curr_window->height, curr_window->color);
 }
 
 /*
@@ -162,6 +162,13 @@ void* find_node(List* curr_list, uint32_t index) {
 		return curr_node->payload;
 }
 
+/*
+ * delete_node
+ *   DESCRIPTION: Delete a node from the list
+ *   INPUTS: list to be deleted from and index of the node
+ *   OUTPUTS: none
+ *   RETURN VALUE: 1 on success and 0 on failure
+ */
 void* delete_node(List* curr_list, uint32_t index) {
 	//check if current list is empty or index is greater than elements in the list
 	if(curr_list->count == 0 || curr_list->count < index)
@@ -212,6 +219,16 @@ desktop* new_desktop(context* cont) {
 	}
 
 	new_desktop->context = cont;
+
+	//set the default values for mouse
+	new_desktop->left_button_state = 0;
+	new_desktop->mouse_x = new_desktop->context->width / 2;
+	new_desktop->mouse_y = new_desktop->context->height / 2;
+
+	new_desktop->drag_window = (window*)0;
+	new_desktop->drag_offset_x = 0;
+	new_desktop->drag_offset_y = 0;
+
 	return new_desktop;
 }
 
@@ -222,8 +239,8 @@ desktop* new_desktop(context* cont) {
  *   OUTPUTS: none
  *   RETURN VALUE: window created
  */
-window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
-	window* curr_window = new_window(x, y, width, height, curr_desktop->context);
+window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
+	window* curr_window = new_window(x, y, width, height, color, curr_desktop->context);
 
 	if(curr_window == NULL)
 		return NULL;
@@ -265,10 +282,24 @@ void mouse_update(desktop* curr_desktop, uint16_t mouse_x, uint16_t mouse_y, uin
 					//put this window at the head of the list
 					delete_node(curr_desktop->children, i);
 					add_to_list(curr_desktop->children, (void*)curr_window);
+
+					//offset between mouse and the window being dragged
+					curr_desktop->drag_offset_x = mouse_x - curr_window->x;
+					curr_desktop->drag_offset_y = mouse_y - curr_window->y;
+					curr_desktop->drag_window = curr_window;
+
 					break;
 				}
 			}
 		}
+	} else {
+		curr_desktop->drag_window = (window*)0;
+	}
+
+	//check if drag window is there
+	if(curr_desktop->drag_window) {
+		curr_desktop->drag_window = mouse_x - curr_desktop->drag_offset_x;
+		curr_desktop->drag_window = mouse_y - curr_desktop->drag_offset_y;
 	}
 
 	//update the screen
@@ -302,4 +333,9 @@ void desktop_paint(desktop* curr_desktop) {
 	window* curr_window;
 	for(i = 0; (curr_window = (window*)find_node(curr_desktop->children, i));i++)
 		window_paint(curr_window);
+
+	//draw a rectangle for a mouse
+	draw_rectangle(curr_desktop->context, curr_desktop->mouse_x, curr_desktop->mouse_y, 
+		10, 10, 14);
+
 }
