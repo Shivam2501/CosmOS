@@ -33,6 +33,9 @@ typedef struct List {
 typedef struct desktop {
 	List* children; 
 	context* context;
+	uint8_t left_button_state;
+	uint16_t mouse_x;
+	uint16_t mouse_y;
 } desktop;
 
 window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, context* context);

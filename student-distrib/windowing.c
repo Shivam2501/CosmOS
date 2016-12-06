@@ -162,6 +162,36 @@ void* find_node(List* curr_list, uint32_t index) {
 		return curr_node->payload;
 }
 
+void* delete_node(List* curr_list, uint32_t index) {
+	//check if current list is empty or index is greater than elements in the list
+	if(curr_list->count == 0 || curr_list->count < index)
+		return (void*)0;
+
+	ListNode* curr_node = curr_list->root;
+	for(uint32_t curr_index = 0; (curr_index < index) && (curr_node != NULL); curr_index++) {
+		curr_node = curr_node->next;
+	}
+	if(curr_node == NULL)
+		return (void*)0;
+
+	void* payload = curr_node->payload;
+
+	if(curr_node->prev != NULL)
+		curr_node->prev->next = curr_node->next;
+
+	if(curr_node->next != NULL)
+		curr_node->next->prev = curr_node->prev;
+
+	//check if deleting the root node
+	if(!index)
+		curr_list->root = curr_node->next;
+	curr_list->count --;
+	//free the memory for the new node
+	kfree(curr_node);
+
+	return payload;
+}
+
 /*
  * new_desktop
  *   DESCRIPTION: Initialize a new desktop
@@ -206,6 +236,45 @@ window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32
 	} else {
 		return curr_window;
 	}
+}
+
+/*
+ * mouse_update
+ *   DESCRIPTION: process mouse event
+ *   INPUTS: desktop, mouse coord and button
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
+void mouse_update(desktop* curr_desktop, uint16_t mouse_x, uint16_t mouse_y, uint8_t button) {
+
+	int i;
+	window* curr_window;
+
+	curr_desktop->mouse_x = mouse_x;
+	curr_desktop->mouse_y = mouse_y;
+
+	//check if a button was pressed
+	if(button) {
+		if(!curr_desktop->left_button_state) {
+			//iterate through all the windows
+			for(i = curr_desktop->children->count; i >= 0; i--) {
+				curr_window = (window*)find_node(curr_desktop->children, i);
+				//check if this window was clicked
+				if(mouse_x >= curr_window->x && mouse_x < (curr_window->x + curr_window->width) &&
+					mouse_y >= curr_window->y && mouse_y < (curr_window->y + curr_window->height)) {
+					//put this window at the head of the list
+					delete_node(curr_desktop->children, i);
+					add_to_list(curr_desktop->children, (void*)curr_window);
+					break;
+				}
+			}
+		}
+	}
+
+	//update the screen
+	desktop_paint(curr_desktop);
+	//update the mouse button state for desktop
+	curr_desktop->left_button_state = button;
 }
 
 /*
