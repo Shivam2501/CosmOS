@@ -1,7 +1,8 @@
-#ifndef _GENERAL_OPERATIONS_H
-#define _GENERAL_OPERATIONS_H
+#ifndef _SYSCALLS_H
+#define _SYSCALLS_H
 
 #include "x86_desc.h"
+#include "i8259.h"
 #include "lib.h"
 #include "paging.h"
 #include "file.h"
@@ -11,6 +12,7 @@
 #define EXE_BUF_SIZE		 	4
 #define PAGE_DIR_ENTRY			0x20
 #define	MAX_NUM_PROCESS		   	6
+#define USER_PROGRAM_START		0x08000000
 #define VIRTUAL_ADDRESS_PROGRAM	0x08048000
 #define KERNEL_PROCESS_START	0x800000
 #define KERNEL_PROCESS_SIZE		0x400000
@@ -21,8 +23,9 @@
 #define ESP_VALUE				0x83FFFFC
 #define MAX_BUFFER_SIZE		 	128
 #define MAX_OPEN_FILES			8
-#define FILE_SIZE  				100000
+#define FILE_SIZE  				0x3FFFFC
 #define PAGE_ALIGNMENT			4
+#define _132MB					0x8400000
 
 typedef struct ops_table{
 	int32_t (*open) (const uint8_t* filename);
@@ -33,7 +36,7 @@ typedef struct ops_table{
 
 typedef struct file_array{
     ops_table_t 	ops_table_ptr;
-    uint32_t*   	inode; 
+    uint32_t	   	inode; 
     uint32_t		file_position;   
     uint32_t 		flags;                  
 } file_array_t;
@@ -43,6 +46,7 @@ typedef struct PCB{
 	tss_t 				tss;
 	file_array_t 		FD[MAX_OPEN_FILES];
 	uint32_t			parent_ptr;
+	uint8_t 			arguments[MAX_BUFFER_SIZE];
 } PCB_t;
 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes);

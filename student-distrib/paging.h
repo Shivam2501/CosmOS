@@ -40,6 +40,8 @@
 uint32_t page_directory[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
 //page table array
 uint32_t page_table[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
+//page table array
+uint32_t page_table_video[SIZE_DIR_TABLE] __attribute__((aligned(ALIGN)));
 
 void add_paging(uint32_t virtual, uint32_t physical);
 void kernel_add_paging(uint32_t virtual_start, uint32_t virtual_end, uint32_t physical);
@@ -53,5 +55,9 @@ extern void loadPageDirectory(unsigned int*);
 
 /* enable paging */
 extern void enablePaging();
+
+extern void add_paging_4kb(uint32_t virtual);
+
+void tlb_flush(void);
 
 #endif /* _PAGING_H */

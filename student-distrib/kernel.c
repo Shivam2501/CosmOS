@@ -13,12 +13,12 @@
 #include "paging.h"
 #include "file.h"
 #include "test.h" 
-#include "general_operations.h"
 #include "memory_allocator.h"
 #include "kmalloc_test.h"
 #include "modex.h"
 #include "windowing.h"
 #include "mouse.h"
+#include "syscalls.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */

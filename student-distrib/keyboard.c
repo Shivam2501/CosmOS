@@ -11,6 +11,7 @@ uint8_t status;
 uint8_t buffer[BUFFER_SIZE];
 int32_t buffer_index;
 volatile int terminal_read_ready;
+volatile int ctrl_c_ready;
 
 /*
 map[0] : caps lock and shift are not pressed
@@ -113,12 +114,15 @@ void process_code(uint8_t scancode) {
 			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_L) {
 				clear_buffer();
 				clear();
+				terminal_read_ready = 1;
 				return;
 			} 
 
 			// if CTRL+C then notify shell
 			if (((status & CTRL_ON)>>2) == 1 && scancode == SCANCODE_C) {
-				stop = 1;
+				//stop = 1;
+				ctrl_c_ready = 1;
+				syscall_halt (0);
 				return;
 			} 
 
@@ -240,6 +244,7 @@ void clear_buffer() {
 		buffer[i] = '\0';
 	buffer_index = 0;
 	terminal_read_ready = 0;
+	ctrl_c_ready = 0;
 }
 
 /*
