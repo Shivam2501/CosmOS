@@ -1,6 +1,6 @@
 #include "syscalls.h"
 
-PCB_t *parent_pointer = NULL; 
+//PCB_t *terminals[current_task].current_process = NULL; 
 int32_t pid_tracker[MAX_NUM_PROCESS];					//index into pid_tracker is pid-1
 
 //ops_table for rtc, file and directory 
@@ -37,8 +37,9 @@ int32_t init_FD(){
 	stdout.file_position = 0; 
 	stdout.inode = NULL;
 
-	parent_pointer->FD[0] = stdin;
-	parent_pointer->FD[1] = stdout;
+	//terminals[current_task].buffer_index = 0;
+	terminals[current_task].current_process->FD[0] = stdin;
+	terminals[current_task].current_process->FD[1] = stdout;
 
 	return 0;
 }
@@ -58,7 +59,7 @@ int32_t syscall_open(const uint8_t* filename) {
 
 	int index = DEFAULT_FD;
 	//find free fd array
-	while(parent_pointer->FD[index].flags == 1 && index < FD_SIZE){								
+	while(terminals[current_task].current_process->FD[index].flags == 1 && index < FD_SIZE){								
 		index++;
 	}
 
@@ -72,35 +73,35 @@ int32_t syscall_open(const uint8_t* filename) {
 			//rtc handlingcreated
 			case 0:	
 				{
-					parent_pointer->FD[index].ops_table_ptr = op_table_rtc;
-					parent_pointer->FD[index].inode = NULL;
-					parent_pointer->FD[index].file_position = 0;
-					parent_pointer->FD[index].flags = 1;
+					terminals[current_task].current_process->FD[index].ops_table_ptr = op_table_rtc;
+					terminals[current_task].current_process->FD[index].inode = NULL;
+					terminals[current_task].current_process->FD[index].file_position = 0;
+					terminals[current_task].current_process->FD[index].flags = 1;
 
-					parent_pointer->FD[index].ops_table_ptr.open(filename);
+					terminals[current_task].current_process->FD[index].ops_table_ptr.open(filename);
 					break;
 				}
 				//directory open
 			case 1:
 				{
 					//sets ptr to jumptable in the struct for fd entry
-					parent_pointer->FD[index].ops_table_ptr = op_table_dir;					
-					parent_pointer->FD[index].inode = NULL;
-					parent_pointer->FD[index].file_position = 0;
-					parent_pointer->FD[index].flags = 1;
+					terminals[current_task].current_process->FD[index].ops_table_ptr = op_table_dir;					
+					terminals[current_task].current_process->FD[index].inode = NULL;
+					terminals[current_task].current_process->FD[index].file_position = 0;
+					terminals[current_task].current_process->FD[index].flags = 1;
 
-					parent_pointer->FD[index].ops_table_ptr.open(filename);
+					terminals[current_task].current_process->FD[index].ops_table_ptr.open(filename);
 					break;
 				}
 				//file open
 			case 2:
 				{
-					parent_pointer->FD[index].ops_table_ptr = op_table_file;
-					parent_pointer->FD[index].inode = dentry_file_info.inode;
-					parent_pointer->FD[index].file_position = 0;
-					parent_pointer->FD[index].flags = 1;
+					terminals[current_task].current_process->FD[index].ops_table_ptr = op_table_file;
+					terminals[current_task].current_process->FD[index].inode = dentry_file_info.inode;
+					terminals[current_task].current_process->FD[index].file_position = 0;
+					terminals[current_task].current_process->FD[index].flags = 1;
 
-					parent_pointer->FD[index].ops_table_ptr.open(filename);
+					terminals[current_task].current_process->FD[index].ops_table_ptr.open(filename);
 					break;
 				}
 		}
@@ -121,15 +122,15 @@ int32_t syscall_open(const uint8_t* filename) {
 int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
 
 	//check if file descriptor is not valid
-	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)  
+	if(fd < 0 || fd >= FD_SIZE || terminals[current_task].current_process->FD[fd].flags == 0)  
 		return -1;
 
 	//check if buf is NULL or the read function is NULL
-	if(parent_pointer->FD[fd].ops_table_ptr.read == NULL || buf == NULL)
+	if(terminals[current_task].current_process->FD[fd].ops_table_ptr.read == NULL || buf == NULL)
 		return -1;
 
 	//call read specific to type
-	return parent_pointer->FD[fd].ops_table_ptr.read(fd, buf, nbytes);
+	return terminals[current_task].current_process->FD[fd].ops_table_ptr.read(fd, buf, nbytes);
 }
 
 /*
@@ -141,15 +142,15 @@ int32_t syscall_read(int32_t fd, void* buf, int32_t nbytes) {
  */ 
 int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
 	//check if file descriptor is valid
-	if(fd < 0 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)
+	if(fd < 0 || fd >= FD_SIZE || terminals[current_task].current_process->FD[fd].flags == 0)
 		return -1;
 
 	//check if buf is NULL or the write function is NULL
-	if(parent_pointer->FD[fd].ops_table_ptr.write == NULL || buf == NULL)
+	if(terminals[current_task].current_process->FD[fd].ops_table_ptr.write == NULL || buf == NULL)
 		return -1;
 
 	//call write specific to type
-	return parent_pointer->FD[fd].ops_table_ptr.write(fd, buf, nbytes);
+	return terminals[current_task].current_process->FD[fd].ops_table_ptr.write(fd, buf, nbytes);
 }
 
 /*
@@ -161,13 +162,13 @@ int32_t syscall_write(int32_t fd, const void* buf, int32_t nbytes) {
  */ 
 int32_t syscall_close(int32_t fd) {
 	//check if file descriptor is valid, can't close stdin or stdout(fd < 2)
-	if(fd < 2 || fd >= FD_SIZE || parent_pointer->FD[fd].flags == 0)
+	if(fd < 2 || fd >= FD_SIZE || terminals[current_task].current_process->FD[fd].flags == 0)
 		return -1;
 
 	//set flag to not being used now
-	parent_pointer->FD[fd].flags = 0;
+	terminals[current_task].current_process->FD[fd].flags = 0;
 	//call close specific to type
-	return parent_pointer->FD[fd].ops_table_ptr.close(fd);
+	return terminals[current_task].current_process->FD[fd].ops_table_ptr.close(fd);
 }
 
 /*
@@ -179,10 +180,10 @@ int32_t syscall_close(int32_t fd) {
  */ 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes)
 {
-	if(strlen((int8_t*)parent_pointer->arguments) > nbytes || buf == NULL)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
+	if(strlen((int8_t*)terminals[current_task].current_process->arguments) > nbytes || buf == NULL)				//the arguments and a terminal NULL (0-byte) do not fit in the buffer
 		return -1; 	
 
-	memcpy(buf, parent_pointer->arguments, nbytes);
+	memcpy(buf, terminals[current_task].current_process->arguments, nbytes);
 	return 0;
 }
 
@@ -198,11 +199,9 @@ int32_t syscall_vidmap (uint8_t** screen_start)
 	if(screen_start == NULL || screen_start < (uint8_t**)USER_PROGRAM_START || screen_start > (uint8_t**)ESP_VALUE)
 		return -1;
 
-	//add paging from 132MB -> xB80000
-	add_paging_4kb(_132MB);
 	//assign the address pointing to the video mem
-	*screen_start = (uint8_t*)_132MB;
-	return _132MB;
+	*screen_start = (uint8_t*)terminals[current_task].virtual_video_mem;
+	return terminals[current_task].virtual_video_mem;
 }
 
 int32_t syscall_set_handler (int32_t signum, void* handler_address)
@@ -238,11 +237,12 @@ int32_t syscall_fail (void)
  *   RETURN VALUE: 0 on success
  */ 
 int32_t syscall_halt (uint8_t status){
+	cli();
 
 	int i = 0;
 	//obtain current and parent's pids
-	uint32_t parent_pid = parent_pointer->parent_ptr;
-	uint32_t current_pid = parent_pointer->pid;
+	uint32_t parent_pid = terminals[current_task].current_process->parent_ptr;
+	uint32_t current_pid = terminals[current_task].current_process->pid;
 
 	//get parent pcb
 	PCB_t* parent_process = (PCB_t*)(KERNEL_PROCESS_START - (parent_pid+1)*KERNEL_STACK_SIZE);
@@ -264,17 +264,24 @@ int32_t syscall_halt (uint8_t status){
 
 	//if trying to halt shell
 	if(parent_pid == current_pid) {
-		parent_pointer = NULL;
+		terminals[current_task].current_process = NULL;
+		if(current_task == active_terminal)
+			clear();
+		else
+			clear_buffer_scheduler();
 		syscall_execute((uint8_t*)"shell");
 		return -1;
 	}
 
+	//clear the keyboard buffer
+	clear_buffer_scheduler();
+
 	//parent becomes current process's parent
-	parent_pointer = parent_process;
+	terminals[current_task].current_process = parent_process;
 	
 	//have to return status
 	uint32_t new_status = status;
-
+	sti();
 	//push correct values to jump
 	asm volatile("                  	\n\
 			movl 	%0, %%esp			\n\
@@ -298,6 +305,7 @@ int32_t syscall_halt (uint8_t status){
  *   RETURN VALUE: 0
  */ 
 int32_t syscall_execute (const uint8_t* command){
+	cli();
 	int i = 0, j=0; 																		//set stdin, stdout
 	
 	//check if command is NULL
@@ -353,13 +361,7 @@ int32_t syscall_execute (const uint8_t* command){
 		return -1; 
 
 	//find empty process 
-	for(i = 0; i < MAX_NUM_PROCESS; i++){											
-		if(pid_tracker[i] == 0)
-			break;
-	}
-
-	if(i == MAX_NUM_PROCESS){
-		printf("No processes free\n");
+	if(-1 == (i = get_available_pid())){
 		return -1;
 	}
 
@@ -393,12 +395,13 @@ int32_t syscall_execute (const uint8_t* command){
 	//set tss values
 	tss.ss0 = KERNEL_DS;
 	tss.esp0 = KERNEL_PROCESS_START - i*KERNEL_STACK_SIZE - PAGE_ALIGNMENT;
-
+	
 	//set the parent pointer
-	if(parent_pointer == NULL) {
+	if(terminals[current_task].current_process == NULL) {
 		pcb->parent_ptr = pcb->pid;
+		//current_task = active_terminal;
 	} else {
-		pcb->parent_ptr = parent_pointer->pid;	
+		pcb->parent_ptr = terminals[current_task].current_process->pid;	
 	}
 
 	memset(pcb->arguments, '\0', MAX_BUFFER_SIZE);
@@ -406,14 +409,14 @@ int32_t syscall_execute (const uint8_t* command){
 	memcpy(pcb->arguments, arg_buf, strlen((int8_t*)arg_buf));
 
 	//save current pcb for next process
-	parent_pointer = pcb;
+	terminals[current_task].current_process = pcb;
 	init_FD();
 
 	//read 24-27 bytes of executable file which serves as entrypoint
 	read_data(dentry_file_info.inode, EIP_READ_OFFSET, buf, EXE_BUF_SIZE);
 	//move data segment, push ss, esp, eflags, cs, eip 
 	uint32_t entrypoint = *((uint32_t*)buf);
-
+	sti();
 	//push correct values onto  stack for iret context
 	asm volatile("                  	\n\
 			mov 	%0, %%ds			\n\
@@ -439,12 +442,22 @@ int32_t syscall_execute (const uint8_t* command){
 }
 
 /*
- * get_current_pcb
- *   DESCRIPTION: return a pointer to the current process's pcb
+ * get_available_pid
+ *   DESCRIPTION: return the pid which is free
  *   INPUTS: none
  *   OUTPUTS: none
- *   RETURN VALUE: pointer to current pcb
+ *   RETURN VALUE: pid on success, -1 on fail
  */
-PCB_t* get_current_pcb() {
-	return parent_pointer;
+int get_available_pid() {
+	int i;
+	for(i = 0; i < MAX_NUM_PROCESS; i++){											
+		if(pid_tracker[i] == 0)
+			return i;
+	}
+
+	if(i == MAX_NUM_PROCESS){
+		printf("No Processes Free\n");
+		return -1;
+	}
+	return 0;
 }

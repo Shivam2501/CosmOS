@@ -27,13 +27,13 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 	int32_t i;
 
 	//wait until enter is pressed
-	while(!get_terminal_status());
+	while(!terminals[current_task].terminal_read_ready);
 
 	uint8_t *temp_buf = (uint8_t*)buf;
 	//copy the terminal line buffer
 	for(i = 0; i < nbytes; i++) {
-		temp_buf[i] = buffer[i];
-		if(i==buffer_index-1)
+		temp_buf[i] = terminals[current_task].keyboard_buffer[i];
+		if(i==terminals[current_task].buffer_index-1)
 			break;
 	}
 
@@ -41,7 +41,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 	if(i < nbytes && temp_buf[i] != '\n')
 		temp_buf[++i] = '\n';
 	
-	clear_buffer();
+	clear_buffer_scheduler();
 	return i+1;
 }
 
@@ -56,16 +56,22 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
 	int32_t i;
 	uint8_t *temp_buf = (uint8_t*)buf;
 	
-	//disable the keyboard interrupt
-	disable_irq(KEYBOARD_IRQ);
+	//disable the interrupts
+	cli();
 
-	//print the buffer on the screen
-	for(i = 0; i < nbytes; i++) {
-		putc(temp_buf[i]);
+	if(current_task == active_terminal) {
+		//print the buffer on the screen
+		for(i = 0; i < nbytes; i++) {
+			putc(temp_buf[i]);
+		}
+	} else {
+		for(i = 0; i < nbytes; i++) {
+			putc_buffer(temp_buf[i]);
+		}
 	}
 
-	//enable the keyboard interrupt
-	enable_irq(KEYBOARD_IRQ);
+	//enable the interrupts
+	sti();
 
 	return i+1;
 }
@@ -78,7 +84,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
  *   RETURN VALUE: 0 on success
  */
 int32_t terminal_close(int32_t fd) {
-	clear_buffer();
+	clear_buffer_scheduler();
 	return 0;
 }
 

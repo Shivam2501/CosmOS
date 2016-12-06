@@ -2,12 +2,6 @@
 #define _SYSCALLS_H
 
 #include "x86_desc.h"
-#include "i8259.h"
-#include "lib.h"
-#include "paging.h"
-#include "file.h"
-#include "rtc.h"
-#include "terminal.h"
 
 #define EXE_BUF_SIZE		 	4
 #define PAGE_DIR_ENTRY			0x20
@@ -26,6 +20,7 @@
 #define FILE_SIZE  				0x3FFFFC
 #define PAGE_ALIGNMENT			4
 #define _132MB					0x8400000
+#define VIDEO_MEM 				0xB8000
 
 typedef struct ops_table{
 	int32_t (*open) (const uint8_t* filename);
@@ -40,7 +35,7 @@ typedef struct file_array{
     uint32_t		file_position;   
     uint32_t 		flags;                  
 } file_array_t;
-
+ 
 typedef struct PCB{
 	uint32_t 			pid;
 	tss_t 				tss;
@@ -48,6 +43,16 @@ typedef struct PCB{
 	uint32_t			parent_ptr;
 	uint8_t 			arguments[MAX_BUFFER_SIZE];
 } PCB_t;
+
+#include "i8259.h"
+#include "lib.h"
+#include "paging.h"
+#include "file.h"
+#include "rtc.h"
+#include "terminal.h"
+#include "keyboard.h"
+#include "scheduler.h"
+#include "task.h"
 
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes);
 int32_t syscall_vidmap (uint8_t** screen_start);
@@ -60,6 +65,6 @@ int32_t syscall_write (int32_t fd, const void* buf, int32_t nbytes);
 int32_t syscall_open (const uint8_t* filename);
 int32_t syscall_close (int32_t fd);
 int32_t syscall_fail (void);
-PCB_t* get_current_pcb();
+int get_available_pid();
 
 #endif

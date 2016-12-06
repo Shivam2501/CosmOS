@@ -19,6 +19,8 @@
 #include "windowing.h"
 #include "mouse.h"
 #include "syscalls.h"
+#include "task.h"
+#include "pit.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -32,7 +34,7 @@ entry (unsigned long magic, unsigned long addr)
 	multiboot_info_t *mbi;
 	get_file_system_start(addr);
 	/* Clear the screen. */
-	clear();
+	//clear();
 
 	/* Am I booted by a Multiboot-compliant boot loader? */
 	if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
@@ -161,7 +163,7 @@ entry (unsigned long magic, unsigned long addr)
 	
 	
 	//clear the screen
-	clear();
+	//clear();
 
 	set_mode_X();
 	
@@ -173,6 +175,8 @@ entry (unsigned long magic, unsigned long addr)
 	/* Initialize PIC, RTC, keyboard, and paging*/
 	i8259_init();
 
+	pit_init();
+	
 	rtc_init();
 
 	keyboard_init();
@@ -213,6 +217,7 @@ entry (unsigned long magic, unsigned long addr)
 	int *p;
 	p = 0xB8000;
 	*p = 5; */
+	// init_tasks();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
@@ -223,8 +228,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	//test rtc, terminal and file system syscalls
 	//shell();
-	syscall_execute((uint8_t*)"shell");
-
+	init_tasks();
 	//int i = 4/0;
 	//printf("returned from idt");
 

@@ -3,13 +3,15 @@
  */
 
 #include "lib.h"
+#include "task.h"
+
 #define VIDEO 0xB8000
 #define NUM_COLS 80
 #define NUM_ROWS 25
 #define ATTRIB 0x9F
 
-static int screen_x;
-static int screen_y;
+int screen_x;
+int screen_y;
 static char* video_mem = (char *)VIDEO;
 
 /*
@@ -25,22 +27,34 @@ clear(void)
     int32_t i;
     for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem + (i << 1) + 1) = terminals[active_terminal].color;
     }
     screen_y = 0;
     screen_x = 0;
 
-    update_cursor(screen_x, screen_y);
+    update_cursor();
 }
 
 /*
-* void update_cursor(int screen_x, int screen_y);
-*   Inputs: screen x and y coordinates
+* update_screen_coord;
+*   Inputs: cursor coordinates
+*   Return Value: none
+*	Function: updates the screen coordinates
+*/
+void
+update_screen_coord(int cursor_x, int cursor_y)
+{
+	screen_x = cursor_x;
+	screen_y = cursor_y;
+}
+/*
+* void update_cursor();
+*   Inputs: none
 *   Return Value: none
 *	Function: Set the cursor to the screen location
 */
 void
-update_cursor(int screen_x, int screen_y)
+update_cursor()
 {
 	unsigned short position = (screen_y*NUM_COLS) + screen_x;
 
@@ -80,7 +94,7 @@ update_coordinate()
 		screen_y--;
 		screen_x = NUM_COLS-1;
 	}
-	update_cursor(screen_x, screen_y);
+	update_cursor();
 }
 
 /*
@@ -110,7 +124,7 @@ scrolling(void)
    		//last line cleared
    		for (j=0; j < NUM_COLS; j++) {
    			*(uint8_t *)(video_mem + ((i+j) << 1)) = ' ';
-        	*(uint8_t *)(video_mem + ((i+j) << 1) + 1) = ATTRIB;
+        	*(uint8_t *)(video_mem + ((i+j) << 1) + 1) = terminals[active_terminal].color;
    		}
 
    		//update coordinates
@@ -159,7 +173,10 @@ format_char_switch:
 					switch(*buf) {
 						/* Print a literal '%' character */
 						case '%':
-							putc('%');
+							if(current_task == active_terminal) 
+								putc('%');
+							else
+								putc_buffer('%');
 							break;
 
 						/* Use alternate formatting */
@@ -221,7 +238,10 @@ format_char_switch:
 
 						/* Print a single character */
 						case 'c':
-							putc( (uint8_t) *((int32_t *)esp) );
+							if(current_task == active_terminal) 
+								putc( (uint8_t) *((int32_t *)esp) );
+							else
+								putc_buffer( (uint8_t) *((int32_t *)esp) );
 							esp++;
 							break;
 
@@ -239,7 +259,10 @@ format_char_switch:
 				break;
 
 			default:
-				putc(*buf);
+				if(current_task == active_terminal) 
+					putc(*buf);
+				else
+					putc_buffer(*buf);
 				break;
 		}
 		buf++;
@@ -260,7 +283,10 @@ puts(int8_t* s)
 {
 	register int32_t index = 0;
 	while(s[index] != '\0') {
-		putc(s[index]);
+		if(current_task == active_terminal) 
+			putc(s[index]);
+		else
+			putc_buffer(s[index]);
 		index++;
 	}
 
@@ -282,13 +308,68 @@ putc(uint8_t c)
         screen_x=0;
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = terminals[active_terminal].color;
         screen_x++;
         //screen_x %= NUM_COLS;
         //screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
     scrolling();
-    update_cursor(screen_x, screen_y);
+    update_cursor();
+}
+
+/*
+* void putc_buffer(uint8_t c);
+*   Inputs: uint_8* c = character to print for the process scheduled
+*   Return Value: void
+*	Function: Output a character to the console 
+*/
+
+
+void
+putc_buffer(uint8_t c)
+{
+    if(c == '\n' || c == '\r') {
+        terminals[current_task].cursor_y++;
+        terminals[current_task].cursor_x=0;
+    } else {
+        *(uint8_t *)(terminals[current_task].virtual_video_mem + ((NUM_COLS*terminals[current_task].cursor_y + terminals[current_task].cursor_x) << 1)) = c;
+        *(uint8_t *)(terminals[current_task].virtual_video_mem + ((NUM_COLS*terminals[current_task].cursor_y + terminals[current_task].cursor_x) << 1) + 1) = terminals[current_task].color;
+        terminals[current_task].cursor_x++;
+    }
+    scrolling_buffer();
+}
+
+/*
+* void scrolling_buffer();
+*   Inputs: none
+*   Return Value: void
+*	Function: Scroll the screen by adding a new line at the bottom
+*/
+
+void scrolling_buffer() {
+    if(terminals[current_task].cursor_x >= NUM_COLS){
+    	terminals[current_task].cursor_y++;
+    	terminals[current_task].cursor_x = 0;
+    }
+
+   	if(terminals[current_task].cursor_y >= NUM_ROWS) {
+   		//copy second line character on first and similarly do it for all lines
+   		int32_t i,j;
+   		for (i=0; i < (NUM_ROWS-1)*NUM_COLS; i++) {
+   			*(uint8_t *)(terminals[current_task].virtual_video_mem + (i << 1)) = *(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+NUM_COLS) << 1));
+        	*(uint8_t *)(terminals[current_task].virtual_video_mem + (i << 1) + 1) = *(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+NUM_COLS) << 1) + 1);
+   		}
+
+   		//last line cleared
+   		for (j=0; j < NUM_COLS; j++) {
+   			*(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+j) << 1)) = ' ';
+        	*(uint8_t *)(terminals[current_task].virtual_video_mem + ((i+j) << 1) + 1) = terminals[current_task].color;
+   		}
+
+   		//update coordinates
+   		terminals[current_task].cursor_x = 0;
+   		terminals[current_task].cursor_y = NUM_ROWS-1;
+   	}
 }
 
 /*

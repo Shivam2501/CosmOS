@@ -5,6 +5,8 @@
 #include "multiboot.h"
 #include "lib.h"
 #include "syscalls.h"
+#include "task.h"
+#include "scheduler.h"
 
 #define NUMBER_DIR_ENTRIES 			1
 #define NUMBER_INODES				1
@@ -31,7 +33,6 @@ typedef struct boot_header {
 	uint32_t    inodes;
 	uint32_t    data_blocks;
 } boot_t;
-
 
 int get_file_system_start(unsigned int mod_start);
 
