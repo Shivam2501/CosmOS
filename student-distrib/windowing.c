@@ -167,7 +167,7 @@ List* split_rectangle(rectangle* lower_rectangle, rectangle* upper_rectangle) {
 	temp_rectangle.bottom = lower_rectangle->bottom;
 	temp_rectangle.right = lower_rectangle->right;
 
-	rectangle *new_rectangle;
+	rectangle *new_rect;
 
 	//split by left edge
 	if((upper_rectangle->left <= temp_rectangle.right) && (upper_rectangle->left >= temp_rectangle.left)) {
@@ -175,17 +175,17 @@ List* split_rectangle(rectangle* lower_rectangle, rectangle* upper_rectangle) {
 		temp_rectangle left, top, bottom
 		and upper rectangle's left boundary.
 		*/
-		new_rectangle = new_rectangle(temp_rectangle.top, temp_rectangle.left, temp_rectangle.bottom, 
+		new_rect = new_rectangle(temp_rectangle.top, temp_rectangle.left, temp_rectangle.bottom, 
 			upper_rectangle->left - 1);
 
 		//sanity check
-		if(new_rectangle == NULL) {
+		if(new_rect == NULL) {
 			kfree(clipped_rectangle);
 			return (List*)0;
 		}
 
 		//if successfully cut then add it to the list of clipped rectangles
-		add_to_list(clipped_rectangle, new_rectangle);
+		add_to_list(clipped_rectangle, new_rect);
 		temp_rectangle.left = upper_rectangle->left;
 	} 
 
@@ -195,22 +195,22 @@ List* split_rectangle(rectangle* lower_rectangle, rectangle* upper_rectangle) {
 		temp_rectangle left, top, right
 		and upper rectangle's top boundary.
 		*/
-		new_rectangle = new_rectangle(temp_rectangle.top, temp_rectangle.left, upper_rectangle->top - 1, 
+		new_rect = new_rectangle(temp_rectangle.top, temp_rectangle.left, upper_rectangle->top - 1, 
 			temp_rectangle.right);
 
 		//sanity check
-		if(new_rectangle == NULL) {
+		if(new_rect == NULL) {
 			//empty the whole list
 			while(clipped_rectangle->count) {
-				new_rectangle = delete_node(clipped_rectangle, 0);
-				kfree(new_rectangle);
+				new_rect = delete_node(clipped_rectangle, 0);
+				kfree(new_rect);
 			}
 			kfree(clipped_rectangle);
 			return (List*)0;
 		}
 
 		//if successfully cut then add it to the list of clipped rectangles
-		add_to_list(clipped_rectangle, new_rectangle);
+		add_to_list(clipped_rectangle, new_rect);
 		temp_rectangle.top = upper_rectangle->top;
 	}
 
@@ -220,22 +220,22 @@ List* split_rectangle(rectangle* lower_rectangle, rectangle* upper_rectangle) {
 		temp_rectangle bottom, top, right
 		and upper rectangle's right boundary.
 		*/
-		new_rectangle = new_rectangle(temp_rectangle.top, upper_rectangle->right + 1, temp_rectangle.bottom, 
+		new_rect = new_rectangle(temp_rectangle.top, upper_rectangle->right + 1, temp_rectangle.bottom, 
 			temp_rectangle.right);
 
 		//sanity check
-		if(new_rectangle == NULL) {
+		if(new_rect == NULL) {
 			//empty the whole list
 			while(clipped_rectangle->count) {
-				new_rectangle = delete_node(clipped_rectangle, 0);
-				kfree(new_rectangle);
+				new_rect = delete_node(clipped_rectangle, 0);
+				kfree(new_rect);
 			}
 			kfree(clipped_rectangle);
 			return (List*)0;
 		}
 
 		//if successfully cut then add it to the list of clipped rectangles
-		add_to_list(clipped_rectangle, new_rectangle);
+		add_to_list(clipped_rectangle, new_rect);
 		temp_rectangle.right = upper_rectangle->right;
 	}
 
@@ -245,22 +245,22 @@ List* split_rectangle(rectangle* lower_rectangle, rectangle* upper_rectangle) {
 		temp_rectangle bottom, left, right
 		and upper rectangle's bottom boundary.
 		*/
-		new_rectangle = new_rectangle(upper_rectangle->bottom + 1, temp_rectangle.left, temp_rectangle.bottom, 
+		new_rect = new_rectangle(upper_rectangle->bottom + 1, temp_rectangle.left, temp_rectangle.bottom, 
 			temp_rectangle.right);
 
 		//sanity check
-		if(new_rectangle == NULL) {
+		if(new_rect == NULL) {
 			//empty the whole list
 			while(clipped_rectangle->count) {
-				new_rectangle = delete_node(clipped_rectangle, 0);
-				kfree(new_rectangle);
+				new_rect = delete_node(clipped_rectangle, 0);
+				kfree(new_rect);
 			}
 			kfree(clipped_rectangle);
 			return (List*)0;
 		}
 
 		//if successfully cut then add it to the list of clipped rectangles
-		add_to_list(clipped_rectangle, new_rectangle);
+		add_to_list(clipped_rectangle, new_rect);
 		temp_rectangle.bottom = upper_rectangle->bottom;
 	}
 
@@ -632,7 +632,7 @@ void desktop_paint(desktop* curr_desktop) {
 	rectangle* curr_rectangle;
 
 	//clear the background
-	clear_desktop();
+	clear_desktop(curr_desktop);
 	clear_rectangles(curr_desktop->context);
 
 	for(i = 0; (curr_window = (window*)find_node(curr_desktop->children, i));i++){

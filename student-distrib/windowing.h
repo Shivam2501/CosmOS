@@ -12,15 +12,6 @@ typedef struct rectangle {
 	int32_t right;
 } rectangle;
 
-typedef struct window {
-	uint32_t x;
-	uint32_t y;
-	uint32_t width;
-	uint32_t height;
-	context* context;
-	uint32_t color;
-} window;
-
 typedef struct ListNode_struct {
 	void* payload;
 	struct ListNode_struct* prev;
@@ -38,6 +29,15 @@ typedef struct context {
 	uint32_t height;
 	List* clipped_rectangles;
 } context;
+
+typedef struct window {
+	uint32_t x;
+	uint32_t y;
+	uint32_t width;
+	uint32_t height;
+	context* context;
+	uint32_t color;
+} window;
 
 typedef struct desktop {
 	List* children; 
@@ -68,8 +68,8 @@ void draw_rectangle(context* context, uint32_t x, uint32_t y, uint32_t width, ui
 void window_paint(window* window);
 
 /* Rectangle Functions */
-rectangle* new_rectangle(int32_t top, int32_t left, int32_t bottom, int32_t right)
-List* split_rectangle(rectangle* lower_rectangle, rectangle* upper_rectangle)
+rectangle* new_rectangle(int32_t top, int32_t left, int32_t bottom, int32_t right);
+List* split_rectangle(rectangle* lower_rectangle, rectangle* upper_rectangle);
 
 /* List Functions */
 List* new_list();
