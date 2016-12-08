@@ -279,25 +279,25 @@ void mouse_update(desktop* curr_desktop, uint16_t mouse_x, uint16_t mouse_y, uin
 	int i;
 	window* curr_window;
 
-	curr_desktop->mouse_x = mouse_x;
-	curr_desktop->mouse_y = mouse_y;
+	curr_desktop->mouse_x += mouse_x;
+	curr_desktop->mouse_y -= mouse_y;
 
 	//check if a button was pressed
 	if(button) {
 		if(!curr_desktop->left_button_state) {
 			//iterate through all the windows
-			for(i = curr_desktop->children->count; i >= 0; i--) {
+			for(i = curr_desktop->children->count - 1; i >= 0; i--) {
 				curr_window = (window*)find_node(curr_desktop->children, i);
 				//check if this window was clicked
-				if(mouse_x >= curr_window->x && mouse_x < (curr_window->x + curr_window->width) &&
-					mouse_y >= curr_window->y && mouse_y < (curr_window->y + curr_window->height)) {
+				if(curr_desktop->mouse_x >= curr_window->x && curr_desktop->mouse_x < (curr_window->x + curr_window->width) &&
+					curr_desktop->mouse_y >= curr_window->y && curr_desktop->mouse_y < (curr_window->y + curr_window->height)) {
 					//put this window at the head of the list
 					delete_node(curr_desktop->children, i);
 					add_to_list(curr_desktop->children, (void*)curr_window);
 
 					//offset between mouse and the window being dragged
-					curr_desktop->drag_offset_x = mouse_x - curr_window->x;
-					curr_desktop->drag_offset_y = mouse_y - curr_window->y;
+					curr_desktop->drag_offset_x = curr_desktop->mouse_x - curr_window->x;
+					curr_desktop->drag_offset_y = curr_desktop->mouse_y - curr_window->y;
 					curr_desktop->drag_window = curr_window;
 
 					break;
@@ -310,8 +310,8 @@ void mouse_update(desktop* curr_desktop, uint16_t mouse_x, uint16_t mouse_y, uin
 
 	//check if drag window is there
 	if(curr_desktop->drag_window) {
-		curr_desktop->drag_window->x = mouse_x - curr_desktop->drag_offset_x;
-		curr_desktop->drag_window->y = mouse_y - curr_desktop->drag_offset_y;
+		curr_desktop->drag_window->x = curr_desktop->mouse_x - curr_desktop->drag_offset_x;
+		curr_desktop->drag_window->y = curr_desktop->mouse_y - curr_desktop->drag_offset_y;
 	}
 
 	//update the screen

@@ -149,7 +149,7 @@ void process_code(uint8_t scancode) {
 			//backspace is pressed
 			if(scancode == SCANCODE_BACKSPACE) {
 				if(terminals[active_terminal].buffer_index > 0) {
-					terminals[active_terminal].keyboard_buffer[terminals[active_terminal].buffer_index-1] = ' ';
+					terminals[active_terminal].keyboard_buffer[terminals[active_terminal].buffer_index-1] = '\0';
 					terminals[active_terminal].buffer_index--;
 					update_coordinate();
 					putc(terminals[active_terminal].keyboard_buffer[terminals[active_terminal].buffer_index]);

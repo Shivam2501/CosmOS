@@ -176,7 +176,7 @@ entry (unsigned long magic, unsigned long addr)
 	i8259_init();
 
 	init_paging();
-	
+
 	kernel_mem_init();
 	//pit_init();
 	init_desktop();
@@ -199,7 +199,7 @@ entry (unsigned long magic, unsigned long addr)
 	clear_desktop(curr_desktop);
 
     new_window_desktop(curr_desktop, 10, 10, 200, 100, 17);
-    // new_window_desktop(curr_desktop, 100, 150, 100, 100, 15);
+    new_window_desktop(curr_desktop, 200, 100, 200, 100, 24);
     // new_window_desktop(curr_desktop, 200, 100, 300, 150, 24);
     
     desktop_paint(curr_desktop);
