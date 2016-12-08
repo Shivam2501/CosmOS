@@ -5,9 +5,9 @@
 #include "modex.h"
 #include "memory_allocator.h"
 
-#define WINDOW_BACKGROUND	0
-#define WINDOW_TITLE		63
-#define WINDOW_BORDER		1
+#define WINDOW_BACKGROUND	63
+#define WINDOW_TITLE		1
+#define WINDOW_BORDER		0
 
 typedef struct rectangle {
 	int32_t top;

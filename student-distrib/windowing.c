@@ -410,11 +410,11 @@ void window_paint(window* curr_window) {
 		curr_window->width - 6, WINDOW_BORDER);
 
 	//title
-	draw_rectangle(curr_window->context, curr_window->x + 3, curr_window->y + 3,
-		curr_window->width - 6, 8, WINDOW_TITLE);
+	draw_rectangle(curr_window->context, curr_window->x + 1, curr_window->y + 1,
+		curr_window->width - 2, 8, WINDOW_TITLE);
 	//window
-	draw_rectangle(curr_window->context, curr_window->x + 3, curr_window->y + 14,
-		curr_window->width - 6, curr_window->height - 17, WINDOW_BACKGROUND);
+	draw_rectangle(curr_window->context, curr_window->x + 1, curr_window->y + 10,
+		curr_window->width - 2, curr_window->height - 11, WINDOW_BACKGROUND);
 }
 
 /*
