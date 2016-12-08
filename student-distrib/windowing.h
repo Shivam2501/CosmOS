@@ -5,6 +5,10 @@
 #include "modex.h"
 #include "memory_allocator.h"
 
+#define WINDOW_BACKGROUND	17
+#define WINDOW_TITLE		24
+#define WINDOW_BORDER		36
+
 typedef struct rectangle {
 	int32_t top;
 	int32_t left;
@@ -36,7 +40,6 @@ typedef struct window {
 	uint32_t width;
 	uint32_t height;
 	context* context;
-	uint32_t color;
 } window;
 
 typedef struct desktop {
@@ -57,15 +60,19 @@ void init_desktop();
 
 context* new_context(uint32_t width, uint32_t height, uint8_t* buffer);
 void add_rectangle(context* curr_context, rectangle* new_rectangle);
+void remove_rectangle(context* curr_context, rectangle* new_rectangle);
 void clear_rectangles(context* curr_context);
 void context_draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color);
+void draw_clipped_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
+	rectangle* clipped_rectangle, uint32_t color);
 void horiz_line(context* cont, uint32_t x, uint32_t y, uint32_t length, uint32_t color);
 void vert_line(context* cont, uint32_t x, uint32_t y, uint32_t length, uint32_t color);
 
 /* Window Functions */
-window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color, context* context);
+window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, context* context);
 void draw_rectangle(context* context, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color);
 void window_paint(window* window);
+List* overlapping_windows(desktop* curr_desktop, window* window);
 
 /* Rectangle Functions */
 rectangle* new_rectangle(int32_t top, int32_t left, int32_t bottom, int32_t right);

@@ -37,13 +37,13 @@ context* new_context(uint32_t width, uint32_t height, uint8_t* buffer) {
 }
 
 /*
- * add_rectangle
- *   DESCRIPTION: Add a new rectangle to the list of clipped rectangles
- *   INPUTS: context and the new rectangle to be added
+ * remove_rectangle
+ *   DESCRIPTION: Remove a rectangle from the list of clipped rectangles
+ *   INPUTS: context and the rectangle to be removed
  *   OUTPUTS: none
  *   RETURN VALUE: none
  */ 
-void add_rectangle(context* curr_context, rectangle* new_rectangle) {
+void remove_rectangle(context* curr_context, rectangle* new_rectangle) {
 	int i, j;
 	rectangle *curr_rectangle;
 
@@ -52,7 +52,13 @@ void add_rectangle(context* curr_context, rectangle* new_rectangle) {
 	for(i = 0; i < curr_context->clipped_rectangles->count; ) {
 		curr_rectangle = find_node(curr_context->clipped_rectangles, i);
 
-		//check if this rectangle in the list overlaps with the new rectangle
+		/* check if this rectangle in the list overlaps with the new rectangle.
+		stack overflow:
+		Cond1. If A's left edge is to the right of the B's right edge, - then A is Totally to right Of B
+		Cond2. If A's right edge is to the left of the B's left edge, - then A is Totally to left Of B
+		Cond3. If A's top edge is below B's bottom edge, - then A is Totally below B
+		Cond4. If A's bottom edge is above B's top edge, - then A is Totally above B
+		*/
 		if(!(curr_rectangle->left <= new_rectangle->right && 
 			curr_rectangle->right >= new_rectangle->left &&
 			curr_rectangle->top <= new_rectangle->bottom &&
@@ -77,7 +83,17 @@ void add_rectangle(context* curr_context, rectangle* new_rectangle) {
 
 		i = 0;
 	}
+}
 
+/*
+ * add_rectangle
+ *   DESCRIPTION: Add a new rectangle to the list of clipped rectangles
+ *   INPUTS: context and the new rectangle to be added
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
+void add_rectangle(context* curr_context, rectangle* new_rectangle) {
+	remove_rectangle(curr_context, new_rectangle);
 	add_to_list(curr_context->clipped_rectangles, new_rectangle);
 }
 
@@ -104,7 +120,7 @@ void clear_rectangles(context* curr_context) {
  *   OUTPUTS: none
  *   RETURN VALUE: pointer to the window struct
  */ 
-window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color, context* cont) {
+window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, context* cont) {
 
 	//allocate memory for a new window struct
 	window* new_window = (window*)kmalloc(sizeof(window));
@@ -118,7 +134,6 @@ window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint
 	new_window->width = width;
 	new_window->height = height;
 	new_window->context = cont;
-	new_window->color = color;
 
 	return new_window;
 }
@@ -290,22 +305,28 @@ void context_draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t widt
 }
 
 /*
- * draw_rectangle
- *   DESCRIPTION: Draw a rectangle
+ * draw_clipped_rectangle
+ *   DESCRIPTION: Draw a clipped rectangle
  *   INPUTS: context for framebuffer and rectangle coordinates
  *   OUTPUTS: none
  *   RETURN VALUE: none
  */ 
-void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
-	uint32_t current_x;
+void draw_clipped_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
+	rectangle* clipped_rectangle, uint32_t color) {
+	uint32_t curr_x;
 	uint32_t max_x = x + width;
-	uint32_t max_y = y + height;
+	uint32_t max_y = y + width;
 
 	//check bounds
-	if(max_x > cont->width)
-		max_x = cont->width;
-	if(max_y > cont->height)
-		max_y = cont->height;
+	if(x < clipped_rectangle->left)
+		x = clipped_rectangle->left
+	if(y < clipped_rectangle->top)
+		y = clipped_rectangle->top
+
+	if(max_x > clipped_rectangle->right + 1)
+		max_x = clipped_rectangle->right + 1
+	if(max_y > clipped_rectangle->bottom + 1)
+		max_y = clipped_rectangle->bottom + 1
 
 	int index, plane, offset;
 	for(; y < max_y; y++) {
@@ -319,6 +340,51 @@ void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint3
 }
 
 /*
+ * draw_rectangle
+ *   DESCRIPTION: Draw a rectangle
+ *   INPUTS: context for framebuffer and rectangle coordinates
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
+void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
+	uint32_t current_x;
+	uint32_t max_x = x + width;
+	uint32_t max_y = y + height;
+
+	// //check bounds
+	// if(max_x > cont->width)
+	// 	max_x = cont->width;
+	// if(max_y > cont->height)
+	// 	max_y = cont->height;
+
+	// int index, plane, offset;
+	// for(; y < max_y; y++) {
+	// 	for(current_x = x; current_x < max_x; current_x++) {
+	// 		index = y * cont->width + current_x;
+	// 		plane = current_x % MODEX_PLANES;
+	// 		offset = (current_x / MODEX_PLANES) + (y * cont->width / MODEX_PLANES);
+	// 		cont->buffer[ ((MODE_X_MEM_SIZE / MODEX_PLANES) * plane) + offset] = color;
+	// 	}
+	// }
+
+	if(cont->clipped_rectangles->count) {
+		int i;
+		rectangle* clipped_area;
+		for(i = 0; i < cont->clipped_rectangles->count; i++) {
+			clipped_area = (rectangle*)find_node(cont->clipped_rectangles, i);
+			draw_clipped_rectangle(cont, x, y, width, height, clipped_area, color);
+		}
+	} else {
+		rectangle split_area;
+		split_area.top = 0;
+		split_area.left = 0;
+		split_area.bottom = cont->height - 1;
+		split_area.right = cont->width - 1;
+		draw_clipped_rectangle(cont, x, y, width, height, split_area, color);
+	}
+}
+
+/*
  * window_paint
  *   DESCRIPTION: Paint the window on the screen
  *   INPUTS: window struct
@@ -326,7 +392,29 @@ void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint3
  *   RETURN VALUE: none
  */ 
 void window_paint(window* curr_window) {
-	draw_rectangle(curr_window->context, curr_window->x, curr_window->y, curr_window->width, curr_window->height, curr_window->color);
+
+	//border
+	context_draw_rectangle(curr_window->context, curr_window->x, curr_window->y, 
+		curr_window->width, curr_window->height, WINDOW_BORDER);
+	context_draw_rectangle(curr_window->context, curr_window->x + 1, curr_window->y + 1, 
+		curr_window->width - 2, curr_window->height - 2, WINDOW_BORDER);
+	context_draw_rectangle(curr_window->context, curr_window->x + 2, curr_window->y + 2, 
+		curr_window->width - 4, curr_window->height - 4, WINDOW_BORDER);
+
+	//title border
+	horiz_line(curr_window->context, curr_window->x + 3, curr_window->x + 28,
+		curr_window->width - 6, WINDOW_BORDER);
+	horiz_line(curr_window->context, curr_window->x + 3, curr_window->x + 29,
+		curr_window->width - 6, WINDOW_BORDER);
+	horiz_line(curr_window->context, curr_window->x + 3, curr_window->x + 30,
+		curr_window->width - 6, WINDOW_BORDER);
+
+	//title
+	draw_rectangle(curr_window->context, curr_window->x + 3, curr_window->y + 3,
+		curr_window->width - 6, 25, WINDOW_TITLE);
+	//window
+	draw_rectangle(curr_window->context, curr_window->x + 3, curr_window->y + 31,
+		curr_window->width - 6, curr_window->height - 34, WINDOW_BACKGROUND);
 }
 
 /*
@@ -497,6 +585,44 @@ desktop* new_desktop(context* cont) {
 }
 
 /*
+ * overlapping_windows
+ *   DESCRIPTION: Find the overlapping windows of the current window
+ *   INPUTS: desktop and window
+ *   OUTPUTS: none
+ *   RETURN VALUE: list of windows 
+ */
+List* overlapping_windows(desktop* curr_desktop, window* window) {
+	List* overlap_windows = new_list();
+	if(overlap_windows == NULL)
+		return (List*)0;
+
+	//get the window in the desktop list
+	int i;
+	window* curr_window;
+	for(i = 0; i < curr_desktop->children->count; i++) {
+		curr_window = (window*)find_node(curr_desktop->children, i);
+		if(curr_window == window)
+			break;
+	}
+
+	//add the remaning windows to the overlapping list
+	for(; i < curr_desktop->children->count; i++) {
+		curr_window = (window*)find_node(curr_desktop->children, i);
+		/* check if the window overlaps and add it
+		stack overflow:
+		Cond1. If A's left edge is to the right of the B's right edge, - then A is Totally to right Of B
+		Cond2. If A's right edge is to the left of the B's left edge, - then A is Totally to left Of B
+		Cond3. If A's top edge is below B's bottom edge, - then A is Totally below B
+		Cond4. If A's bottom edge is above B's top edge, - then A is Totally above B
+		*/
+		if(curr_window->x <= (window->x + window->width - 1) && (curr_window->x + curr_window->width - 1) >= window->x
+			&& curr_window->y <= (window->y + window->height - 1) && (curr_window->y + curr_window->height - 1) >= window->y)
+			add_to_list(overlap_windows, curr_window);
+	}
+	return overlap_windows;
+}
+
+/*
  * new_desktop
  *   DESCRIPTION: Add a window to desktop
  *   INPUTS: desktop and info about the window
@@ -564,9 +690,9 @@ void mouse_update(desktop* curr_desktop, int32_t mouse_x, int32_t mouse_y, uint8
 			//iterate through all the windows
 			for(i = curr_desktop->children->count - 1; i >= 0; i--) {
 				curr_window = (window*)find_node(curr_desktop->children, i);
-				//check if this window was clicked
+				//check if this window was clicked (31 is the height of the title bar)
 				if(curr_desktop->mouse_x >= curr_window->x && curr_desktop->mouse_x < (curr_window->x + curr_window->width) &&
-					curr_desktop->mouse_y >= curr_window->y && curr_desktop->mouse_y < (curr_window->y + curr_window->height)) {
+					curr_desktop->mouse_y >= curr_window->y && curr_desktop->mouse_y < (curr_window->y + 31)) {
 					//put this window at the head of the list
 					delete_node(curr_desktop->children, i);
 					add_to_list(curr_desktop->children, (void*)curr_window);
@@ -608,13 +734,13 @@ void clear_desktop(desktop* curr_desktop) {
 }
 
 /*
- * desktop_paint
+ * old_desktop_paint
  *   DESCRIPTION: Draw all the windows in the desktop list
  *   INPUTS: desktop
  *   OUTPUTS: none
  *   RETURN VALUE: none
  */
-void desktop_paint(desktop* curr_desktop) {
+void old_desktop_paint(desktop* curr_desktop) {
 	// clear_desktop(curr_desktop);
 
 	// int i;
@@ -646,6 +772,65 @@ void desktop_paint(desktop* curr_desktop) {
 		curr_rectangle = (rectangle*)find_node(curr_desktop->context->clipped_rectangles, i);
 		context_draw_rectangle(curr_desktop->context, curr_rectangle->left, curr_rectangle->top,
 			curr_rectangle->right - curr_rectangle->left + 1, curr_rectangle->bottom - curr_rectangle->top + 1, 40);
+	}
+
+	//draw a rectangle for a mouse
+	draw_rectangle(curr_desktop->context, curr_desktop->mouse_x, curr_desktop->mouse_y, 
+		2, 2, 40);
+	outputBuffer();
+}
+
+/*
+ * desktop_paint
+ *   DESCRIPTION: Draw all the windows in the desktop list
+ *   INPUTS: desktop
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
+void desktop_paint(desktop* curr_desktop) {
+	//draw a rectangle for the desktop
+	rectangle* curr_rectangle = new_rectangle(0, 0, curr_desktop->context->height - 1, curr_desktop->context->width - 1);
+	add_rectangle(curr_desktop->context, curr_rectangle);
+
+	int i;
+	window* curr_window;
+	for(i = 0; i < curr_desktop->children->count; i++) {
+		curr_window = (window*)find_node(curr_desktop->children, i);
+		//subtract each window from desktop
+		curr_rectangle = new_rectangle(curr_window->y, curr_window->x, curr_window->y + curr_window->height - 1,
+			curr_window->x + curr_window->width - 1);
+		remove_rectangle(curr_desktop->context, curr_rectangle);
+		kfree(curr_rectangle);
+	}
+
+	draw_rectangle(curr_desktop->context, 0, 0, curr_desktop->context->width, curr_desktop->context->height, BACKGROUND_COLOR);
+	clear_rectangles(curr_desktop->context);
+
+	List* clipping_windows;
+	window* clipping_window;
+	//paint windows
+	for(i = 0; i < curr_desktop->children->count; i++) {
+		curr_window = (window*)find_node(curr_desktop->children, i);
+
+		curr_rectangle = new_rectangle(curr_window->y, curr_window->x, curr_window->y + curr_window->height - 1,
+			curr_window->x + curr_window->width - 1);
+		add_rectangle(curr_desktop->context, curr_rectangle);
+
+		clipping_windows = overlapping_windows(curr_desktop, curr_window);
+		while(clipping_windows->count) {
+			clipping_window = (window*)delete_node(clipping_windows, 0);
+			if(clipping_window == curr_window)
+				continue;
+
+			curr_rectangle = new_rectangle(clipping_window->y, clipping_window->x, clipping_window->y + clipping_window->height - 1,
+			clipping_window->x + clipping_window->width - 1);
+
+			remove_rectangle(curr_desktop->context, curr_rectangle);
+			kfree(curr_rectangle);
+		}
+		window_paint(curr_window);
+		kfree(clipping_windows);
+		clear_rectangles(curr_desktop->context);
 	}
 
 	//draw a rectangle for a mouse
