@@ -274,13 +274,27 @@ window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32
  *   OUTPUTS: none
  *   RETURN VALUE: none
  */
-void mouse_update(desktop* curr_desktop, uint16_t mouse_x, uint16_t mouse_y, uint8_t button) {
+void mouse_update(desktop* curr_desktop, int32_t mouse_x, int32_t mouse_y, uint8_t button) {
 
 	int i;
 	window* curr_window;
 
 	curr_desktop->mouse_x += mouse_x;
 	curr_desktop->mouse_y -= mouse_y;
+
+	//check bounds for x
+	if(curr_desktop->mouse_x < 0) {
+		curr_desktop->mouse_x = 0;
+	} else if(curr_desktop->mouse_x >= new_desktop->context->width) {
+		curr_desktop->mouse_x = new_desktop->context->width - 1;
+	}
+
+	//check bounds for y
+	if(curr_desktop->mouse_y < 0) {
+		curr_desktop->mouse_y = 0;
+	} else if(curr_desktop->mouse_x >= new_desktop->context->height) {
+		curr_desktop->mouse_x = new_desktop->context->height - 1;
+	}
 
 	//check if a button was pressed
 	if(button) {

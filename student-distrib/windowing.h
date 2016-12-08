@@ -11,6 +11,13 @@ typedef struct context {
 	uint32_t height;
 } context;
 
+typedef struct rectangle {
+	int32_t top;
+	int32_t left;
+	int32_t bottom;
+	int32_t right;
+} rectangle;
+
 typedef struct window {
 	uint32_t x;
 	uint32_t y;
@@ -63,7 +70,7 @@ window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32
 void desktop_paint(desktop* curr_desktop);
 void clear_desktop(desktop* curr_desktop);
 
-void mouse_update(desktop* curr_desktop, uint16_t mouse_x, uint16_t mouse_y, uint8_t button);
+void mouse_update(desktop* curr_desktop, int32_t mouse_x, int32_t mouse_y, uint8_t button);
 
 
 #endif
