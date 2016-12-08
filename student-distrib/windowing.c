@@ -3,12 +3,98 @@
 desktop* curr_desktop;
 
 void init_desktop() {
-	context* cont = (context*)kmalloc(sizeof(context));
-	cont->buffer = textBuffer;
-	cont->width = IMAGE_X_DIM;
-	cont->height = 200;
-
+	context* cont = new_context(IMAGE_X_DIM, 200, textBuffer);
 	curr_desktop = new_desktop(cont);
+}
+
+/*
+ * new_context
+ *   DESCRIPTION: Create a new context
+ *   INPUTS: members
+ *   OUTPUTS: none
+ *   RETURN VALUE: pointer to the context struct
+ */ 
+context* new_context(uint32_t width, uint32_t height, uint8_t* buffer) {
+
+	//allocate memory for a new window struct
+	context* new_context = (context*)kmalloc(sizeof(context));
+	//if malloc fails
+	if(new_context == NULL)
+		return NULL;	
+
+	new_context->clipped_rectangles = new_list();
+	if(new_context->clipped_rectangles == NULL) {
+		kfree(new_context);
+		return (context*)0;
+	}
+
+	//assign values if successful malloc
+	new_context->width = width;
+	new_context->height = height;
+	new_context->buffer = buffer;
+
+	return new_context;
+}
+
+/*
+ * add_rectangle
+ *   DESCRIPTION: Add a new rectangle to the list of clipped rectangles
+ *   INPUTS: context and the new rectangle to be added
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
+void add_rectangle(context* curr_context, rectangle* new_rectangle) {
+	int i, j;
+	rectangle *curr_rectangle;
+
+	List* curr_list;
+
+	for(i = 0; i < curr_context->clipped_rectangles->count; ) {
+		curr_rectangle = find_node(curr_context->clipped_rectangles, i);
+
+		//check if this rectangle in the list overlaps with the new rectangle
+		if(!(curr_rectangle->left <= new_rectangle->right && 
+			curr_rectangle->right >= new_rectangle->left &&
+			curr_rectangle->top <= new_rectangle->bottom &&
+			curr_rectangle->bottom >= new_rectangle->top)) {
+			i++;
+			continue;
+		}
+
+		delete_node(curr_context->clipped_rectangles, i);
+
+		//split the current rectangle 
+		curr_list = split_rectangle(curr_rectangle, new_rectangle);
+		kfree(curr_rectangle);
+
+		//copy all the rectangles from the split into the list
+		while(curr_list->count) {
+			curr_rectangle = (rectangle*)delete_node(curr_list, 0);
+			add_to_list(curr_context->clipped_rectangles, curr_rectangle);
+		}
+
+		kfree(curr_list);
+
+		i = 0;
+	}
+
+	add_to_list(curr_context->clipped_rectangles, new_rectangle);
+}
+
+/*
+ * clear_rectangles
+ *   DESCRIPTION: Clear the list of clipped rectangles
+ *   INPUTS: context
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
+void clear_rectangles(context* curr_context) {
+	rectangle* curr_rectangle;
+
+	while(curr_context->clipped_rectangles->count) {
+		curr_rectangle = (rectangle*)delete_node(curr_context->clipped_rectangles, 0);
+		kfree(curr_rectangle);
+	}
 }
 
 /*
@@ -35,6 +121,172 @@ window* new_window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint
 	new_window->color = color;
 
 	return new_window;
+}
+
+/*
+ * new_rectangle
+ *   DESCRIPTION: Construct a rectangle
+ *   INPUTS: boundaries
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */ 
+rectangle* new_rectangle(int32_t top, int32_t left, int32_t bottom, int32_t right) {
+	//allocate memory for a new rectangle struct
+	rectangle* new_rect = (rectangle*)kmalloc(sizeof(rectangle));
+	//if malloc fails
+	if(new_rect == NULL)
+		return NULL;	
+
+	//assign values if successful malloc
+	new_rect->top = top;
+	new_rect->left = left;
+	new_rect->bottom = bottom;
+	new_rect->right = right;
+
+	return new_rect;
+}
+
+/*
+ * split_rectangle
+ *   DESCRIPTION: Clip a lower rectangle by an upper rectangle
+ *   INPUTS: both the rectangle pointers
+ *   OUTPUTS: none
+ *   RETURN VALUE: list of rectangles
+ */ 
+List* split_rectangle(rectangle* lower_rectangle, rectangle* upper_rectangle) {
+	//list which stores the clipped rectangles
+	List* clipped_rectangle = new_list();
+
+	if(clipped_rectangle == NULL)
+		return (List*)0;
+
+	rectangle temp_rectangle; //store the rectangle we are going to clip
+
+	temp_rectangle.top = lower_rectangle->top;
+	temp_rectangle.left = lower_rectangle->left;
+	temp_rectangle.bottom = lower_rectangle->bottom;
+	temp_rectangle.right = lower_rectangle->right;
+
+	rectangle *new_rectangle;
+
+	//split by left edge
+	if((upper_rectangle->left <= temp_rectangle.right) && (upper_rectangle->left >= temp_rectangle.left)) {
+		/*create a new rectangle from 
+		temp_rectangle left, top, bottom
+		and upper rectangle's left boundary.
+		*/
+		new_rectangle = new_rectangle(temp_rectangle.top, temp_rectangle.left, temp_rectangle.bottom, 
+			upper_rectangle->left - 1);
+
+		//sanity check
+		if(new_rectangle == NULL) {
+			kfree(clipped_rectangle);
+			return (List*)0;
+		}
+
+		//if successfully cut then add it to the list of clipped rectangles
+		add_to_list(clipped_rectangle, new_rectangle);
+		temp_rectangle.left = upper_rectangle->left;
+	} 
+
+	//split by top edge
+	if((upper_rectangle->top <= temp_rectangle.bottom) && (upper_rectangle->top >= temp_rectangle.top)) {
+		/*create a new rectangle from 
+		temp_rectangle left, top, right
+		and upper rectangle's top boundary.
+		*/
+		new_rectangle = new_rectangle(temp_rectangle.top, temp_rectangle.left, upper_rectangle->top - 1, 
+			temp_rectangle.right);
+
+		//sanity check
+		if(new_rectangle == NULL) {
+			//empty the whole list
+			while(clipped_rectangle->count) {
+				new_rectangle = delete_node(clipped_rectangle, 0);
+				kfree(new_rectangle);
+			}
+			kfree(clipped_rectangle);
+			return (List*)0;
+		}
+
+		//if successfully cut then add it to the list of clipped rectangles
+		add_to_list(clipped_rectangle, new_rectangle);
+		temp_rectangle.top = upper_rectangle->top;
+	}
+
+	//split by right edge
+	if((upper_rectangle->right <= temp_rectangle.right) && (upper_rectangle->right >= temp_rectangle.left)) {
+		/*create a new rectangle from 
+		temp_rectangle bottom, top, right
+		and upper rectangle's right boundary.
+		*/
+		new_rectangle = new_rectangle(temp_rectangle.top, upper_rectangle->right + 1, temp_rectangle.bottom, 
+			temp_rectangle.right);
+
+		//sanity check
+		if(new_rectangle == NULL) {
+			//empty the whole list
+			while(clipped_rectangle->count) {
+				new_rectangle = delete_node(clipped_rectangle, 0);
+				kfree(new_rectangle);
+			}
+			kfree(clipped_rectangle);
+			return (List*)0;
+		}
+
+		//if successfully cut then add it to the list of clipped rectangles
+		add_to_list(clipped_rectangle, new_rectangle);
+		temp_rectangle.right = upper_rectangle->right;
+	}
+
+	//split by bottom edge
+	if((upper_rectangle->bottom <= temp_rectangle.bottom) && (upper_rectangle->bottom >= temp_rectangle.top)) {
+		/*create a new rectangle from 
+		temp_rectangle bottom, left, right
+		and upper rectangle's bottom boundary.
+		*/
+		new_rectangle = new_rectangle(upper_rectangle->bottom + 1, temp_rectangle.left, temp_rectangle.bottom, 
+			temp_rectangle.right);
+
+		//sanity check
+		if(new_rectangle == NULL) {
+			//empty the whole list
+			while(clipped_rectangle->count) {
+				new_rectangle = delete_node(clipped_rectangle, 0);
+				kfree(new_rectangle);
+			}
+			kfree(clipped_rectangle);
+			return (List*)0;
+		}
+
+		//if successfully cut then add it to the list of clipped rectangles
+		add_to_list(clipped_rectangle, new_rectangle);
+		temp_rectangle.bottom = upper_rectangle->bottom;
+	}
+
+	return clipped_rectangle;
+}
+
+void horiz_line(context* cont, uint32_t x, uint32_t y, uint32_t length, uint32_t color) {
+	draw_rectangle(curr_desktop->context, x, y, length, 1, 40);
+}
+
+void vert_line(context* cont, uint32_t x, uint32_t y, uint32_t length, uint32_t color) {
+	draw_rectangle(curr_desktop->context, x, y, 1, length, 40);
+}
+
+/*
+ * context_draw_rectangle
+ *   DESCRIPTION: Draw a context plane
+ *   INPUTS: context for framebuffer and plane coordinates
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ */
+void context_draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
+	horiz_line(cont, x, y, width, color);
+	vert_line(cont, x, y + 1, height - 2, color);
+	horiz_line(cont, x, y + height - 1, width, color);
+	vert_line(cont, x + width - 1, y + 1, height - 2, color);
 }
 
 /*
@@ -363,12 +615,38 @@ void clear_desktop(desktop* curr_desktop) {
  *   RETURN VALUE: none
  */
 void desktop_paint(desktop* curr_desktop) {
-	clear_desktop(curr_desktop);
+	// clear_desktop(curr_desktop);
 
-	int i;
+	// int i;
+	// window* curr_window;
+	// for(i = 0; (curr_window = (window*)find_node(curr_desktop->children, i));i++)
+	// 	window_paint(curr_window);
+
+	// //draw a rectangle for a mouse
+	// draw_rectangle(curr_desktop->context, curr_desktop->mouse_x, curr_desktop->mouse_y, 
+	// 	2, 2, 40);
+	// outputBuffer();
+
+	uint32_t i;
 	window* curr_window;
-	for(i = 0; (curr_window = (window*)find_node(curr_desktop->children, i));i++)
-		window_paint(curr_window);
+	rectangle* curr_rectangle;
+
+	//clear the background
+	clear_desktop();
+	clear_rectangles(curr_desktop->context);
+
+	for(i = 0; (curr_window = (window*)find_node(curr_desktop->children, i));i++){
+		curr_rectangle = new_rectangle(curr_window->y, curr_window->x, 
+			curr_window->y + curr_window->height - 1, curr_window->x + curr_window->width - 1);
+		add_rectangle(curr_desktop->context, curr_rectangle);
+	}
+
+	//draw the planes
+	for(i = 0; i < curr_desktop->context->clipped_rectangles->count; i++) {
+		curr_rectangle = (rectangle*)find_node(curr_desktop->context->clipped_rectangles, i);
+		context_draw_rectangle(curr_desktop->context, curr_rectangle->left, curr_rectangle->top,
+			curr_rectangle->right - curr_rectangle->left + 1, curr_rectangle->bottom - curr_rectangle->top + 1, 40);
+	}
 
 	//draw a rectangle for a mouse
 	draw_rectangle(curr_desktop->context, curr_desktop->mouse_x, curr_desktop->mouse_y, 
