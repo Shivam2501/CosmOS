@@ -347,15 +347,19 @@ void draw_clipped_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t widt
  *   RETURN VALUE: none
  */ 
 void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
-	// uint32_t current_x;
-	// uint32_t max_x = x + width;
-	// uint32_t max_y = y + height;
+	uint32_t current_x;
+	uint32_t max_x = x + width;
+	uint32_t max_y = y + height;
 
-	// //check bounds
-	// if(max_x > cont->width)
-	// 	max_x = cont->width;
-	// if(max_y > cont->height)
-	// 	max_y = cont->height;
+	//check bounds
+	if(x < 0)
+		x = 0;
+	if(y < 0)
+		y = 0;
+	if(max_x > cont->width)
+		max_x = cont->width;
+	if(max_y > cont->height)
+		max_y = cont->height;
 
 	// int index, plane, offset;
 	// for(; y < max_y; y++) {
@@ -367,6 +371,8 @@ void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint3
 	// 	}
 	// }
 
+	width = max_x - x;
+	height = max_y - y;
 	if(cont->clipped_rectangles->count) {
 		int i;
 		rectangle* clipped_area;
