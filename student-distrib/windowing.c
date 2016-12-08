@@ -44,7 +44,7 @@ context* new_context(uint32_t width, uint32_t height, uint8_t* buffer) {
  *   RETURN VALUE: none
  */ 
 void remove_rectangle(context* curr_context, rectangle* new_rectangle) {
-	int i, j;
+	int i;
 	rectangle *curr_rectangle;
 
 	List* curr_list;
@@ -283,11 +283,11 @@ List* split_rectangle(rectangle* lower_rectangle, rectangle* upper_rectangle) {
 }
 
 void horiz_line(context* cont, uint32_t x, uint32_t y, uint32_t length, uint32_t color) {
-	draw_rectangle(curr_desktop->context, x, y, length, 1, 40);
+	draw_rectangle(curr_desktop->context, x, y, length, 1, color);
 }
 
 void vert_line(context* cont, uint32_t x, uint32_t y, uint32_t length, uint32_t color) {
-	draw_rectangle(curr_desktop->context, x, y, 1, length, 40);
+	draw_rectangle(curr_desktop->context, x, y, 1, length, color);
 }
 
 /*
@@ -313,20 +313,20 @@ void context_draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t widt
  */ 
 void draw_clipped_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
 	rectangle* clipped_rectangle, uint32_t color) {
-	uint32_t curr_x;
+	uint32_t current_x;
 	uint32_t max_x = x + width;
 	uint32_t max_y = y + width;
 
 	//check bounds
 	if(x < clipped_rectangle->left)
-		x = clipped_rectangle->left
+		x = clipped_rectangle->left;
 	if(y < clipped_rectangle->top)
-		y = clipped_rectangle->top
+		y = clipped_rectangle->top;
 
 	if(max_x > clipped_rectangle->right + 1)
-		max_x = clipped_rectangle->right + 1
+		max_x = clipped_rectangle->right + 1;
 	if(max_y > clipped_rectangle->bottom + 1)
-		max_y = clipped_rectangle->bottom + 1
+		max_y = clipped_rectangle->bottom + 1;
 
 	int index, plane, offset;
 	for(; y < max_y; y++) {
@@ -347,9 +347,9 @@ void draw_clipped_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t widt
  *   RETURN VALUE: none
  */ 
 void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
-	uint32_t current_x;
-	uint32_t max_x = x + width;
-	uint32_t max_y = y + height;
+	// uint32_t current_x;
+	// uint32_t max_x = x + width;
+	// uint32_t max_y = y + height;
 
 	// //check bounds
 	// if(max_x > cont->width)
@@ -380,7 +380,7 @@ void draw_rectangle(context* cont, uint32_t x, uint32_t y, uint32_t width, uint3
 		split_area.left = 0;
 		split_area.bottom = cont->height - 1;
 		split_area.right = cont->width - 1;
-		draw_clipped_rectangle(cont, x, y, width, height, split_area, color);
+		draw_clipped_rectangle(cont, x, y, width, height, &split_area, color);
 	}
 }
 
@@ -411,10 +411,10 @@ void window_paint(window* curr_window) {
 
 	//title
 	draw_rectangle(curr_window->context, curr_window->x + 3, curr_window->y + 3,
-		curr_window->width - 6, 25, WINDOW_TITLE);
+		curr_window->width - 6, 8, WINDOW_TITLE);
 	//window
-	draw_rectangle(curr_window->context, curr_window->x + 3, curr_window->y + 31,
-		curr_window->width - 6, curr_window->height - 34, WINDOW_BACKGROUND);
+	draw_rectangle(curr_window->context, curr_window->x + 3, curr_window->y + 14,
+		curr_window->width - 6, curr_window->height - 17, WINDOW_BACKGROUND);
 }
 
 /*
@@ -591,17 +591,18 @@ desktop* new_desktop(context* cont) {
  *   OUTPUTS: none
  *   RETURN VALUE: list of windows 
  */
-List* overlapping_windows(desktop* curr_desktop, window* window) {
+List* overlapping_windows(desktop* curr_desktop, window* find_window) {
+	int i;
+	window* curr_window;
+
 	List* overlap_windows = new_list();
 	if(overlap_windows == NULL)
 		return (List*)0;
 
 	//get the window in the desktop list
-	int i;
-	window* curr_window;
 	for(i = 0; i < curr_desktop->children->count; i++) {
 		curr_window = (window*)find_node(curr_desktop->children, i);
-		if(curr_window == window)
+		if(curr_window == find_window)
 			break;
 	}
 
@@ -615,8 +616,8 @@ List* overlapping_windows(desktop* curr_desktop, window* window) {
 		Cond3. If A's top edge is below B's bottom edge, - then A is Totally below B
 		Cond4. If A's bottom edge is above B's top edge, - then A is Totally above B
 		*/
-		if(curr_window->x <= (window->x + window->width - 1) && (curr_window->x + curr_window->width - 1) >= window->x
-			&& curr_window->y <= (window->y + window->height - 1) && (curr_window->y + curr_window->height - 1) >= window->y)
+		if(curr_window->x <= (find_window->x + find_window->width - 1) && (curr_window->x + curr_window->width - 1) >= find_window->x
+			&& curr_window->y <= (find_window->y + find_window->height - 1) && (find_window->y + find_window->height - 1) >= find_window->y)
 			add_to_list(overlap_windows, curr_window);
 	}
 	return overlap_windows;
@@ -629,8 +630,8 @@ List* overlapping_windows(desktop* curr_desktop, window* window) {
  *   OUTPUTS: none
  *   RETURN VALUE: window created
  */
-window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color) {
-	window* curr_window = new_window(x, y, width, height, color, curr_desktop->context);
+window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+	window* curr_window = new_window(x, y, width, height, curr_desktop->context);
 
 	if(curr_window == NULL)
 		return NULL;
@@ -690,9 +691,9 @@ void mouse_update(desktop* curr_desktop, int32_t mouse_x, int32_t mouse_y, uint8
 			//iterate through all the windows
 			for(i = curr_desktop->children->count - 1; i >= 0; i--) {
 				curr_window = (window*)find_node(curr_desktop->children, i);
-				//check if this window was clicked (31 is the height of the title bar)
+				//check if this window was clicked (14 is the height of the title bar)
 				if(curr_desktop->mouse_x >= curr_window->x && curr_desktop->mouse_x < (curr_window->x + curr_window->width) &&
-					curr_desktop->mouse_y >= curr_window->y && curr_desktop->mouse_y < (curr_window->y + 31)) {
+					curr_desktop->mouse_y >= curr_window->y && curr_desktop->mouse_y < (curr_window->y + 14)) {
 					//put this window at the head of the list
 					delete_node(curr_desktop->children, i);
 					add_to_list(curr_desktop->children, (void*)curr_window);

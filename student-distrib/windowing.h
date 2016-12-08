@@ -5,9 +5,9 @@
 #include "modex.h"
 #include "memory_allocator.h"
 
-#define WINDOW_BACKGROUND	17
-#define WINDOW_TITLE		24
-#define WINDOW_BORDER		36
+#define WINDOW_BACKGROUND	0
+#define WINDOW_TITLE		63
+#define WINDOW_BORDER		1
 
 typedef struct rectangle {
 	int32_t top;
@@ -87,7 +87,7 @@ void* delete_node(List* curr_list, uint32_t index);
 
 /* Desktop Functions */
 desktop* new_desktop(context* cont);
-window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color);
+window* new_window_desktop(desktop* curr_desktop, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 void desktop_paint(desktop* curr_desktop);
 void clear_desktop(desktop* curr_desktop);
 
