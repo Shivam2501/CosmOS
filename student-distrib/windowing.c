@@ -278,22 +278,32 @@ void mouse_update(desktop* curr_desktop, int32_t mouse_x, int32_t mouse_y, uint8
 
 	int i;
 	window* curr_window;
-
-	curr_desktop->mouse_x += mouse_x;
-	curr_desktop->mouse_y -= mouse_y;
+	int temp;
+	if(mouse_x) {
+		temp = mouse_x;
+		if(mouse_x < 0)
+			temp *= -1;
+		curr_desktop->mouse_x += mouse_x / temp;
+	}
+	if(mouse_y) {
+		temp = mouse_y;
+		if(mouse_y < 0)
+			temp *= -1;
+		curr_desktop->mouse_y -= mouse_y / temp;
+	}
 
 	//check bounds for x
 	if(curr_desktop->mouse_x < 0) {
 		curr_desktop->mouse_x = 0;
-	} else if(curr_desktop->mouse_x >= new_desktop->context->width) {
-		curr_desktop->mouse_x = new_desktop->context->width - 1;
+	} else if(curr_desktop->mouse_x >= curr_desktop->context->width) {
+		curr_desktop->mouse_x = curr_desktop->context->width - 1;
 	}
 
 	//check bounds for y
 	if(curr_desktop->mouse_y < 0) {
 		curr_desktop->mouse_y = 0;
-	} else if(curr_desktop->mouse_x >= new_desktop->context->height) {
-		curr_desktop->mouse_x = new_desktop->context->height - 1;
+	} else if(curr_desktop->mouse_y >= curr_desktop->context->height) {
+		curr_desktop->mouse_y = curr_desktop->context->height - 1;
 	}
 
 	//check if a button was pressed

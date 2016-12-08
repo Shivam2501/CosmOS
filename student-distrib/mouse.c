@@ -108,6 +108,7 @@ void mouse_init() {
  *   RETURN VALUE: none
  */
 void mouse_handler() {
+	cli();
 	//check interrupt from mouse(0x20)
 	if(((inb(SIGNAL_PORT) & 0x1) != 0) && ((inb(SIGNAL_PORT) & 0x20) != 0)) {
 		uint8_t byte1 = inb(DATA_PORT);
@@ -171,6 +172,8 @@ void mouse_handler() {
 
 	}
 	send_eoi(MOUSE_IRQ);
+
+	sti();
 }
 
 void handle_mouse_movement(int32_t delta_x, int32_t delta_y) {

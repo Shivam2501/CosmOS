@@ -42,8 +42,8 @@ typedef struct desktop {
 	List* children; 
 	context* context;
 	uint8_t left_button_state;
-	uint16_t mouse_x;
-	uint16_t mouse_y;
+	int32_t mouse_x;
+	int32_t mouse_y;
 
 	window* drag_window;
 	uint16_t drag_offset_x;
